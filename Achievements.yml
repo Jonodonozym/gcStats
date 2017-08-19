@@ -1,0 +1,33 @@
+#######################################################
+##                                                   ##
+##       Achievements.yml for GC Stats Tracker       ##
+##                                                   ##
+#######################################################
+
+# Types of achievements:
+#   - PLAY_TIME_SECONDS
+#   - KILLS
+#   - DEATHS
+#   - KDR
+#   - BLOCKS_MINED
+#   - BLOCKS_PLACED
+#   - MOB_KILLS
+#   - EXP_GAINED
+#   - KOTH_WINS
+
+
+achievements:
+  Butcher: 
+    type: MOB_KILLS
+    icon: 
+    description: Kill {required} mobs
+    required:
+      - 10
+      - 100
+      - 1000
+      - 10000
+    points:
+      - 1
+      - 2
+      - 3
+      - 4

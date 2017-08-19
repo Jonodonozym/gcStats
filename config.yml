@@ -1,0 +1,31 @@
+#######################################################
+##                                                   ##
+##          Config.yml for GC Stats Tracker          ##
+##                                                   ##
+#######################################################
+
+broadcastInfo:
+  enabled: false
+  intervalMinutes: 10
+
+server:
+  name: "defaultName"
+
+database:
+  URL: "localhost"
+  name: ""
+  username: ""
+  password: "" 
+
+statsEnabled:
+  PLAY_TIME_SECONDS: false
+  KILLS: false
+  DEATHS: false
+  KDR: false
+  HEAD_DROPS: false
+  KOTH_WINS: false
+  BLOCKS_MINED: false
+  BLOCKS_PLACED: false
+  MOB_KILLS: false
+  EXP_GAINED: false
+  DIST_WALKED: false
