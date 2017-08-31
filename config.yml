@@ -4,21 +4,38 @@
 ##                                                   ##
 #######################################################
 
+## Randomly broadcasts reminders to earn achievements with /gca for rewards
 broadcastInfo:
   enabled: false
-  intervalMinutes: 10
+  intervalMinutesMin: 10
+  intervalMinutesMax: 20
+  message:
+    - §7====================[ §2Achievements §7]===================
+    - §FEach achievements in /gca to earn achievement points!
+    - §FSpend points at /gca shop
+    - §7=======================================================
+  
+## Happens when a player earns an achievement
+achievementNotification:
+  doFirework: true
+  doMessage: true
 
+## Name of the server in the database
 server:
   name: "defaultName"
+  icon: "INK_SACK"
+  iconDamage: 2
 
+## Guess what this does!!!
 database:
   URL: "localhost"
   name: ""
   username: ""
   password: "" 
 
+## Enabling then disabling will truncate (delete) the old data for the disabled stat types
 statsEnabled:
-  PLAY_TIME_SECONDS: false
+  PLAY_TIME: false
   KILLS: false
   DEATHS: false
   KDR: false

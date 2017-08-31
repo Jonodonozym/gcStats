@@ -17,9 +17,9 @@ import subside.plugins.koth.gamemodes.RunningKoth.EndReason;
 
 public class KothWin implements Listener{
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority=EventPriority.LOWEST)
 	public void onKothEvent(KothEndEvent e){
-		if (Config.statEnabled.get(StatType.KOTH_WINS) && e.getReason().equals(EndReason.WON)){
+		if (Config.enabledStats.contains(StatType.KOTH_WINS) && e.getReason().equals(EndReason.WON)){
 			Collection<Player> players = e.getWinner().getAvailablePlayers(e.getKoth());
 			for (Player p: players){
 				SqlApi.addStat(Config.dbConnection, p, StatType.KOTH_WINS, 1);

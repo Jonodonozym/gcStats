@@ -8,16 +8,22 @@ import jdz.statsTracker.main.Main;
 public class TimedTask {
 	private boolean isRunning = false;
 	private final BukkitRunnable runnable;
-	private final int time;
-	
-	public TimedTask(int time, Task t){
+	private int nextDuration = 0;
+
+	public TimedTask(int minTime, int maxTime, Task t){
 		runnable = new BukkitRunnable() {
 			@Override
 			public void run() {
-				t.execute();
+				if (nextDuration-- == 0){
+					t.execute();
+					nextDuration = (int)(Math.random()*(maxTime-minTime)+minTime);
+				}
 			}
 		};
-		this.time = time;
+	}
+	
+	public TimedTask(int time, Task t){
+		this(time, time, t);
 	}
 	
 	public void run(){
@@ -26,7 +32,7 @@ public class TimedTask {
 	
 	public void start() {
 		if (!isRunning) {
-			runnable.runTaskTimerAsynchronously(Main.plugin, 0, time);
+			runnable.runTaskTimerAsynchronously(Main.plugin, 0, 1);
 			isRunning = true;
 		}
 	}

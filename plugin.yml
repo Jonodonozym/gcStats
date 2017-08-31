@@ -1,5 +1,5 @@
 main: jdz.statsTracker.main.Main
-name: gcStatsTracker
+name: gcStats
 version: 1.0
 author: Jonodonozym
 description: Tracks player stats and achievements, storing them on an SQL database
@@ -8,30 +8,18 @@ softdepend: [BountyHunters,KOTH]
 commands:
   gca:
     description: Displays your achievements
+    aliases: [gcach,gcachievement,gcachievements]
     usage: |
       /gca - shows your achievements for all servers
-      /gcs (player) - shows the achievements of another player
+      /gca about - info about the plugin
   gcs:
     description: Displays your stats
+    aliases: [gcstats,gcstat]
     usage: |
-      /gcs - shows stats for your current server
+      /gcs - shows your stats for your current server
       /gcs servers - lists avaliable servers
-      /gcs (server) (player) - stats for another server and player
-      /gcs top [stat] (server) - lists the top for the stats
-      /gcs rank [stat] (server) - displays your ranking in a certain stat
-    
+      /gcs (server) - shows stats for another server
+      /gcs (player) - shows stats for another player
+      /gcs (player) (server) - shows stats for another player on another server
+      /gcs about - info about the plugin
       
-permissions:
-  gcs.self:
-    description: gives access to all gcs commands, only directed at oneself
-    default: true
-  gcs.all:
-    description: gives access to all gcs commands, directed at any player
-    default: true
-  gca.self:
-    description: gives access to all gca commands, only directed at oneself
-    default: true
-  gca.all:
-    description: gives access to all gca commands, directed at any player
-    default: false
-    

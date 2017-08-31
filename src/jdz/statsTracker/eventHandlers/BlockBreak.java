@@ -13,9 +13,9 @@ import jdz.statsTracker.util.SqlApi;
 
 public class BlockBreak implements Listener {
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority=EventPriority.LOWEST)
 	public void onBlockBreak(BlockBreakEvent e){
-		if (Config.statEnabled.get(StatType.BLOCKS_MINED)){
+		if (Config.enabledStats.contains(StatType.BLOCKS_MINED)){
 			SqlApi.addStat(Config.dbConnection, e.getPlayer(), StatType.BLOCKS_MINED, 1);
 			AchievementData.updateAchievements(e.getPlayer(), StatType.BLOCKS_MINED);
 		}

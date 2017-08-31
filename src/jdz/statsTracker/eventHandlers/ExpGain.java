@@ -13,9 +13,9 @@ import jdz.statsTracker.util.SqlApi;
 
 public class ExpGain implements Listener {
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onExpGain(PlayerExpChangeEvent e) {
-		if (Config.statEnabled.get(StatType.EXP_GAINED) && e.getAmount() > 0) {
+		if (Config.enabledStats.contains(StatType.EXP_GAINED) && e.getAmount() > 0) {
 			SqlApi.addStat(Config.dbConnection, e.getPlayer(), StatType.EXP_GAINED, e.getAmount());
 			AchievementData.updateAchievements(e.getPlayer(), StatType.EXP_GAINED);
 		}

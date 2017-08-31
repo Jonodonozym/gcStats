@@ -14,11 +14,15 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import jdz.statsTracker.achievement.Achievement;
 import jdz.statsTracker.main.Config;
 import jdz.statsTracker.stats.StatType;
+import net.md_5.bungee.api.ChatColor;
 
 /**
  * Utility class with static methods to interact with the sql database
@@ -27,8 +31,10 @@ import jdz.statsTracker.stats.StatType;
  */
 public class SqlApi {
 	public static final String driver = "com.mysql.jdbc.Driver";
-	public static final String achievementPointsTable = "Achievement_Points";
-	public static final String achievementMetaTable = "Achievement_MetaData";
+	public static final String achievementPointsTable = "gcs_Achievement_Points";
+	public static final String achievementMetaTable = "gcs_Achievement_MetaData";
+	public static final String serverMetaTable = "gcs_Server_MetaData";
+	public static final String statsMetaTable = "gcs_Stat_MetaData";
 
 	/**
 	 * Opens a new connection to a specified SQL database If it fails 3 times,
@@ -48,7 +54,7 @@ public class SqlApi {
 			}
 
 			String url = "jdbc:mysql://" + host + ":" + port + "/" + databaseName + "?user=" + username + "&password="
-					+ password + "&loginTimeout=1000";
+					+ password + "&loginTimeout=1000&useSSL=false";
 
 			Connection connection = DriverManager.getConnection(url, username, password);
 			connection.setNetworkTimeout(Executors.newFixedThreadPool(2), 15000);
@@ -80,23 +86,48 @@ public class SqlApi {
 		}
 		return false;
 	}
+	
+
+	
+	public static void setServerMeta(Connection dbConnection, String server, Material m, short damage){
+		String update = "REPLACE into "+serverMetaTable+" (server, iconMaterial, iconDamage) values('"+server+"','"+m+"',"+damage+");";
+		executeUpdate(dbConnection, update);
+	}
+	
+	public static ItemStack getServerIcon(Connection dbConnection, String server){
+		String query = "Select iconMaterial, iconDamage FROM "+serverMetaTable+" WHERE server = '"+server+"';";
+		List<String[]> list = fetchRows(dbConnection, query);
+		Material m =  Material.valueOf(list.get(0)[0]);
+		short damage = Short.parseShort(list.get(0)[1]);
+		ItemStack is = new ItemStack(m, 1, damage);
+		ItemMeta im = is.getItemMeta();
+		im.setDisplayName(ChatColor.GREEN+server);
+		is.setItemMeta(im);
+		return is;
+	}
+	
 
 	public static void addPlayer(Connection dbConnection, Player p) {
-		String update = "BEGIN IF NOT EXISTS (SELECT * FROM " + getStatTableName() + ") WHERE UUID = '" + p.getName()
-				+ "' BEGIN INSERT INTO " + getStatTableName() + " (UUID) VALUES ('" + p.getName() + "') END END";
-		executeUpdate(dbConnection, update);
-		
-		update = "BEGIN IF NOT EXISTS (SELECT * FROM " + achievementPointsTable + ") WHERE UUID = '" + p.getName()
-				+ "' BEGIN INSERT INTO " + achievementPointsTable + " (UUID) VALUES ('" + p.getName() + "') END END";
-		executeUpdate(dbConnection, update);
-		
-		update = "BEGIN IF NOT EXISTS (SELECT * FROM " + getAchTableName() + ") WHERE UUID = '" + p.getName()
-		+ "' BEGIN INSERT INTO " + getAchTableName() + " (UUID) VALUES ('" + p.getName() + "') END END";
-		executeUpdate(dbConnection, update);
+		String update = "INSERT INTO {table} (UUID) "+
+			    "SELECT '"+p.getName()+"' FROM dual "+
+			    "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '"+p.getName()+"' ) LIMIT 1;";
+		executeUpdate(dbConnection, update.replaceAll("\\{table\\}",achievementPointsTable));
+		for (String server: getServers(dbConnection)){
+			executeUpdate(dbConnection, update.replaceAll("\\{table\\}",getStatTableName(server)));
+			executeUpdate(dbConnection, update.replaceAll("\\{table\\}",getAchTableName(server)));
+		}
+	}
+	
+	public static boolean hasPlayer(Connection dbConnection, String server, OfflinePlayer offlinePlayer){
+		if (offlinePlayer == null)
+			return false;
+		String query = "SELECT * FROM " + getStatTableName(server) + " WHERE UUID = '"+offlinePlayer.getName()+"';";
+		List<String[]> result= fetchRows(dbConnection, query);
+		return (!result.isEmpty());
 	}
 
 	public static void awardAchievementPoints(Connection dbConnection, Player p, int points) {
-		String update = "UPDATE " + achievementPointsTable + " SET " + getStatTableName() + " = " + getStatTableName()
+		String update = "UPDATE " + achievementPointsTable + " SET " + Config.serverName + " = " + Config.serverName
 				+ " + " + points + " WHERE UUID = '" + p.getName() + "';";
 		executeUpdate(dbConnection, update);
 	}
@@ -125,40 +156,40 @@ public class SqlApi {
 		List<Achievement> achievements = new ArrayList<Achievement>();
 		for(String[] s: result){
 			String name = s[1];
-			StatType statType = StatType.valueOf(s[2]);
+			String statType = s[2];
 			double required = Double.parseDouble(s[3]);
 			int points = Integer.parseInt(s[4]);
 			Material m = Material.valueOf(s[5]);
-			String description = s[6];
+			short iconDamage = Short.parseShort(s[6]);
+			String description = s[7];
 			
-			achievements.add(new Achievement(name, statType, required, points, m, description, server));
+			achievements.add(new Achievement(name, statType, required, points, m, iconDamage, description, server));
 		}
 		return achievements;
 	}
 
 	public static boolean isAchieved(Connection dbConnection, Player p, Achievement a) {
-		String query = "SELECT "+a.name+" FROM "+getAchTableName(a.server)+" WHERE UUID = '"+p.getName()+"';";
-		return Boolean.parseBoolean(fetchRows(dbConnection, query).get(0)[0]);
+		String query = "SELECT "+a.name.replace(' ', '_')+" FROM "+getAchTableName(a.server)+" WHERE UUID = '"+p.getName()+"';";
+		return Integer.parseInt(fetchRows(dbConnection, query).get(0)[0]) == 1;
 	}
 
 	public static void setAchieved(Connection dbConnection, Player p, Achievement a) {
 		if(!isAchieved(dbConnection, p, a)){
-			String update = "UPDATE "+getAchTableName(a.server)+" SET "+a.name+" = true WHERE UUID = '" + p.getName() +"';";
+			String update = "UPDATE "+getAchTableName(a.server)+" SET "+a.name.replace(' ', '_')+" = true WHERE UUID = '" + p.getName() +"';";
 			executeUpdate(dbConnection, update);
 			awardAchievementPoints(dbConnection, p, a.points);
+			a.doFirework(p);
 		}
 	}
-	
-	
 
-	public static int getStat(Connection dbConnection, Player p, StatType stat) {
-		return getStat(dbConnection, p, stat, Config.serverName);
+	public static double getStat(Connection dbConnection, Player p, String statType) {
+		return getStat(dbConnection, p, statType, Config.serverName);
 	}
 
-	public static int getStat(Connection dbConnection, Player p, StatType stat, String server) {
-		String query = "SELECT " + stat + " FROM " + getStatTableName(server) + " WHERE UUID = '" + p.getName() + "';";
+	public static double getStat(Connection dbConnection, OfflinePlayer offlinePlayer, String statType, String server) {
+		String query = "SELECT " + statType + " FROM " + getStatTableName(server) + " WHERE UUID = '" + offlinePlayer.getName() + "';";
 		List<String[]> values = fetchRows(dbConnection, query);
-		return Integer.parseInt(values.get(0)[0]);
+		return Double.parseDouble(values.get(0)[0]);
 	}
 
 	public static void setStat(Connection dbConnection, Player p, StatType stat, double newValue) {
@@ -178,21 +209,25 @@ public class SqlApi {
 		servers.remove("UUID");
 		return servers;
 	}
-
+	
+	public static boolean hasServer(Connection dbConnection, String server){
+		return (getServers(dbConnection).contains(server));
+	}
+	
 	public static void ensureCorrectPointsTable(Connection dbConnection) {
-		String update = "CREATE TABLE IF NOT EXISTS '" + achievementPointsTable + "' (UUID varchar(127));";
+		String update = "CREATE TABLE IF NOT EXISTS " + achievementPointsTable + " (UUID varchar(127));";
 		executeUpdate(dbConnection, update);
 
 		List<String> columns = fetchColumns(dbConnection, achievementPointsTable);
 		if (!columns.contains(Config.serverName))
 			executeUpdate(dbConnection,
-					"ALTER TABLE " + achievementPointsTable + " ADD COLUMN " + Config.serverName + " DOUBLE NOT NULL");
+					"ALTER TABLE " + achievementPointsTable + " ADD COLUMN " + Config.serverName + " DOUBLE default 0");
 	}
 
 	public static void ensureCorrectAchMetaTable(Connection dbConnection, HashMap<StatType, List<Achievement>> localAchievements) {
-		String update = "CREATE TABLE IF NOT EXISTS '" + achievementMetaTable + "'"
+		String update = "CREATE TABLE IF NOT EXISTS " + achievementMetaTable 
 				+ "(server varchar(127), name varchar(127), statType varchar(63), required double, points int,"
-				+ "icon varchar(63), description varchar(1024));";
+				+ "icon varchar(63), iconDamage int, description varchar(1024));";
 		executeUpdate(dbConnection, update);
 		
 		update = "DELETE FROM "+achievementMetaTable+" WHERE server = '"+Config.serverName+"';";
@@ -201,58 +236,79 @@ public class SqlApi {
 		for(List<Achievement> list: localAchievements.values())
 			for(Achievement a: list){
 				update = "INSERT INTO "+achievementMetaTable+
-						" (server,name,statType,required,points,icon,description) VALUES"+
-						"('"+a.server+"','"+a.name+"','"+a.statType+"',"+a.required+","+a.points+",'"+
-						a.icon+"','"+a.description+"',);";
+						" (server,name,statType,required,points,icon,iconDamage,description) VALUES"+
+						"('"+a.server+"','"+a.name.replace(' ', '_')+"','"+a.statType+"',"+a.required+","+a.points+",'"+
+						a.icon+"',"+a.iconDamage+",'"+a.description+"');";
 				executeUpdate(dbConnection, update);
 			}
 	}
+	
+	public static void ensureCorrectStatMetaTable(Connection dbConnection){
+		String newTable = "CREATE TABLE IF NOT EXISTS "+statsMetaTable+" (server varchar(127));";
+		String newRow = "INSERT INTO "+statsMetaTable+" (server) "+
+			    "SELECT '"+Config.serverName+"' FROM dual "+
+			    "WHERE NOT EXISTS ( SELECT server FROM "+statsMetaTable+" WHERE server = '"+Config.serverName+"' ) LIMIT 1;";
+		executeUpdate(dbConnection, newTable);
+		executeUpdate(dbConnection, newRow);
+
+		String columnsAddBoolean = "ALTER TABLE " + statsMetaTable + " ADD COLUMN {column} Boolean NOT NULL default 0";
+		String setValue = "UPDATE "+statsMetaTable+" SET {column} = {value} WHERE server = '"+Config.serverName+"';";
+		Set<String> columns = new HashSet<String>();
+		columns.addAll(fetchColumns(dbConnection, statsMetaTable));
+		for(StatType s: StatType.values()){
+			if (!columns.contains(s.toString()))
+				executeUpdate(dbConnection, columnsAddBoolean.replaceAll("\\{column\\}", s.toString()));
+			executeUpdate(dbConnection, setValue.replaceAll("\\{column\\}", s.toString()).replaceAll("\\{value\\}", Config.enabledStats.contains(s)+""));
+		}
+	}
+	
+	public static void ensureCorrectServerMetaTable(Connection dbConnection){
+		String update = "CREATE TABLE IF NOT EXISTS "+serverMetaTable+" (server varchar(127), iconMaterial varchar(63), iconDamage int);";
+		executeUpdate(dbConnection, update);
+	}
 
 	public static void ensureCorrectAchTable(Connection dbConnection, HashMap<StatType, List<Achievement>> localAchievements) {
-		String update = "CREATE TABLE IF NOT EXISTS '" + getAchTableName() + "' (UUID varchar(127));";
-		String columnsAddBoolean = "ALTER TABLE " + getStatTableName() + " ADD COLUMN {column} Boolean NOT NULL default 0";
+		String update = "CREATE TABLE IF NOT EXISTS " + getAchTableName() + " (UUID varchar(127));";
+		String columnsAddBoolean = "ALTER TABLE " + getAchTableName() + " ADD COLUMN {column} Boolean NOT NULL default 0";
 		executeUpdate(dbConnection, update);
 
-		Set<String> columns = new HashSet<String>(fetchColumns(dbConnection, achievementPointsTable));
+		Set<String> columns = new HashSet<String>();
+		columns.addAll(fetchColumns(dbConnection, getAchTableName()));
+		
 		for(List<Achievement> list: localAchievements.values())
 			for(Achievement a: list)
-				if (!columns.contains(a.name))
-					executeUpdate(dbConnection, columnsAddBoolean.replaceAll("\\{column\\}", a.name));
+				if (!columns.contains(a.name.replace(' ', '_')))
+					executeUpdate(dbConnection, columnsAddBoolean.replaceAll("\\{column\\}", a.name.replace(' ', '_')));
 	}
 
 	public static void ensureCorrectStatTable(Connection dbConnection) {
-		String update = "CREATE TABLE IF NOT EXISTS '" + getStatTableName() + "' (UUID varchar(127));";
+		String update = "CREATE TABLE IF NOT EXISTS " + getStatTableName() + " (UUID varchar(127));";
 		executeUpdate(dbConnection, update);
 
 		String columnsAdd = "ALTER TABLE " + getStatTableName() + " ADD COLUMN {column} DOUBLE DEFAULT 0";
-		String columnsDrop = "ALTER TABLE DROP " + getStatTableName() + " COLUMN {column};";
 
 		List<String> columns = fetchColumns(dbConnection, getStatTableName());
 
-		for (StatType s : StatType.values()) {
-			if (Config.statEnabled.get(s)) {
+		for (StatType s : StatType.values())
+			if (Config.enabledStats.contains(s))
 				if (!columns.contains(s.toString()))
 					executeUpdate(dbConnection, columnsAdd.replaceAll("\\{column\\}", s.toString()));
-			} else if (columns.contains(s.toString()))
-				executeUpdate(dbConnection, columnsDrop.replaceAll("\\{column\\}", s.toString()));
-
-		}
 	}
 
-	private static String getStatTableName() {
+	public static String getStatTableName() {
 		return getStatTableName(Config.serverName);
 	}
 
-	private static String getStatTableName(String server) {
-		return "StatsTracker_" + server;
+	public static String getStatTableName(String server) {
+		return "gcs_stats_" + server;
 	}
 
-	private static String getAchTableName() {
+	public static String getAchTableName() {
 		return getAchTableName(Config.serverName);
 	}
 
-	private static String getAchTableName(String server) {
-		return "AchievementTracker_" + server;
+	public static String getAchTableName(String server) {
+		return "gcs_achievemnts_" + server;
 	}
 
 	/**
@@ -268,11 +324,11 @@ public class SqlApi {
 		try {
 			stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
+			int columns = rs.getMetaData().getColumnCount();
 			while (rs.next()) {
-				int size = rs.getFetchSize();
-				String[] row = new String[size];
-				for (int i = 0; i < size; i++)
-					row[i] = rs.getString(i);
+				String[] row = new String[columns];
+				for (int i = 1; i <= columns; i++)
+					row[i-1] = rs.getString(i);
 				if (row.length > 0)
 					rows.add(row);
 			}
@@ -292,7 +348,7 @@ public class SqlApi {
 
 	public static List<String> fetchColumns(Connection dbConnection, String table) {
 		List<String> columns = new ArrayList<String>();
-		String query = "SHOW columns FROM " + getStatTableName() + ";";
+		String query = "SHOW columns FROM " + table + ";";
 		Statement stmt = null;
 		try {
 			stmt = dbConnection.createStatement();
@@ -320,12 +376,12 @@ public class SqlApi {
 	 * @param Table
 	 * @return
 	 */
-	public static boolean hasTable(Connection connection, String Table) {
+	public static boolean hasTable(Connection dbConnection, String Table) {
 		boolean returnValue = false;
 		String query = "SHOW TABLES LIKE '" + Table + "';";
 		Statement stmt = null;
 		try {
-			stmt = connection.createStatement();
+			stmt = dbConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				returnValue = true;
@@ -350,10 +406,10 @@ public class SqlApi {
 	 * @param connection
 	 * @param update
 	 */
-	private static void executeUpdate(Connection connection, String update) {
+	private static void executeUpdate(Connection dbConnection, String update) {
 		Statement stmt = null;
 		try {
-			stmt = connection.createStatement();
+			stmt = dbConnection.createStatement();
 			stmt.executeUpdate(update);
 		} catch (SQLException e) {
 			ErrorLogger.createLog(e);
@@ -366,5 +422,23 @@ public class SqlApi {
 				}
 			}
 		}
+	}
+
+	public static List<String> getEnabledStats(Connection dbConnection, String server) {
+		List<String> enabledStats = new ArrayList<String>();
+		List<String> columns = fetchColumns(dbConnection, statsMetaTable);
+		
+		String query = "SELECT * FROM "+statsMetaTable+" WHERE server = '"+server+"';";
+		String[] row = fetchRows(dbConnection, query).get(0);
+		int i=0;
+		for (String s: columns){
+			try{
+				if (Integer.parseInt(row[i++]) == 1)
+					enabledStats.add(s);
+			}
+			catch (NumberFormatException e){}
+		}
+
+		return enabledStats;
 	}
 }

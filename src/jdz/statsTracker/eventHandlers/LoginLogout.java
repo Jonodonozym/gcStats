@@ -1,6 +1,7 @@
 
 package jdz.statsTracker.eventHandlers;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -15,18 +16,22 @@ import jdz.statsTracker.util.SqlApi;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class LoginLogout implements Listener{	
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.LOWEST)
 	public void onPlayerJoin(PlayerJoinEvent e){
-		PlayTimeRecorder.lastTime.put(e.getPlayer(), System.currentTimeMillis());
-		AchievementData.addPlayer(e.getPlayer());
-		SqlApi.addPlayer(Config.dbConnection, e.getPlayer());
+		setupPlayer(e.getPlayer());
+	}
+	
+	public static void setupPlayer(Player p){
+		SqlApi.addPlayer(Config.dbConnection, p);
+		PlayTimeRecorder.addPlayer(p);
+		AchievementData.addPlayer(p);
 	}
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.LOWEST)
 	public void onPlayerLeave(PlayerQuitEvent e){
-		SqlApi.addStat(Config.dbConnection, e.getPlayer(), StatType.PLAY_TIME_SECONDS, 
+		if (Config.enabledStats.contains(StatType.PLAY_TIME))
+		SqlApi.addStat(Config.dbConnection, e.getPlayer(), StatType.PLAY_TIME, 
 				(System.currentTimeMillis() - PlayTimeRecorder.lastTime.get(e.getPlayer()))/1000);
-		PlayTimeRecorder.lastTime.remove(e.getPlayer());
-		AchievementData.removePlayer(e.getPlayer());
+		PlayTimeRecorder.removePlayer(e.getPlayer());
 	}
 }

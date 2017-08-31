@@ -12,9 +12,9 @@ import jdz.statsTracker.util.SqlApi;
 import me.Indyuce.bh.ressource.HeadDropEvent;
 
 public class HeadDrop implements Listener {
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHeadDrop(HeadDropEvent e) {
-		if (Config.statEnabled.get(StatType.HEAD_DROPS)){
+		if (Config.enabledStats.contains(StatType.HEAD_DROPS)){
 			SqlApi.addStat(Config.dbConnection, e.getReciever(), StatType.HEAD_DROPS, 1);
 			AchievementData.updateAchievements(e.getReciever(), StatType.HEAD_DROPS);
 		}

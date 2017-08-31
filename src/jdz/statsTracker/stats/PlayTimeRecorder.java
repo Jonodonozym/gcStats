@@ -22,9 +22,21 @@ public class PlayTimeRecorder extends TimedTask{
 	private static Map<Player,Integer> strikes = new HashMap<Player,Integer>();
 	public static TimedTask task;
 
+	public static void addPlayer(Player p){
+		lastTime.put(p, System.currentTimeMillis());
+		lastLocation.put(p, p.getLocation());
+		strikes.put(p, 0);
+	}
+	
+	public static void removePlayer(Player p){
+		lastTime.remove(p);
+		lastLocation.remove(p);
+		strikes.remove(p);
+	}
+	
 	public PlayTimeRecorder() {
 		super(Config.afkTime/maxStrikes, ()->{
-			if (Config.statEnabled.get(StatType.PLAY_TIME_SECONDS))
+			if (Config.enabledStats.contains(StatType.PLAY_TIME))
 				for (Player p: Main.plugin.getServer().getOnlinePlayers()){
 					
 					// recording if afk
@@ -36,16 +48,20 @@ public class PlayTimeRecorder extends TimedTask{
 						strikes.put(p, 0);
 					
 					// if not afk, then updates time
-					if (strikes.get(p) < maxStrikes){
-						long time = System.currentTimeMillis();
-						if (!PlayTimeRecorder.isAfk(p))
-							SqlApi.addStat(Config.dbConnection, p, StatType.PLAY_TIME_SECONDS, 
-									(lastTime.get(p) - time)/1000);
-						AchievementData.updateAchievements(p, StatType.PLAY_TIME_SECONDS);
-						lastTime.put(p, time);
-					}
+					updateTime(p);
 				}
 		});
+	}
+	
+	public static void updateTime(Player p){
+		if (strikes.get(p) < maxStrikes){
+			long time = System.currentTimeMillis();
+			if (!PlayTimeRecorder.isAfk(p))
+				SqlApi.addStat(Config.dbConnection, p, StatType.PLAY_TIME, 
+						(time-lastTime.get(p))/1000);
+			AchievementData.updateAchievements(p, StatType.PLAY_TIME);
+			lastTime.put(p, time);
+		}
 	}
 	
 	public static boolean isAfk(Player p){

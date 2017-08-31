@@ -5,21 +5,26 @@
 #######################################################
 
 # Types of achievements:
-#   - PLAY_TIME_SECONDS
+#   - PLAY_TIME
 #   - KILLS
 #   - DEATHS
 #   - KDR
+#   - HEAD_DROPS (requires bounty plugin)
+#   - KOTH_WINS (requires KOTH plugin)
 #   - BLOCKS_MINED
 #   - BLOCKS_PLACED
 #   - MOB_KILLS
 #   - EXP_GAINED
-#   - KOTH_WINS
+#   - Dist_WALKED
 
+# For item icons names, see https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 
 achievements:
   Butcher: 
     type: MOB_KILLS
-    icon: 
+    icon: STONE_SWORD
+    iconDamage: # can remove this line if not used
+
     description: Kill {required} mobs
     required:
       - 10

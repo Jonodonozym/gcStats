@@ -14,9 +14,9 @@ import jdz.statsTracker.util.SqlApi;
 
 public class MobDeath implements Listener{
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority=EventPriority.LOWEST)
 	public void onMobDeath(EntityDeathEvent e){
-		if (Config.statEnabled.get(StatType.MOB_KILLS)){
+		if (Config.enabledStats.contains(StatType.MOB_KILLS)){
 			Player p = e.getEntity().getKiller();
 			if (p != null){
 				SqlApi.addStat(Config.dbConnection, p, StatType.MOB_KILLS, 1);
