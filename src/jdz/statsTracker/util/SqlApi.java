@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -90,18 +91,18 @@ public class SqlApi {
 
 	
 	public static void setServerMeta(Connection dbConnection, String server, Material m, short damage){
-		String update = "REPLACE into "+serverMetaTable+" (server, iconMaterial, iconDamage) values('"+server+"','"+m+"',"+damage+");";
+		String update = "REPLACE into "+serverMetaTable+" (server, iconMaterial, iconDamage) values('"+server.replaceAll(" ", "_")+"','"+m+"',"+damage+");";
 		executeUpdate(dbConnection, update);
 	}
 	
 	public static ItemStack getServerIcon(Connection dbConnection, String server){
-		String query = "Select iconMaterial, iconDamage FROM "+serverMetaTable+" WHERE server = '"+server+"';";
+		String query = "Select iconMaterial, iconDamage FROM "+serverMetaTable+" WHERE server = '"+server.replaceAll(" ", "_")+"';";
 		List<String[]> list = fetchRows(dbConnection, query);
 		Material m =  Material.valueOf(list.get(0)[0]);
 		short damage = Short.parseShort(list.get(0)[1]);
 		ItemStack is = new ItemStack(m, 1, damage);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GREEN+server);
+		im.setDisplayName(ChatColor.GREEN+server.replaceAll("_", " "));
 		is.setItemMeta(im);
 		return is;
 	}
@@ -121,19 +122,19 @@ public class SqlApi {
 	public static boolean hasPlayer(Connection dbConnection, String server, OfflinePlayer offlinePlayer){
 		if (offlinePlayer == null)
 			return false;
-		String query = "SELECT * FROM " + getStatTableName(server) + " WHERE UUID = '"+offlinePlayer.getName()+"';";
+		String query = "SELECT * FROM " + getStatTableName(server.replaceAll(" ", "_")) + " WHERE UUID = '"+offlinePlayer.getName()+"';";
 		List<String[]> result= fetchRows(dbConnection, query);
 		return (!result.isEmpty());
 	}
 
 	public static void awardAchievementPoints(Connection dbConnection, Player p, int points) {
-		String update = "UPDATE " + achievementPointsTable + " SET " + Config.serverName + " = " + Config.serverName
+		String update = "UPDATE " + achievementPointsTable + " SET " + Config.serverName.replaceAll(" ", "_") + " = " + Config.serverName.replaceAll(" ", "_")
 				+ " + " + points + " WHERE UUID = '" + p.getName() + "';";
 		executeUpdate(dbConnection, update);
 	}
 
 	public static int getAchievementPoints(Connection dbConnection, Player p) {
-		return (getAchievementPoints(dbConnection, p, Config.serverName));
+		return (getAchievementPoints(dbConnection, p, Config.serverName.replaceAll(" ", "_")));
 	}
 
 	public static int getAchievementPoints(Connection dbConnection, Player p, String server) {
@@ -151,7 +152,7 @@ public class SqlApi {
 	}
 
 	public static List<Achievement> getServerAchievements(Connection dbConnection, String server) {
-		String query = "SELECT * FROM "+achievementMetaTable+" WHERE server = '"+server+"';";
+		String query = "SELECT * FROM "+achievementMetaTable+" WHERE server = '"+server.replaceAll(" ", "_")+"';";
 		List<String[]> result = fetchRows(dbConnection, query);
 		List<Achievement> achievements = new ArrayList<Achievement>();
 		for(String[] s: result){
@@ -163,13 +164,13 @@ public class SqlApi {
 			short iconDamage = Short.parseShort(s[6]);
 			String description = s[7];
 			
-			achievements.add(new Achievement(name, statType, required, points, m, iconDamage, description, server));
+			achievements.add(new Achievement(name, statType, required, points, m, iconDamage, description, server.replaceAll("_", " ")));
 		}
 		return achievements;
 	}
 
-	public static boolean isAchieved(Connection dbConnection, Player p, Achievement a) {
-		String query = "SELECT "+a.name.replace(' ', '_')+" FROM "+getAchTableName(a.server)+" WHERE UUID = '"+p.getName()+"';";
+	public static boolean isAchieved(Connection dbConnection, OfflinePlayer offlinePlayer, Achievement a) {
+		String query = "SELECT "+a.name.replace(' ', '_')+" FROM "+getAchTableName(a.server)+" WHERE UUID = '"+offlinePlayer.getName()+"';";
 		return Integer.parseInt(fetchRows(dbConnection, query).get(0)[0]) == 1;
 	}
 
@@ -183,7 +184,7 @@ public class SqlApi {
 	}
 
 	public static double getStat(Connection dbConnection, Player p, String statType) {
-		return getStat(dbConnection, p, statType, Config.serverName);
+		return getStat(dbConnection, p, statType, Config.serverName.replaceAll(" ", "_"));
 	}
 
 	public static double getStat(Connection dbConnection, OfflinePlayer offlinePlayer, String statType, String server) {
@@ -205,8 +206,11 @@ public class SqlApi {
 	}
 
 	public static List<String> getServers(Connection dbConnection) {
-		List<String> servers = fetchColumns(dbConnection, achievementPointsTable);
-		servers.remove("UUID");
+		List<String> columns = fetchColumns(dbConnection, achievementPointsTable);
+		columns.remove("UUID");
+		List<String> servers = new ArrayList<String>();
+		for (String s: columns)
+			servers.add(s.replaceAll("_", " "));
 		return servers;
 	}
 	
@@ -219,9 +223,9 @@ public class SqlApi {
 		executeUpdate(dbConnection, update);
 
 		List<String> columns = fetchColumns(dbConnection, achievementPointsTable);
-		if (!columns.contains(Config.serverName))
+		if (!columns.contains(Config.serverName.replaceAll(" ", "_")))
 			executeUpdate(dbConnection,
-					"ALTER TABLE " + achievementPointsTable + " ADD COLUMN " + Config.serverName + " DOUBLE default 0");
+					"ALTER TABLE " + achievementPointsTable + " ADD COLUMN " + Config.serverName.replaceAll(" ", "_") + " DOUBLE default 0");
 	}
 
 	public static void ensureCorrectAchMetaTable(Connection dbConnection, HashMap<StatType, List<Achievement>> localAchievements) {
@@ -230,14 +234,14 @@ public class SqlApi {
 				+ "icon varchar(63), iconDamage int, description varchar(1024));";
 		executeUpdate(dbConnection, update);
 		
-		update = "DELETE FROM "+achievementMetaTable+" WHERE server = '"+Config.serverName+"';";
+		update = "DELETE FROM "+achievementMetaTable+" WHERE server = '"+Config.serverName.replaceAll(" ", "_")+"';";
 		executeUpdate(dbConnection, update);
 		
 		for(List<Achievement> list: localAchievements.values())
 			for(Achievement a: list){
 				update = "INSERT INTO "+achievementMetaTable+
 						" (server,name,statType,required,points,icon,iconDamage,description) VALUES"+
-						"('"+a.server+"','"+a.name.replace(' ', '_')+"','"+a.statType+"',"+a.required+","+a.points+",'"+
+						"('"+a.server.replaceAll(" ", "_")+"','"+a.name.replace(' ', '_')+"','"+a.statType+"',"+a.required+","+a.points+",'"+
 						a.icon+"',"+a.iconDamage+",'"+a.description+"');";
 				executeUpdate(dbConnection, update);
 			}
@@ -246,13 +250,13 @@ public class SqlApi {
 	public static void ensureCorrectStatMetaTable(Connection dbConnection){
 		String newTable = "CREATE TABLE IF NOT EXISTS "+statsMetaTable+" (server varchar(127));";
 		String newRow = "INSERT INTO "+statsMetaTable+" (server) "+
-			    "SELECT '"+Config.serverName+"' FROM dual "+
-			    "WHERE NOT EXISTS ( SELECT server FROM "+statsMetaTable+" WHERE server = '"+Config.serverName+"' ) LIMIT 1;";
+			    "SELECT '"+Config.serverName.replaceAll(" ", "_")+"' FROM dual "+
+			    "WHERE NOT EXISTS ( SELECT server FROM "+statsMetaTable+" WHERE server = '"+Config.serverName.replaceAll(" ", "_")+"' ) LIMIT 1;";
 		executeUpdate(dbConnection, newTable);
 		executeUpdate(dbConnection, newRow);
 
 		String columnsAddBoolean = "ALTER TABLE " + statsMetaTable + " ADD COLUMN {column} Boolean NOT NULL default 0";
-		String setValue = "UPDATE "+statsMetaTable+" SET {column} = {value} WHERE server = '"+Config.serverName+"';";
+		String setValue = "UPDATE "+statsMetaTable+" SET {column} = {value} WHERE server = '"+Config.serverName.replaceAll(" ", "_")+"';";
 		Set<String> columns = new HashSet<String>();
 		columns.addAll(fetchColumns(dbConnection, statsMetaTable));
 		for(StatType s: StatType.values()){
@@ -295,20 +299,20 @@ public class SqlApi {
 					executeUpdate(dbConnection, columnsAdd.replaceAll("\\{column\\}", s.toString()));
 	}
 
-	public static String getStatTableName() {
+	private static String getStatTableName() {
 		return getStatTableName(Config.serverName);
 	}
 
-	public static String getStatTableName(String server) {
-		return "gcs_stats_" + server;
+	private static String getStatTableName(String server) {
+		return "gcs_stats_" + server.replaceAll(" ", "_");
 	}
 
-	public static String getAchTableName() {
+	private static String getAchTableName() {
 		return getAchTableName(Config.serverName);
 	}
 
-	public static String getAchTableName(String server) {
-		return "gcs_achievemnts_" + server;
+	private static String getAchTableName(String server) {
+		return "gcs_achievemnts_" + server.replaceAll(" ", "_");
 	}
 
 	/**
@@ -428,7 +432,7 @@ public class SqlApi {
 		List<String> enabledStats = new ArrayList<String>();
 		List<String> columns = fetchColumns(dbConnection, statsMetaTable);
 		
-		String query = "SELECT * FROM "+statsMetaTable+" WHERE server = '"+server+"';";
+		String query = "SELECT * FROM "+statsMetaTable+" WHERE server = '"+server.replaceAll(" ", "_")+"';";
 		String[] row = fetchRows(dbConnection, query).get(0);
 		int i=0;
 		for (String s: columns){

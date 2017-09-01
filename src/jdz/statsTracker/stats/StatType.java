@@ -43,7 +43,7 @@ public enum StatType {
 		case KILLS:					return (int)value+"";
 		case KOTH_WINS:				return (int)value+"";
 		case MOB_KILLS:				return (int)value+"";
-		case PLAY_TIME:		return timeFromSeconds((int)value);
+		case PLAY_TIME:				return timeFromSeconds((int)value);
 		default:					return value+"";
 		}
 	}
@@ -53,13 +53,23 @@ public enum StatType {
 		int hours = (totalSeconds % 86400 ) / 3600 ;
 		int minutes = ((totalSeconds % 86400 ) % 3600 ) / 60 ;
 		int seconds = ((totalSeconds % 86400 ) % 3600 ) % 60 ;
+		
+		String rs = "";
 		if (days > 0)
-			return days+"d "+hours+"h "+minutes+"m "+seconds+"s";
+			rs = rs+days+"d ";
 		if (hours > 0)
-			return hours+"h "+minutes+"m "+seconds+"s";
+			rs = rs+hours+"h ";
 		if (minutes > 0)
-			return minutes+"m "+seconds+"s";
-		return seconds+"s";
+			rs = rs+minutes+"m ";
+		if (seconds > 0)
+			rs = rs+seconds+"s ";
+		
+		if (rs.equals(""))
+			rs = "0s";
+		else
+			rs = rs.substring(0, rs.length()-1);
+		
+		return rs;
 	}
 	
 	private static String distanceFromMeters(int meters){

@@ -63,8 +63,8 @@ public class StatsCommands implements CommandExecutor {
 			default:
 				// for player OR server
 				if (args.length == 1)
-					if(Config.servers.contains(args[0]))
-						showStats(sender, args[0], player);
+					if(Config.servers.contains(args[0].replaceAll("_", " ")))
+						showStats(sender, args[0].replaceAll("_", " "), player);
 					else if(SqlApi.hasPlayer(Config.dbConnection, Config.serverName, Bukkit.getOfflinePlayer(args[0])))
 						showStats(sender, Config.serverName, Bukkit.getOfflinePlayer(args[0]));
 					else
@@ -72,9 +72,9 @@ public class StatsCommands implements CommandExecutor {
 				
 				// for player AND server
 				else
-					if(Config.servers.contains(args[1])){
+					if(Config.servers.contains(args[1].replaceAll("_", " "))){
 						if(SqlApi.hasPlayer(Config.dbConnection, args[1], Bukkit.getOfflinePlayer(args[0])))
-							showStats(sender, args[1], Bukkit.getOfflinePlayer(args[0]));
+							showStats(sender, args[1].replaceAll("_", " "), Bukkit.getOfflinePlayer(args[0]));
 						else
 							sender.sendMessage(ChatColor.RED+args[0]+" has never played on that server before!");
 					}
@@ -92,7 +92,7 @@ public class StatsCommands implements CommandExecutor {
 				ChatColor.GRAY + "============[ " + ChatColor.GOLD + "Server list" + ChatColor.GRAY + " ]============");
 		String list = ChatColor.WHITE + "";
 		for (String server : Config.servers)
-			list = list + server + ", ";
+			list = list + server.replaceAll(" ", "_") + ", ";
 		list.substring(0,list.length() - 2);
 		sender.sendMessage(list);
 		sender.sendMessage( ChatColor.GRAY + "====================================");

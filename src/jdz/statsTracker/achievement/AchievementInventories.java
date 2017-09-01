@@ -9,6 +9,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,20 +26,20 @@ import jdz.statsTracker.util.SqlApi;
 public class AchievementInventories implements Listener {
 	public static Inventory serverSelect;
 	public static Map<Achievement, ItemStack> achievementToStack = new HashMap<Achievement, ItemStack>();
-	public static Map<Player, Player> targets = new HashMap<Player, Player>();
+	public static Map<Player, OfflinePlayer> targets = new HashMap<Player, OfflinePlayer>();
 	public static Map<Player, Integer> page = new HashMap<Player, Integer>();
 	public static Map<Player, String> server = new HashMap<Player, String>();
 
-	public static void init() {
+	public static void reload() {
 		achievementToStack = createDefaultItemStacks();
 		targets.clear();
 
 		serverSelect = createServerSelectInv();
 	}
 
-	public static void openServerSelect(Player player, Player target) {
+	public static void openServerSelect(Player player, OfflinePlayer otherPlayer) {
 		player.openInventory(serverSelect);
-		targets.put(player, target);
+		targets.put(player, otherPlayer);
 	}
 
 	@EventHandler
@@ -63,9 +64,9 @@ public class AchievementInventories implements Listener {
 			else if (inv.getName().endsWith(" Achievements")){
 	        	if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null){
 					if (stack.getItemMeta().getDisplayName().equals(ArrowType.NEXT.toString()))
-						openPage(targets.get(p), server.get(p), page.get(p)+1);
+						openPage(p, server.get(p), page.get(p)+1);
 					if (stack.getItemMeta().getDisplayName().equals(ArrowType.PREVIOUS.toString()))
-						openPage(targets.get(p), server.get(p), page.get(p)-1);
+						openPage(p, server.get(p), page.get(p)-1);
 					if (stack.getItemMeta().getDisplayName().equals(ArrowType.SELECT_SERVER.toString()))
 						p.openInventory(serverSelect);
 	        	}
@@ -137,14 +138,14 @@ public class AchievementInventories implements Listener {
 		
 	}
 
-	private static Inventory getPageInventory(Player target, String server, int page) {
+	private static Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
 		List<Achievement> achievements = AchievementData.achievements.get(server);
-		Inventory pageInventory = Bukkit.createInventory(null, 54, ChatColor.DARK_GREEN+target.getDisplayName()+ChatColor.DARK_GREEN+"'s Achievements");
+		Inventory pageInventory = Bukkit.createInventory(null, 54, ChatColor.DARK_GREEN+offlinePlayer.getName()+ChatColor.DARK_GREEN+"'s Achievements");
 		int i = 0;
 		for (int achIndex = page * 36; achIndex < Math.min((page + 1) * 36, achievements.size()); achIndex++) {
 			Achievement achievement = achievements.get(achIndex);
 
-			ItemStack itemStack = getPlayerStack(target, achievement, server);
+			ItemStack itemStack = getPlayerStack(offlinePlayer, achievement, server);
 
 			pageInventory.setItem(i++, itemStack);
 		}
@@ -158,8 +159,8 @@ public class AchievementInventories implements Listener {
 		return pageInventory;
 	}
 
-	private static ItemStack getPlayerStack(Player target, Achievement achievement, String server) {
-		boolean isAchieved = SqlApi.isAchieved(Config.dbConnection, target, achievement);
+	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, Achievement achievement, String server) {
+		boolean isAchieved = SqlApi.isAchieved(Config.dbConnection, offlinePlayer, achievement);
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
 		List<String> lore = itemMeta.getLore();
@@ -170,7 +171,7 @@ public class AchievementInventories implements Listener {
 			lore.get(1).replaceAll(ChatColor.GRAY.toString(), ChatColor.WHITE.toString());
 		} else {
 			itemMeta.setDisplayName(ChatColor.RED+achievement.name.replace('_', ' '));
-			double progress = SqlApi.getStat(Config.dbConnection, target, achievement.statType, server);
+			double progress = SqlApi.getStat(Config.dbConnection, offlinePlayer, achievement.statType, server);
 			try{
 			String progressStr = StatType.valueOf(achievement.statType).valueToString(progress);
 			String requiredStr = StatType.valueOf(achievement.statType).valueToString(achievement.required);

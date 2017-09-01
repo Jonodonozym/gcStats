@@ -22,9 +22,8 @@
 achievements:
   Butcher: 
     type: MOB_KILLS
-    icon: STONE_SWORD
+    icon: DIAMOND_SWORD
     iconDamage: # can remove this line if not used
-
     description: Kill {required} mobs
     required:
       - 10

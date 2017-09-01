@@ -13,8 +13,10 @@ import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.statsTracker.main.Config;
+import jdz.statsTracker.main.Main;
 
 public class Achievement {
 	// static field for the firework effect
@@ -56,18 +58,23 @@ public class Achievement {
 	 * @param p
 	 */
 	public void doFirework(Player p) {
-		if (Config.achievementFireworkEnabled){
-			Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
-			FireworkMeta fwm = fw.getFireworkMeta();
-			fwm.addEffect(fwe);
-			fwm.setPower(2);
-			fw.setFireworkMeta(fwm);
-		}
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (Config.achievementFireworkEnabled){
+					Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
+					FireworkMeta fwm = fw.getFireworkMeta();
+					fwm.addEffect(fwe);
+					fwm.setPower(2);
+					fw.setFireworkMeta(fwm);
+				}
 
-		if (Config.achievementMessageEnabled) {
-			p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
-			p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
-			p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
-		}
+				if (Config.achievementMessageEnabled) {
+					p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
+					p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
+					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
+				}
+			}
+		}.runTask(Main.plugin);
 	}
 }

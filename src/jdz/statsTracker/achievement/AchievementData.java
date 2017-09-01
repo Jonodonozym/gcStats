@@ -3,6 +3,7 @@ package jdz.statsTracker.achievement;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,14 +38,12 @@ public class AchievementData {
 		}
 	}
 
-	public static void loadAchievements() {
+	public static void reloadData() {
 		// loading from the local file
 		String location = Main.plugin.getDataFolder().getPath() + File.separator + "Achievements.yml";
 		File file = new File(location);
-		if (!file.exists()) {
-			System.out.println(location);
+		if (!file.exists())
 			FileExporter.ExportResource("/Achievements.yml", location);
-		}
 
 		HashMap<StatType, List<Achievement>> localAchievements = new HashMap<StatType, List<Achievement>>();
 		FileConfiguration achConfig = YamlConfiguration.loadConfiguration(file);
@@ -104,6 +103,12 @@ public class AchievementData {
 		for (Achievement a : SqlApi.getAllAchievements(Config.dbConnection)) {
 			achievementsByType.get(a.server).get(a.statType).add(a);
 			achievements.get(a.server).add(a);
+		}
+		
+		for (String s: Config.servers) {
+			Collections.sort(achievements.get(s),  (a,b)->{
+				return ((Achievement)a).name.compareTo(((Achievement)b).name);
+			});
 		}
 	}
 
