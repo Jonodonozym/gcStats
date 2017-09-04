@@ -27,13 +27,13 @@ public class AchievementData {
 	
 	public static void addPlayer(Player p) {
 		for (String server : Config.servers) {
-			List<String> statTypes = SqlApi.getEnabledStats(Config.dbConnection, server);
+			List<String> statTypes = SqlApi.getEnabledStats(server);
 			statTypes.remove("UUID");
 			for (String type : statTypes) {
-				double value = SqlApi.getStat(Config.dbConnection, p, type.toString(), server);
+				double value = SqlApi.getStat(p, type.toString(), server);
 				for (Achievement a : achievementsByType.get(server).get(type))
 					if (a.isAchieved(value))
-						SqlApi.setAchieved(Config.dbConnection, p, a);
+						SqlApi.setAchieved(p, a);
 			}
 		}
 	}
@@ -87,8 +87,8 @@ public class AchievementData {
 		}
 
 		// updating the sql db to match
-		SqlApi.ensureCorrectAchMetaTable(Config.dbConnection, localAchievements);
-		SqlApi.ensureCorrectAchTable(Config.dbConnection, localAchievements);
+		SqlApi.ensureCorrectAchMetaTable(localAchievements);
+		SqlApi.ensureCorrectAchTable(localAchievements);
 		
 		achievements.clear();
 
@@ -96,26 +96,26 @@ public class AchievementData {
 		for (String s : Config.servers) {
 			achievementsByType.put(s, new HashMap<String, List<Achievement>>());
 			achievements.put(s, new ArrayList<Achievement>());
-			for (String stat : SqlApi.getEnabledStats(Config.dbConnection, s))
+			for (String stat : SqlApi.getEnabledStats(s))
 				achievementsByType.get(s).put(stat, new ArrayList<Achievement>());
 		}
 
-		for (Achievement a : SqlApi.getAllAchievements(Config.dbConnection)) {
+		for (Achievement a : SqlApi.getAllAchievements()) {
 			achievementsByType.get(a.server).get(a.statType).add(a);
 			achievements.get(a.server).add(a);
 		}
 		
 		for (String s: Config.servers) {
 			Collections.sort(achievements.get(s),  (a,b)->{
-				return ((Achievement)a).name.compareTo(((Achievement)b).name);
+				return a.name.compareTo(b.name);
 			});
 		}
 	}
 
 	public static void updateAchievements(Player p, StatType s) {
-		double value = SqlApi.getStat(Config.dbConnection, p, s.toString());
+		double value = SqlApi.getStat(p, s.toString());
 		for (Achievement a : achievementsByType.get(Config.serverName).get(s.toString()))
 			if (a.isAchieved(value))
-				SqlApi.setAchieved(Config.dbConnection, p, a);
+				SqlApi.setAchieved(p, a);
 	}
 }

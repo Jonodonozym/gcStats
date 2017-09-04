@@ -46,3 +46,6 @@ statsEnabled:
   MOB_KILLS: false
   EXP_GAINED: false
   DIST_WALKED: false
+  DEATHMATCH_EVENTS_WON: false
+  KEY_DROPS_WON: false
+  SUPPLY_DROPS_WON: false

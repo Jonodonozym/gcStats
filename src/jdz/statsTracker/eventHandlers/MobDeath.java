@@ -19,7 +19,7 @@ public class MobDeath implements Listener{
 		if (Config.enabledStats.contains(StatType.MOB_KILLS)){
 			Player p = e.getEntity().getKiller();
 			if (p != null){
-				SqlApi.addStat(Config.dbConnection, p, StatType.MOB_KILLS, 1);
+				SqlApi.addStat(p, StatType.MOB_KILLS, 1);
 				AchievementData.updateAchievements(p, StatType.MOB_KILLS);
 			}
 		}

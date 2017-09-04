@@ -29,8 +29,6 @@ public class Config {
 	public static String dbUsername = "";
 	public static String dbPassword = "";
 
-	public static Connection dbConnection = null;
-
 	public static Set<StatType> enabledStats = new HashSet<StatType>();
 
 	public static int autoUpdateDelay = 6000;
@@ -98,15 +96,14 @@ public class Config {
 			Main.plugin.getLogger().info(
 					"Some of the database lines in config.yml are empty, please fill in the config.yml and reload the plugin.");
 		} else {
-			SqlApi.close(dbConnection);
-			dbConnection = SqlApi.open(Main.plugin.getLogger(), dbURL, 3306, dbName, dbUsername, dbPassword);
-			if (dbConnection != null) {
-				SqlApi.ensureCorrectPointsTable(dbConnection);
-				SqlApi.ensureCorrectStatTable(dbConnection);
-				SqlApi.ensureCorrectServerMetaTable(dbConnection);
-				SqlApi.ensureCorrectStatMetaTable(dbConnection);
-				servers = SqlApi.getServers(dbConnection);
-				SqlApi.setServerMeta(dbConnection, serverName, m, damage);
+			Connection temp = SqlApi.open(Main.plugin.getLogger(), dbURL, 3306, dbName, dbUsername, dbPassword);
+			if (temp != null) {
+				SqlApi.ensureCorrectPointsTable();
+				SqlApi.ensureCorrectStatTable();
+				SqlApi.ensureCorrectServerMetaTable();
+				SqlApi.ensureCorrectStatMetaTable();
+				servers = SqlApi.getServers();
+				SqlApi.setServerMeta(serverName, m, damage);
 			} else
 				enabledStats.clear();
 		}
@@ -116,7 +113,7 @@ public class Config {
 		updateDistWalked = new TimedTask(Config.autoUpdateDelay, ()-> {
 			if (Config.enabledStats.contains(StatType.DIST_WALKED))
 				for(Player p: Main.plugin.getServer().getOnlinePlayers())
-					SqlApi.setStat(Config.dbConnection, p, StatType.DIST_WALKED, p.getStatistic(Statistic.WALK_ONE_CM)/100.0);
+					SqlApi.setStat(p, StatType.DIST_WALKED, p.getStatistic(Statistic.WALK_ONE_CM)/100.0);
 		});
 		updateDistWalked.start();
 		

@@ -12,7 +12,10 @@ public enum StatType {
 	BLOCKS_PLACED,
 	MOB_KILLS,
 	EXP_GAINED,
-	DIST_WALKED;
+	DIST_WALKED,
+	DEATHMATCH_EVENTS_WON,
+	KEY_DROPS_WON,
+	SUPPLY_DROPS_WON;
 	
 	public String toPlainString(){
 		switch(this){
@@ -27,7 +30,10 @@ public enum StatType {
 		case KOTH_WINS:				return "KOTH wins";
 		case MOB_KILLS:				return "Monster kills";
 		case PLAY_TIME:				return "Play time";
-		default:					return this.toString();
+		case DEATHMATCH_EVENTS_WON: return "Deathmatch events won";
+		case KEY_DROPS_WON:			return "Key drops obtained";
+		case SUPPLY_DROPS_WON:		return "Supply drops obtained";
+		default:					return toString();
 		}
 	}
 	
@@ -44,6 +50,9 @@ public enum StatType {
 		case KOTH_WINS:				return (int)value+"";
 		case MOB_KILLS:				return (int)value+"";
 		case PLAY_TIME:				return timeFromSeconds((int)value);
+		case DEATHMATCH_EVENTS_WON:	return (int)value+"";
+		case KEY_DROPS_WON:			return (int)value+"";
+		case SUPPLY_DROPS_WON:		return (int)value+"";
 		default:					return value+"";
 		}
 	}

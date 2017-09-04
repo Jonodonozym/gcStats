@@ -22,7 +22,7 @@ public class LoginLogout implements Listener{
 	}
 	
 	public static void setupPlayer(Player p){
-		SqlApi.addPlayer(Config.dbConnection, p);
+		SqlApi.addPlayer(p);
 		PlayTimeRecorder.addPlayer(p);
 		AchievementData.addPlayer(p);
 	}
@@ -30,7 +30,7 @@ public class LoginLogout implements Listener{
 	@EventHandler(ignoreCancelled=true, priority=EventPriority.LOWEST)
 	public void onPlayerLeave(PlayerQuitEvent e){
 		if (Config.enabledStats.contains(StatType.PLAY_TIME))
-		SqlApi.addStat(Config.dbConnection, e.getPlayer(), StatType.PLAY_TIME, 
+		SqlApi.addStat(e.getPlayer(), StatType.PLAY_TIME, 
 				(System.currentTimeMillis() - PlayTimeRecorder.lastTime.get(e.getPlayer()))/1000);
 		PlayTimeRecorder.removePlayer(e.getPlayer());
 	}

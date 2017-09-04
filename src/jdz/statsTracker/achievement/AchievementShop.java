@@ -22,7 +22,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import jdz.statsTracker.main.Config;
 import jdz.statsTracker.main.Main;
 import jdz.statsTracker.util.FileExporter;
 import jdz.statsTracker.util.SqlApi;
@@ -83,8 +82,8 @@ public class AchievementShop implements Listener{
 			int slot = e.getSlot();
 			if (items.containsKey(slot)){
 				ShopItem item = items.get(slot);
-				int currentPoints = SqlApi.getAchievementPoints(Config.dbConnection, p);
-				if (SqlApi.getAchievementPoints(Config.dbConnection, p) >= item.cost ){
+				int currentPoints = SqlApi.getAchievementPoints(p);
+				if (SqlApi.getAchievementPoints(p) >= item.cost ){
 					giveItems(item.items, p);
 					for (String s: item.commands)
 						Main.plugin.getServer().dispatchCommand(Main.plugin.getServer().getConsoleSender(), 
@@ -92,7 +91,7 @@ public class AchievementShop implements Listener{
 					if (item.messages.length > 0)
 						p.sendMessage(item.messages);
 					p.closeInventory();
-					SqlApi.awardAchievementPoints(Config.dbConnection, p, -item.cost);
+					SqlApi.awardAchievementPoints(p, -item.cost);
 					Main.plugin.getServer().dispatchCommand(p, "gca bal");
 				}
 				else

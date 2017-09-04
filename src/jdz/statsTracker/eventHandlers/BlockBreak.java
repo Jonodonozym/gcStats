@@ -16,7 +16,7 @@ public class BlockBreak implements Listener {
 	@EventHandler(priority=EventPriority.LOWEST)
 	public void onBlockBreak(BlockBreakEvent e){
 		if (Config.enabledStats.contains(StatType.BLOCKS_MINED)){
-			SqlApi.addStat(Config.dbConnection, e.getPlayer(), StatType.BLOCKS_MINED, 1);
+			SqlApi.addStat(e.getPlayer(), StatType.BLOCKS_MINED, 1);
 			AchievementData.updateAchievements(e.getPlayer(), StatType.BLOCKS_MINED);
 		}
 	}

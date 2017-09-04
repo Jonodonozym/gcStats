@@ -22,7 +22,7 @@ public class KothWin implements Listener{
 		if (Config.enabledStats.contains(StatType.KOTH_WINS) && e.getReason().equals(EndReason.WON)){
 			Collection<Player> players = e.getWinner().getAvailablePlayers(e.getKoth());
 			for (Player p: players){
-				SqlApi.addStat(Config.dbConnection, p, StatType.KOTH_WINS, 1);
+				SqlApi.addStat(p, StatType.KOTH_WINS, 1);
 				AchievementData.updateAchievements(p, StatType.KOTH_WINS);
 			}
 		}

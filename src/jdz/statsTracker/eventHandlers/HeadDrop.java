@@ -15,7 +15,7 @@ public class HeadDrop implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHeadDrop(HeadDropEvent e) {
 		if (Config.enabledStats.contains(StatType.HEAD_DROPS)){
-			SqlApi.addStat(Config.dbConnection, e.getReciever(), StatType.HEAD_DROPS, 1);
+			SqlApi.addStat(e.getReciever(), StatType.HEAD_DROPS, 1);
 			AchievementData.updateAchievements(e.getReciever(), StatType.HEAD_DROPS);
 		}
 	}

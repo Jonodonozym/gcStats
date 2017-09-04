@@ -53,16 +53,16 @@ public class AchievementCommands  implements CommandExecutor{
 				case "balance":
 				case "points": 
 					if (args.length == 1)
-						sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(Config.dbConnection, player));
+						sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(player));
 					else if (Config.servers.contains(args[1].replaceAll("_", " ")))
-						sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(Config.dbConnection, player, args[1]));
+						sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(player, args[1]));
 					else
 						sender.sendMessage(ChatColor.RED+"'"+args[1].replaceAll("_", " ")+"' is not a valid server!");
 					break;
 				default:
 					@SuppressWarnings("deprecation")
 					OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
-					if(SqlApi.hasPlayer(Config.dbConnection, Config.serverName, otherPlayer)){
+					if(SqlApi.hasPlayer(Config.serverName, otherPlayer)){
 						if (otherPlayer.isOnline())
 							PlayTimeRecorder.updateTime((Player)otherPlayer);
 						AchievementInventories.openServerSelect(player, otherPlayer);

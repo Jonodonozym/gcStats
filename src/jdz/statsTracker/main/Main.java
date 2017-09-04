@@ -10,7 +10,6 @@ import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.eventHandlers.*;
-import jdz.statsTracker.util.SqlApi;
 
 public class Main extends JavaPlugin{
 	public static Main plugin;
@@ -34,17 +33,15 @@ public class Main extends JavaPlugin{
 			pm.registerEvents(new KothWin(), this);
 		if (Bukkit.getPluginManager().getPlugin("BountyHunter") != null)
 			pm.registerEvents(new HeadDrop(), this);
+		if (Bukkit.getPluginManager().getPlugin("EventOrganizer") != null){
+			pm.registerEvents(new Deathmatch(), this);
+			pm.registerEvents(new EventDropPickup(), this);
+		}
 
 		getCommand(Config.achCommand).setExecutor(new AchievementCommands());
 		getCommand(Config.statsCommand).setExecutor(new StatsCommands());
 		
 		for(Player p: Bukkit.getOnlinePlayers())
 			LoginLogout.setupPlayer(p);
-	}
-	
-	@Override
-	public void onDisable(){
-		if (Config.dbConnection != null)
-			SqlApi.close(Config.dbConnection);
 	}
 }

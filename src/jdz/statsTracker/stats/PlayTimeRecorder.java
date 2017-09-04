@@ -57,7 +57,7 @@ public class PlayTimeRecorder extends TimedTask{
 		if (strikes.get(p) < maxStrikes){
 			long time = System.currentTimeMillis();
 			if (!PlayTimeRecorder.isAfk(p))
-				SqlApi.addStat(Config.dbConnection, p, StatType.PLAY_TIME, 
+				SqlApi.addStat(p, StatType.PLAY_TIME, 
 						(time-lastTime.get(p))/1000);
 			AchievementData.updateAchievements(p, StatType.PLAY_TIME);
 			lastTime.put(p, time);

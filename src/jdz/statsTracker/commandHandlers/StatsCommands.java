@@ -65,7 +65,7 @@ public class StatsCommands implements CommandExecutor {
 				if (args.length == 1)
 					if(Config.servers.contains(args[0].replaceAll("_", " ")))
 						showStats(sender, args[0].replaceAll("_", " "), player);
-					else if(SqlApi.hasPlayer(Config.dbConnection, Config.serverName, Bukkit.getOfflinePlayer(args[0])))
+					else if(SqlApi.hasPlayer(Config.serverName, Bukkit.getOfflinePlayer(args[0])))
 						showStats(sender, Config.serverName, Bukkit.getOfflinePlayer(args[0]));
 					else
 						sender.sendMessage(ChatColor.RED+"'"+args[0]+"' is not a valid server or that player has never played on this server.");
@@ -73,7 +73,7 @@ public class StatsCommands implements CommandExecutor {
 				// for player AND server
 				else
 					if(Config.servers.contains(args[1].replaceAll("_", " "))){
-						if(SqlApi.hasPlayer(Config.dbConnection, args[1], Bukkit.getOfflinePlayer(args[0])))
+						if(SqlApi.hasPlayer(args[1], Bukkit.getOfflinePlayer(args[0])))
 							showStats(sender, args[1].replaceAll("_", " "), Bukkit.getOfflinePlayer(args[0]));
 						else
 							sender.sendMessage(ChatColor.RED+args[0]+" has never played on that server before!");
@@ -102,7 +102,7 @@ public class StatsCommands implements CommandExecutor {
 		if (offlinePlayer.isOnline())
 			PlayTimeRecorder.updateTime((Player)offlinePlayer);
 		
-		List<String> types = SqlApi.getEnabledStats(Config.dbConnection, server);
+		List<String> types = SqlApi.getEnabledStats(server);
 		String[] messages = new String[types.size() + 2];
 		
 		int i = 0;
@@ -112,11 +112,11 @@ public class StatsCommands implements CommandExecutor {
 			try{
 				StatType type = StatType.valueOf(typeStr);
 				messages[i] = ChatColor.DARK_GREEN + type.toPlainString() + ": " + ChatColor.GREEN + ": "
-						+ type.valueToString(SqlApi.getStat(Config.dbConnection, offlinePlayer, type.toString(), server));
+						+ type.valueToString(SqlApi.getStat(offlinePlayer, type.toString(), server));
 			}
 			catch (Exception e){
 				messages[i] = ChatColor.DARK_GREEN + typeStr + ": " + ChatColor.GREEN + ": "
-						+ SqlApi.getStat(Config.dbConnection, offlinePlayer, typeStr, server);
+						+ SqlApi.getStat(offlinePlayer, typeStr, server);
 			}
 			i++;
 		}
