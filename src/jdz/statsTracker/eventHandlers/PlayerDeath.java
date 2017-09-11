@@ -1,7 +1,6 @@
 
 package jdz.statsTracker.eventHandlers;
 
-import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,9 +20,12 @@ public class PlayerDeath implements Listener{
 			SqlApi.addStat(killed, StatType.DEATHS, 1);
 			AchievementData.updateAchievements(killed, StatType.DEATHS);
 		}
-		if (Config.enabledStats.contains(StatType.KDR))
-			if (killed.getStatistic(Statistic.DEATHS) > 0)
-				SqlApi.setStat(killed, StatType.KDR, (double)killed.getStatistic(Statistic.PLAYER_KILLS)/(double)killed.getStatistic(Statistic.DEATHS));
+		if (Config.enabledStats.contains(StatType.KDR)){
+			int kills = (int)SqlApi.getStat(killed, StatType.KILLS+"");
+			int deaths = (int)SqlApi.getStat(killed, StatType.DEATHS+"");
+			if (deaths > 0)
+				SqlApi.setStat(killed, StatType.KDR, kills/deaths);
+		}
 		
 		Player killer = e.getEntity().getKiller();
 		if (killer != null){
@@ -32,11 +34,14 @@ public class PlayerDeath implements Listener{
 				AchievementData.updateAchievements(killer, StatType.KILLS);
 			}
 			if (Config.enabledStats.contains(StatType.KDR)){
-				if (killed.getStatistic(Statistic.DEATHS) > 0){
-					SqlApi.setStat(killer, StatType.KDR, (double)killer.getStatistic(Statistic.PLAYER_KILLS)/(double)killer.getStatistic(Statistic.DEATHS));
+				int kills = (int)SqlApi.getStat(killer, StatType.KILLS+"");
+				int deaths = (int)SqlApi.getStat(killer, StatType.DEATHS+"");
+				if (deaths > 0){
+					SqlApi.setStat(killer, StatType.KDR, kills/deaths);
 					AchievementData.updateAchievements(killer, StatType.KDR);
 				}
 			}
 		}
 	}
 }
+

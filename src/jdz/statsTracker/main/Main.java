@@ -13,7 +13,6 @@ import jdz.statsTracker.eventHandlers.*;
 
 public class Main extends JavaPlugin{
 	public static Main plugin;
-	
 	@Override
 	public void onEnable(){
 		plugin = this;
