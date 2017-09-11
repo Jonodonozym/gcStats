@@ -22,7 +22,8 @@ public class PlayerDeath implements Listener{
 			AchievementData.updateAchievements(killed, StatType.DEATHS);
 		}
 		if (Config.enabledStats.contains(StatType.KDR))
-			SqlApi.setStat(killed, StatType.KDR, (double)killed.getStatistic(Statistic.PLAYER_KILLS)/(double)killed.getStatistic(Statistic.DEATHS));
+			if (killed.getStatistic(Statistic.DEATHS) > 0)
+				SqlApi.setStat(killed, StatType.KDR, (double)killed.getStatistic(Statistic.PLAYER_KILLS)/(double)killed.getStatistic(Statistic.DEATHS));
 		
 		Player killer = e.getEntity().getKiller();
 		if (killer != null){
@@ -31,8 +32,10 @@ public class PlayerDeath implements Listener{
 				AchievementData.updateAchievements(killer, StatType.KILLS);
 			}
 			if (Config.enabledStats.contains(StatType.KDR)){
-				SqlApi.setStat(killer, StatType.KDR, (double)killer.getStatistic(Statistic.PLAYER_KILLS)/(double)killer.getStatistic(Statistic.DEATHS));
-				AchievementData.updateAchievements(killer, StatType.KDR);
+				if (killed.getStatistic(Statistic.DEATHS) > 0){
+					SqlApi.setStat(killer, StatType.KDR, (double)killer.getStatistic(Statistic.PLAYER_KILLS)/(double)killer.getStatistic(Statistic.DEATHS));
+					AchievementData.updateAchievements(killer, StatType.KDR);
+				}
 			}
 		}
 	}
