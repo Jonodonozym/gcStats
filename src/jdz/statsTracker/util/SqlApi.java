@@ -36,7 +36,7 @@ public class SqlApi {
 	public static final String serverMetaTable = "gcs_Server_MetaData";
 	public static final String statsMetaTable = "gcs_Stat_MetaData";
 	
-	private static final Connection dbConnection = null;
+	private static Connection dbConnection = null;
 
 	/**
 	 * Opens a new connection to a specified SQL database If it fails 3 times,
@@ -64,6 +64,7 @@ public class SqlApi {
 			dbConnection.setNetworkTimeout(Executors.newFixedThreadPool(2), 15000);
 			logger.info("Successfully connected to the " + databaseName + " database at the host " + host);
 
+			SqlApi.dbConnection = dbConnection;
 			return dbConnection;
 		}
 
