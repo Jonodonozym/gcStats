@@ -40,6 +40,10 @@ public class PlayerDeath implements Listener{
 					SqlApi.setStat(killer, StatType.KDR, kills/deaths);
 					AchievementData.updateAchievements(killer, StatType.KDR);
 				}
+				else{
+					SqlApi.setStat(killer, StatType.KDR, kills);
+					AchievementData.updateAchievements(killer, StatType.KDR);
+				}
 			}
 		}
 	}
