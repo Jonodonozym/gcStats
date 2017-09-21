@@ -19,16 +19,19 @@ public class PlaceholderHook extends EZPlaceholderHook{
 		try{
 			if (identifier.contains(":")){
 				String[] args = identifier.split(":");
-				StatType stat = StatType.valueOf(args[1].toUpperCase().replaceAll(" ", "_"));
-				return stat.valueToString(SqlApi.getStat(player, stat.toString(), args[0]));
+				if (args[1].startsWith("gcstats_")){
+					StatType stat = StatType.valueOf(args[1].replaceFirst("gcstats_", "").toUpperCase().replaceAll(" ", "_"));
+					return stat.valueToString(SqlApi.getStat(player, stat.toString(), args[0]));
+				}
 			}
 			else{
-				StatType stat = StatType.valueOf(identifier.toUpperCase().replaceAll(" ", "_"));
-				return stat.valueToString(SqlApi.getStat(player, stat.toString()));
+				if (identifier.startsWith("gcstats_")){
+					StatType stat = StatType.valueOf(identifier.replaceFirst("gcstats_", "").toUpperCase().replaceAll(" ", "_"));
+					return stat.valueToString(SqlApi.getStat(player, stat.toString()));
+				}
 			}
 		}
-		catch(IllegalArgumentException e){
-			return "ERROR_INVALID_PLACEHOLDER";
-		}
+		catch(IllegalArgumentException e){ }
+		return null;
 	}
 }
