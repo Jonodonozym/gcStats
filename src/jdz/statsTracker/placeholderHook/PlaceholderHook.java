@@ -17,8 +17,15 @@ public class PlaceholderHook extends EZPlaceholderHook{
 	@Override
 	public String onPlaceholderRequest(Player player, String identifier) {
 		try{
-			StatType stat = StatType.valueOf(identifier.toUpperCase().replaceAll(" ", "_"));
-			return stat.valueToString(SqlApi.getStat(player, stat.toString()));
+			if (identifier.contains(":")){
+				String[] args = identifier.split(":");
+				StatType stat = StatType.valueOf(args[1].toUpperCase().replaceAll(" ", "_"));
+				return stat.valueToString(SqlApi.getStat(player, stat.toString(), args[0]));
+			}
+			else{
+				StatType stat = StatType.valueOf(identifier.toUpperCase().replaceAll(" ", "_"));
+				return stat.valueToString(SqlApi.getStat(player, stat.toString()));
+			}
 		}
 		catch(IllegalArgumentException e){
 			return "ERROR_INVALID_PLACEHOLDER";
