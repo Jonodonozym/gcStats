@@ -16,7 +16,6 @@ public class PlaceholderHook extends EZPlaceholderHook{
 
 	@Override
 	public String onPlaceholderRequest(Player player, String identifier) {
-		System.out.println(identifier);
 		try{
 			if (identifier.contains(":")){
 				String[] args = identifier.split(":");
