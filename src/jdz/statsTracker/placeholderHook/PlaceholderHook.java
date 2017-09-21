@@ -16,19 +16,16 @@ public class PlaceholderHook extends EZPlaceholderHook{
 
 	@Override
 	public String onPlaceholderRequest(Player player, String identifier) {
+		System.out.println(identifier);
 		try{
 			if (identifier.contains(":")){
 				String[] args = identifier.split(":");
-				if (args[1].startsWith("gcstats_")){
-					StatType stat = StatType.valueOf(args[1].replaceFirst("gcstats_", "").toUpperCase().replaceAll(" ", "_"));
-					return stat.valueToString(SqlApi.getStat(player, stat.toString(), args[0]));
-				}
+				StatType stat = StatType.valueOf(args[0].toUpperCase().replaceAll(" ", "_"));
+				return stat.valueToString(SqlApi.getStat(player, stat.toString(), args[1]));
 			}
 			else{
-				if (identifier.startsWith("gcstats_")){
-					StatType stat = StatType.valueOf(identifier.replaceFirst("gcstats_", "").toUpperCase().replaceAll(" ", "_"));
-					return stat.valueToString(SqlApi.getStat(player, stat.toString()));
-				}
+				StatType stat = StatType.valueOf(identifier.toUpperCase().replaceAll(" ", "_"));
+				return stat.valueToString(SqlApi.getStat(player, stat.toString()));
 			}
 		}
 		catch(IllegalArgumentException e){ }
