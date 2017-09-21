@@ -10,6 +10,7 @@ import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.eventHandlers.*;
+import jdz.statsTracker.placeholderHook.PlaceholderHook;
 
 public class Main extends JavaPlugin{
 	public static Main plugin;
@@ -19,7 +20,12 @@ public class Main extends JavaPlugin{
 		
 		Config.reloadConfig();
 		
-		PluginManager pm = getServer().getPluginManager();
+		PluginManager pm = Bukkit.getPluginManager();
+
+		if(pm.isPluginEnabled("PlaceholderAPI")){
+			new PlaceholderHook().hook();
+		}
+		
 		pm.registerEvents(new BlockBreak(), this);
 		pm.registerEvents(new BlockPlace(), this);
 		pm.registerEvents(new ExpGain(), this);
@@ -36,6 +42,7 @@ public class Main extends JavaPlugin{
 			pm.registerEvents(new Deathmatch(), this);
 			pm.registerEvents(new EventDropPickup(), this);
 		}
+		
 
 		getCommand(Config.achCommand).setExecutor(new AchievementCommands());
 		getCommand(Config.statsCommand).setExecutor(new StatsCommands());
