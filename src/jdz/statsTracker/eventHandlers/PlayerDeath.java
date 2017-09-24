@@ -24,7 +24,7 @@ public class PlayerDeath implements Listener{
 			double kills = (int)SqlApi.getStat(killed, StatType.KILLS+"");
 			double deaths = (int)SqlApi.getStat(killed, StatType.DEATHS+"");
 			if (deaths > 0)
-				SqlApi.setStat(killed, StatType.KDR, kills/deaths);
+				SqlApi.setStat(killed, StatType.KDR, Math.round(kills/deaths*100)/100.0);
 		}
 		
 		Player killer = e.getEntity().getKiller();
@@ -37,7 +37,7 @@ public class PlayerDeath implements Listener{
 				double kills = (int)SqlApi.getStat(killer, StatType.KILLS+"");
 				double deaths = (int)SqlApi.getStat(killer, StatType.DEATHS+"");
 				if (deaths > 0){
-					SqlApi.setStat(killer, StatType.KDR, kills/deaths);
+					SqlApi.setStat(killer, StatType.KDR, Math.round(kills/deaths*100)/100.0);
 					AchievementData.updateAchievements(killer, StatType.KDR);
 				}
 				else{
