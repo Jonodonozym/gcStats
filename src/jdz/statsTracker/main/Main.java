@@ -1,6 +1,7 @@
 
 package jdz.statsTracker.main;
 
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -11,6 +12,8 @@ import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.eventHandlers.*;
 import jdz.statsTracker.placeholderHook.PlaceholderHook;
+import jdz.statsTracker.stats.StatBuffer;
+import jdz.statsTracker.stats.StatType;
 
 public class Main extends JavaPlugin{
 	public static Main plugin;
@@ -19,6 +22,11 @@ public class Main extends JavaPlugin{
 		plugin = this;
 		
 		Config.reloadConfig();
+
+		if (Config.enabledStats.contains(StatType.BLOCKS_MINED))
+			StatBuffer.addType(StatType.BLOCKS_MINED);
+		if (Config.enabledStats.contains(StatType.BLOCKS_PLACED))
+			StatBuffer.addType(StatType.BLOCKS_PLACED);
 		
 		PluginManager pm = Bukkit.getPluginManager();
 

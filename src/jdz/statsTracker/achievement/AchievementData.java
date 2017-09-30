@@ -113,9 +113,12 @@ public class AchievementData {
 	}
 
 	public static void updateAchievements(Player p, StatType s) {
-		double value = SqlApi.getStat(p, s.toString());
-		for (Achievement a : achievementsByType.get(Config.serverName).get(s.toString()))
-			if (a.isAchieved(value))
-				SqlApi.setAchieved(p, a);
+		try{
+			double value = SqlApi.getStat(p, s.toString());
+			for (Achievement a : achievementsByType.get(Config.serverName).get(s.toString()))
+				if (a.isAchieved(value))
+					SqlApi.setAchieved(p, a);
+		}
+		catch(NullPointerException e){} // so it shuts up on auto-reconnect
 	}
 }

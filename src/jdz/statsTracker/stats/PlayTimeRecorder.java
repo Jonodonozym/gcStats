@@ -1,4 +1,4 @@
-
+ 
 package jdz.statsTracker.stats;
 
 import java.util.HashMap;
@@ -36,7 +36,7 @@ public class PlayTimeRecorder extends TimedTask{
 	
 	public PlayTimeRecorder() {
 		super(Config.afkTime/maxStrikes, ()->{
-			if (Config.enabledStats.contains(StatType.PLAY_TIME))
+			if (SqlApi.isConnected() && Config.enabledStats.contains(StatType.PLAY_TIME))
 				for (Player p: Main.plugin.getServer().getOnlinePlayers()){
 					
 					// recording if afk
@@ -56,10 +56,12 @@ public class PlayTimeRecorder extends TimedTask{
 	public static void updateTime(Player p){
 		if (strikes.get(p) < maxStrikes){
 			long time = System.currentTimeMillis();
-			if (!PlayTimeRecorder.isAfk(p))
-				SqlApi.addStat(p, StatType.PLAY_TIME, 
-						(time-lastTime.get(p))/1000);
-			AchievementData.updateAchievements(p, StatType.PLAY_TIME);
+			if (SqlApi.isConnected()){
+				if (!PlayTimeRecorder.isAfk(p))
+					SqlApi.addStat(p, StatType.PLAY_TIME, 
+							(time-lastTime.get(p))/1000);
+				AchievementData.updateAchievements(p, StatType.PLAY_TIME);
+			}
 			lastTime.put(p, time);
 		}
 	}

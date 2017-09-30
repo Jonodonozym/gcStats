@@ -15,12 +15,14 @@ import java.util.logging.Logger;
 
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import jdz.statsTracker.achievement.Achievement;
 import jdz.statsTracker.main.Config;
+import jdz.statsTracker.main.Main;
 import jdz.statsTracker.stats.StatType;
 import net.md_5.bungee.api.ChatColor;
 
@@ -35,9 +37,43 @@ public class SqlApi {
 	public static final String achievementMetaTable = "gcs_Achievement_MetaData";
 	public static final String serverMetaTable = "gcs_Server_MetaData";
 	public static final String statsMetaTable = "gcs_Stat_MetaData";
+
+	private static String dbURL = "";
+	private static String dbName = "";
+	private static String dbUsername = "";
+	private static String dbPassword = "";
+	private static int dbReconnectTime = 1200;
+	
+	private static ConnectHook connectHook = null;
+	
+	public interface ConnectHook{
+		public void run();
+	}
+	
+	public static void addConnectHook(ConnectHook hook){
+		connectHook = hook;
+	}
+	
+	public static boolean reloadConfig(FileConfiguration config){
+		dbURL = config.getString("database.URL");
+		dbName = config.getString("database.name");
+		dbUsername = config.getString("database.username");
+		dbPassword = config.getString("database.password");
+		dbReconnectTime = config.getInt("database.autoReconnectSeconds")*20;
+		dbReconnectTime = dbReconnectTime<=0?1200:dbReconnectTime;
+		
+		if (dbURL.equals("") || dbName.equals("") || dbUsername.equals("") || dbPassword.equals("")) {
+			Main.plugin.getLogger().info(
+					"Some of the database lines in config.yml are empty, please fill in the config.yml and reload the plugin.");
+			return false;
+		} 
+		return true;
+	}
 	
 	private static Connection dbConnection = null;
-
+	
+	private static TimedTask autoReconnectTask = null;
+	
 	/**
 	 * Opens a new connection to a specified SQL database If it fails 3 times,
 	 * writes the error to a log file in the plugin's directory
@@ -46,32 +82,41 @@ public class SqlApi {
 	 *            the logger to record success / fail messages to
 	 * @return the opened connection, or null if one couldn't be created
 	 */
-	public static Connection open(Logger logger, String host, int port, String databaseName, String username,
-			String password) {
+	public static Connection open(Logger logger) {
 		if (dbConnection != null)
 			close(dbConnection);
 		try {
 			try {
 				Class.forName(driver).newInstance();
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-				ErrorLogger.createLog(e);
+				if (logger != null) ErrorLogger.createLog(e);
 			}
 
-			String url = "jdbc:mysql://" + host + ":" + port + "/" + databaseName + "?user=" + username + "&password="
-					+ password + "&loginTimeout=1000&useSSL=false";
+			String url = "jdbc:mysql://" + dbURL + ":3306/" + dbName + "?user=" + dbUsername + "&password="
+					+ dbPassword + "&loginTimeout=1000&useSSL=false";
 
-			Connection dbConnection = DriverManager.getConnection(url, username, password);
+			Connection dbConnection = DriverManager.getConnection(url, dbUsername, dbPassword);
 			dbConnection.setNetworkTimeout(Executors.newFixedThreadPool(2), 15000);
-			logger.info("Successfully connected to the " + databaseName + " database at the host " + host);
+			if (logger != null)
+				logger.info("Successfully connected to the " + dbName + " database at the host " + dbURL);
 
 			SqlApi.dbConnection = dbConnection;
+			ensureCorrectTables();
+			
+			if (connectHook != null)
+				connectHook.run();
+			connectHook = null;
+			
 			return dbConnection;
 		}
 
 		catch (SQLException e) {
-			logger.info("Failed to connect to the database. Refer to the error log file in the plugin's directory"
-					+ " and contact the database host / plugin developer to help resolve the issue.");
-			ErrorLogger.createLog(e);
+			if (logger != null){
+				logger.info("Failed to connect to the database. Refer to the error log file in the plugin's directory"
+						+ " and contact the database host / plugin developer to help resolve the issue.");
+				ErrorLogger.createLog(e);
+			}
+			autoReconnect();
 		}
 		return null;
 	}
@@ -92,14 +137,46 @@ public class SqlApi {
 		return false;
 	}
 	
+	public static boolean isConnected(){
+		try {
+			if (dbConnection != null && !dbConnection.isClosed())
+				return true;
+		} catch (SQLException e) { }
+		return false;
+	}
+	
+	private static boolean autoReconnect(){
+		if (isConnected())
+			return false;
+		
+		if (autoReconnectTask == null){
+			autoReconnectTask = new TimedTask(dbReconnectTime, ()->{
+				Connection con = SqlApi.open(null);
+				if (con !=null)
+				{
+					Main.plugin.getLogger().info("Successfully re-connected to the database");
+					dbConnection = con;
+					if(autoReconnectTask != null)
+						autoReconnectTask.stop();
+					autoReconnectTask = null;
+				}
+			});
+			autoReconnectTask.start();
+		}
+		return true;
+	}
 
 	
 	public static void setServerMeta(String server, Material m, short damage){
+		if (autoReconnect())
+			return;
 		String update = "REPLACE into "+serverMetaTable+" (server, iconMaterial, iconDamage) values('"+server.replaceAll(" ", "_")+"','"+m+"',"+damage+");";
 		executeUpdate(update);
 	}
 	
 	public static ItemStack getServerIcon(String server){
+		if (autoReconnect())
+			return new ItemStack(Material.STONE);
 		String query = "Select iconMaterial, iconDamage FROM "+serverMetaTable+" WHERE server = '"+server.replaceAll(" ", "_")+"';";
 		List<String[]> list = fetchRows(query);
 		Material m =  Material.valueOf(list.get(0)[0]);
@@ -113,6 +190,8 @@ public class SqlApi {
 	
 
 	public static void addPlayer(Player p) {
+		if (autoReconnect())
+			return;
 		String update = "INSERT INTO {table} (UUID) "+
 			    "SELECT '"+p.getName()+"' FROM dual "+
 			    "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '"+p.getName()+"' ) LIMIT 1;";
@@ -126,12 +205,16 @@ public class SqlApi {
 	public static boolean hasPlayer(String server, OfflinePlayer offlinePlayer){
 		if (offlinePlayer == null)
 			return false;
+		if (autoReconnect())
+			return false;
 		String query = "SELECT * FROM " + getStatTableName(server.replaceAll(" ", "_")) + " WHERE UUID = '"+offlinePlayer.getName()+"';";
 		List<String[]> result= fetchRows( query);
 		return (!result.isEmpty());
 	}
 
 	public static void awardAchievementPoints(Player p, int points) {
+		if (autoReconnect())
+			return;
 		String update = "UPDATE " + achievementPointsTable + " SET " + Config.serverName.replaceAll(" ", "_") + " = " + Config.serverName.replaceAll(" ", "_")
 				+ " + " + points + " WHERE UUID = '" + p.getName() + "';";
 		executeUpdate( update);
@@ -142,6 +225,8 @@ public class SqlApi {
 	}
 
 	public static int getAchievementPoints(Player p, String server) {
+		if (autoReconnect())
+			return 0;
 		String query = "SELECT " + server + " FROM " + achievementPointsTable + " WHERE UUID = '" + p.getName() + "';";
 		List<String[]> values = fetchRows( query);
 		return (Integer.parseInt(values.get(0)[0]));
@@ -149,6 +234,8 @@ public class SqlApi {
 
 	public static List<Achievement> getAllAchievements() {
 		List<Achievement> achievements = new ArrayList<Achievement>();
+		if (autoReconnect())
+			return achievements;
 		List<String> servers = getServers();
 		for(String server: servers)
 			achievements.addAll(getServerAchievements(server));
@@ -156,9 +243,11 @@ public class SqlApi {
 	}
 
 	public static List<Achievement> getServerAchievements(String server) {
+		List<Achievement> achievements = new ArrayList<Achievement>();
+		if (autoReconnect())
+			return achievements;
 		String query = "SELECT * FROM "+achievementMetaTable+" WHERE server = '"+server.replaceAll(" ", "_")+"';";
 		List<String[]> result = fetchRows( query);
-		List<Achievement> achievements = new ArrayList<Achievement>();
 		for(String[] s: result){
 			String name = s[1];
 			String statType = s[2];
@@ -174,11 +263,15 @@ public class SqlApi {
 	}
 
 	public static boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
+		if (autoReconnect())
+			return false;
 		String query = "SELECT "+a.name.replace(' ', '_')+" FROM "+getAchTableName(a.server)+" WHERE UUID = '"+offlinePlayer.getName()+"';";
 		return Integer.parseInt(fetchRows( query).get(0)[0]) == 1;
 	}
 
 	public static void setAchieved(Player p, Achievement a) {
+		if (autoReconnect())
+			return;
 		if(!isAchieved(p, a)){
 			String update = "UPDATE "+getAchTableName(a.server)+" SET "+a.name.replace(' ', '_')+" = true WHERE UUID = '" + p.getName() +"';";
 			executeUpdate( update);
@@ -192,24 +285,32 @@ public class SqlApi {
 	}
 
 	public static double getStat(OfflinePlayer offlinePlayer, String statType, String server) {
+		if (autoReconnect())
+			return 0;
 		String query = "SELECT " + statType + " FROM " + getStatTableName(server) + " WHERE UUID = '" + offlinePlayer.getName() + "';";
 		List<String[]> values = fetchRows( query);
 		return Double.parseDouble(values.get(0)[0]);
 	}
 
 	public static void setStat(Player p, StatType stat, double newValue) {
+		if (autoReconnect())
+			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + stat + " = " + newValue + " WHERE UUID = '"
 				+ p.getName() + "';";
 		executeUpdate( update);
 	}
 
 	public static void addStat(Player p, StatType stat, double change) {
+		if (autoReconnect())
+			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + stat + " = " + stat + " + " + change
 				+ " WHERE UUID = '" + p.getName() + "';";
 		executeUpdate( update);
 	}
 
 	public static List<String> getServers() {
+		if (autoReconnect())
+			return new ArrayList<String>();
 		List<String> columns = fetchColumns(achievementPointsTable);
 		columns.remove("UUID");
 		List<String> servers = new ArrayList<String>();
@@ -219,10 +320,19 @@ public class SqlApi {
 	}
 	
 	public static boolean hasServer(String server){
+		if (autoReconnect())
+			return false;
 		return (getServers().contains(server));
 	}
 	
-	public static void ensureCorrectPointsTable() {
+	public static void ensureCorrectTables(){
+		ensureCorrectPointsTable();
+		ensureCorrectStatMetaTable();
+		ensureCorrectServerMetaTable();
+		ensureCorrectStatTable();
+	}
+	
+	private static void ensureCorrectPointsTable() {
 		String update = "CREATE TABLE IF NOT EXISTS " + achievementPointsTable + " (UUID varchar(127));";
 		executeUpdate( update);
 
@@ -233,6 +343,8 @@ public class SqlApi {
 	}
 
 	public static void ensureCorrectAchMetaTable(HashMap<StatType, List<Achievement>> localAchievements) {
+		if (autoReconnect())
+			return;
 		String update = "CREATE TABLE IF NOT EXISTS " + achievementMetaTable 
 				+ "(server varchar(127), name varchar(127), statType varchar(63), required double, points int,"
 				+ "icon varchar(63), iconDamage int, description varchar(1024));";
@@ -251,7 +363,7 @@ public class SqlApi {
 			}
 	}
 	
-	public static void ensureCorrectStatMetaTable(){
+	private static void ensureCorrectStatMetaTable(){
 		String newTable = "CREATE TABLE IF NOT EXISTS "+statsMetaTable+" (server varchar(127));";
 		String newRow = "INSERT INTO "+statsMetaTable+" (server) "+
 			    "SELECT '"+Config.serverName.replaceAll(" ", "_")+"' FROM dual "+
@@ -270,7 +382,7 @@ public class SqlApi {
 		}
 	}
 	
-	public static void ensureCorrectServerMetaTable(){
+	private static void ensureCorrectServerMetaTable(){
 		String update = "CREATE TABLE IF NOT EXISTS "+serverMetaTable+" (server varchar(127), iconMaterial varchar(63), iconDamage int);";
 		executeUpdate( update);
 	}
@@ -289,7 +401,7 @@ public class SqlApi {
 					executeUpdate( columnsAddBoolean.replaceAll("\\{column\\}", a.name.replace(' ', '_')));
 	}
 
-	public static void ensureCorrectStatTable() {
+	private static void ensureCorrectStatTable() {
 		String update = "CREATE TABLE IF NOT EXISTS " + getStatTableName() + " (UUID varchar(127));";
 		executeUpdate( update);
 
@@ -434,6 +546,8 @@ public class SqlApi {
 
 	public static List<String> getEnabledStats(String server) {
 		List<String> enabledStats = new ArrayList<String>();
+		if (autoReconnect())
+			return enabledStats;
 		List<String> columns = fetchColumns(statsMetaTable);
 		
 		String query = "SELECT * FROM "+statsMetaTable+" WHERE server = '"+server.replaceAll(" ", "_")+"';";

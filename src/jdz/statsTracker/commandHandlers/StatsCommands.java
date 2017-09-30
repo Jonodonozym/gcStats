@@ -31,7 +31,8 @@ public class StatsCommands implements CommandExecutor {
 			ChatColor.WHITE+"/gcs - shows your stats for the current server",
 			ChatColor.WHITE+"/gcs [server] - shows your stats for a specific server",
 			ChatColor.WHITE+"/gcs servers - lists avaliable servers",
-			ChatColor.WHITE+"/gcs [player] [server] - shows stats for another player, can chose another server too",
+			ChatColor.WHITE+"/gcs [player] - shows stats for another player",
+			ChatColor.WHITE+"/gcs [player] [server] - shows stats for another player on another server",
 			ChatColor.WHITE+"/gcs about - info about the plugin",
 			ChatColor.GRAY+"===================================="
 			
@@ -50,7 +51,10 @@ public class StatsCommands implements CommandExecutor {
 			Player player = (Player)sender;
 			
 			if(args.length == 0)
-				showStats(sender, Config.serverName, player);
+				if (SqlApi.isConnected())
+					showStats(sender, Config.serverName, player);
+				else
+					player.sendMessage(ChatColor.RED+"Couldn't connect to the stats and achievements database D:");
 			
 			else switch(args[0].toLowerCase()){
 			case "servers": listServers(sender); break;
@@ -61,25 +65,29 @@ public class StatsCommands implements CommandExecutor {
 			case "balance":
 			case "points":	break;
 			default:
-				// for player OR server
-				if (args.length == 1)
-					if(Config.servers.contains(args[0].replaceAll("_", " ")))
-						showStats(sender, args[0].replaceAll("_", " "), player);
-					else if(SqlApi.hasPlayer(Config.serverName, Bukkit.getOfflinePlayer(args[0])))
-						showStats(sender, Config.serverName, Bukkit.getOfflinePlayer(args[0]));
-					else
-						sender.sendMessage(ChatColor.RED+"'"+args[0]+"' is not a valid server or that player has never played on this server.");
-				
-				// for player AND server
-				else
-					if(Config.servers.contains(args[1].replaceAll("_", " "))){
-						if(SqlApi.hasPlayer(args[1], Bukkit.getOfflinePlayer(args[0])))
-							showStats(sender, args[1].replaceAll("_", " "), Bukkit.getOfflinePlayer(args[0]));
+				if (SqlApi.isConnected()){
+					// for player OR server
+					if (args.length == 1)
+						if(Config.servers.contains(args[0].replaceAll("_", " ")))
+							showStats(sender, args[0].replaceAll("_", " "), player);
+						else if(SqlApi.hasPlayer(Config.serverName, Bukkit.getOfflinePlayer(args[0])))
+							showStats(sender, Config.serverName, Bukkit.getOfflinePlayer(args[0]));
 						else
-							sender.sendMessage(ChatColor.RED+args[0]+" has never played on that server before!");
-					}
+							sender.sendMessage(ChatColor.RED+"'"+args[0]+"' is not a valid server or that player has never played on this server.");
+					
+					// for player AND server
 					else
-						sender.sendMessage(ChatColor.RED+args[1]+" is not a valid server!");
+						if(Config.servers.contains(args[1].replaceAll("_", " "))){
+							if(SqlApi.hasPlayer(args[1], Bukkit.getOfflinePlayer(args[0])))
+								showStats(sender, args[1].replaceAll("_", " "), Bukkit.getOfflinePlayer(args[0]));
+							else
+								sender.sendMessage(ChatColor.RED+args[0]+" has never played on that server before!");
+						}
+						else
+							sender.sendMessage(ChatColor.RED+args[1]+" is not a valid server!");
+				}
+				else
+					player.sendMessage(ChatColor.RED+"Couldn't connect to the stats and achievements database D:");
 			}
 			
 			return true;

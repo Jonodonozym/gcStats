@@ -94,8 +94,10 @@ public class AchievementShop implements Listener{
 					SqlApi.awardAchievementPoints(p, -item.cost);
 					Main.plugin.getServer().dispatchCommand(p, "gca bal");
 				}
-				else
+				else{
+					p.closeInventory();
 					p.sendMessage(ChatColor.RED+"You need "+(item.cost-currentPoints)+" more points for that");
+				}
 			}
 			e.setCancelled(true);
 		}

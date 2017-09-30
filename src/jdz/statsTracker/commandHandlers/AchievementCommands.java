@@ -40,35 +40,52 @@ public class AchievementCommands  implements CommandExecutor{
 			Player player = (Player)sender;
 			
 			if(args.length == 0){
-				PlayTimeRecorder.updateTime(player);
-				AchievementInventories.openServerSelect(player, player);
+				if (SqlApi.isConnected()){
+					PlayTimeRecorder.updateTime(player);
+					AchievementInventories.openServerSelect(player, player);
+				}
+				else
+					player.sendMessage(ChatColor.RED+"Couldn't connect to the stats and achievements database D:");
 			}
 
 			else switch(args[0].toLowerCase()){
 				case "about": sender.sendMessage(StatsCommands.aboutMessages); break;
 				case "help": sender.sendMessage(gcaHelpMessages); break;
 				case "redeem":
-				case "shop": AchievementShop.openShop(player);	break;
+				case "shop":
+					if (SqlApi.isConnected())
+						AchievementShop.openShop(player);
+					else
+						player.sendMessage(ChatColor.RED+"Couldn't connect to the stats and achievements database D:");
+					break;
 				case "bal":
 				case "balance":
 				case "points": 
-					if (args.length == 1)
-						sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(player));
-					else if (Config.servers.contains(args[1].replaceAll("_", " ")))
-						sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(player, args[1]));
-					else
-						sender.sendMessage(ChatColor.RED+"'"+args[1].replaceAll("_", " ")+"' is not a valid server!");
-					break;
-				default:
-					@SuppressWarnings("deprecation")
-					OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
-					if(SqlApi.hasPlayer(Config.serverName, otherPlayer)){
-						if (otherPlayer.isOnline())
-							PlayTimeRecorder.updateTime((Player)otherPlayer);
-						AchievementInventories.openServerSelect(player, otherPlayer);
+					if (SqlApi.isConnected()){
+						if (args.length == 1)
+							sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(player));
+						else if (Config.servers.contains(args[1].replaceAll("_", " ")))
+							sender.sendMessage(ChatColor.GREEN+"Achievement Points: "+ChatColor.YELLOW+SqlApi.getAchievementPoints(player, args[1]));
+						else
+							sender.sendMessage(ChatColor.RED+"'"+args[1].replaceAll("_", " ")+"' is not a valid server!");
 					}
 					else
-						sender.sendMessage(ChatColor.RED+"'"+args[0]+"' is not a valid player");
+						player.sendMessage(ChatColor.RED+"Couldn't connect to the stats and achievements database D:");
+					break;
+				default:
+					if (SqlApi.isConnected()){
+						@SuppressWarnings("deprecation")
+						OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
+						if(SqlApi.hasPlayer(Config.serverName, otherPlayer)){
+							if (otherPlayer.isOnline())
+								PlayTimeRecorder.updateTime((Player)otherPlayer);
+							AchievementInventories.openServerSelect(player, otherPlayer);
+						}
+						else
+							sender.sendMessage(ChatColor.RED+"'"+args[0]+"' is not a valid player");
+					}
+					else
+						player.sendMessage(ChatColor.RED+"Couldn't connect to the stats and achievements database D:");
 					break;
 			}
 			

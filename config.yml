@@ -32,6 +32,7 @@ database:
   name: ""
   username: ""
   password: "" 
+  autoReconnectSeconds: 60
 
 ## Enabling then disabling will truncate (delete) the old data for the disabled stat types
 statsEnabled:
