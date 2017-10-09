@@ -133,14 +133,30 @@ public class AchievementShop implements Listener{
 		public final List<String> commands;
 		public final String[] messages;
 		
-		private ShopItem(ItemStack displayItem, List<ItemStack> items, int slot, int cost, List<String> commands, List<String> messages, boolean giveItem){
+		@SuppressWarnings("deprecation")
+		private ShopItem(ItemStack displayItem, List<ItemStack> items, int slot, int cost, List<String> commands, List<String> enchants, List<String> messages, boolean giveItem){
 			this.items = items;
 			if (giveItem)
 				this.items.add(0, new ItemStack(displayItem));
 			
-			this.displayItem = displayItem;
+			
+			this.displayItem = new ItemStack(displayItem);
+
+			for (String s: enchants){
+				String[] args = s.split(":");
+				try{
+					Integer id = Integer.parseInt(args[0].trim());
+					Integer level = Integer.parseInt(args[1].trim());
+					this.displayItem.addUnsafeEnchantment(Enchantment.getById(id), level);
+				}
+				catch (Exception e){
+					Main.plugin.getLogger().info("Invalid enchantment '"+s+"' on achievement shop item '"+displayItem.getItemMeta().getDisplayName()+"', skipping enchant...");
+				}
+			}
+			
 			String priceTag = ChatColor.DARK_AQUA+"Price: "+ChatColor.GOLD+cost+ChatColor.DARK_AQUA+" points.";
 			ItemMeta im = displayItem.getItemMeta();
+			
 			List<String> lore = new ArrayList<String>();
 			if (displayItem.getItemMeta().getLore() != null)
 				lore = displayItem.getItemMeta().getLore();
@@ -159,17 +175,14 @@ public class AchievementShop implements Listener{
 			String customName = "";
 			int id = shopConfig.getInt(key+".ItemID");
 			int amount = 1;
-			int enchantCode = -1;
-			int enchantLevel = 1;
 			int data = 0;
 			List<String> lore = new ArrayList<String>();
+			List<String> enchants = new ArrayList<String>();
 
 			if (shopConfig.contains(key+".ItemAmount"))
 				amount = shopConfig.getInt(key+".ItemAmount");
-			if (shopConfig.contains(key+".EnchantCode"))
-				enchantCode = shopConfig.getInt(key+".EnchantCode");
-			if (shopConfig.contains(key+".EnchantLevel"))
-				enchantLevel = shopConfig.getInt(key+".EnchantLevel");
+			if (shopConfig.contains(key+".EnchantCodes"))
+				enchants = shopConfig.getStringList(key+".EnchantCodes");
 			if (shopConfig.contains(key+".ItemData"))
 				data = shopConfig.getInt(key+".ItemData");
 			if (shopConfig.contains(key+".CustomName"))
@@ -178,13 +191,19 @@ public class AchievementShop implements Listener{
 				lore = shopConfig.getStringList(key+".ItemLore");
 			
 			ItemStack item = new ItemStack(Material.getMaterial(id), amount, (short)data);
+
+			for (String s: enchants){
+				String[] args = s.split(":");
+				int eid = Integer.parseInt(args[0].trim());
+				int eLevel = Integer.parseInt(args[1].trim());
+				item.addUnsafeEnchantment(Enchantment.getById(eid), eLevel);
+			}
+			
 			ItemMeta im = item.getItemMeta();
 			if (customName != "")
 				im.setDisplayName(customName);
 			im.setLore(lore);
 			item.setItemMeta(im);
-			if (enchantCode != -1)
-				item.addUnsafeEnchantment(Enchantment.getById(enchantCode), enchantLevel);
 			
 			return item;
 		}
@@ -197,12 +216,15 @@ public class AchievementShop implements Listener{
 			int slot = Integer.parseInt(key.substring(9));
 			int cost = shopConfig.getInt(key+".Cost");
 			boolean giveItem = shopConfig.getBoolean(key+".GiveItem");
-			
+
 			List<String> commands = new ArrayList<String>();
+			List<String> enchants = new ArrayList<String>();
 			List<String> messages = new ArrayList<String>();
 			
-			if (shopConfig.contains(key+".EnchantCode"))
-				commands = shopConfig.getStringList(key+".EnchantCode");
+			if (shopConfig.contains(key+".Commands"))
+				commands = shopConfig.getStringList(key+".Commands");
+			if (shopConfig.contains(key+".EnchantCodes"))
+				enchants = shopConfig.getStringList(key+".EnchantCodes");
 			if (shopConfig.contains(key+".PlayerMessages"))
 				messages = shopConfig.getStringList(key+".PlayerMessages");
 
@@ -213,7 +235,7 @@ public class AchievementShop implements Listener{
 				}
 			}
 			
-			return new ShopItem(displayItem, extraItems, slot, cost, commands, messages, giveItem);
+			return new ShopItem(displayItem, extraItems, slot, cost, commands, enchants, messages, giveItem);
 		}
 	}
 }

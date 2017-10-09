@@ -50,7 +50,6 @@ public class Main extends JavaPlugin{
 			pm.registerEvents(new Deathmatch(), this);
 			pm.registerEvents(new EventDropPickup(), this);
 		}
-		
 
 		getCommand(Config.achCommand).setExecutor(new AchievementCommands());
 		getCommand(Config.statsCommand).setExecutor(new StatsCommands());

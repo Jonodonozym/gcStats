@@ -55,6 +55,8 @@ public class Config {
 		broadcastMinTime = config.getInt("broadcastInfo.intervalMinutesMin");
 		broadcastMaxTime = config.getInt("broadcastInfo.intervalMinutesMax");
 		broadcastMessage = config.getStringList("broadcastInfo.message").toArray(broadcastMessage);
+		for (int i=0; i<broadcastMessage.length; i++)
+			broadcastMessage[i] = broadcastMessage[i].replaceAll("&([0-9a-f])", "\u00A7$1");
 		
 		if (broadcastEnabled){
 			if (broadcastTask != null)
@@ -63,6 +65,7 @@ public class Config {
 				for(Player p: Main.plugin.getServer().getOnlinePlayers())
 					p.sendMessage(broadcastMessage);
 			});
+			broadcastTask.start();
 		}
 
 		achievementFireworkEnabled = config.getBoolean("achievementNotification.doFirework");

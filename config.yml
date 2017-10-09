@@ -10,10 +10,11 @@ broadcastInfo:
   intervalMinutesMin: 10
   intervalMinutesMax: 20
   message:
-    - §7====================[ §2Achievements §7]===================
-    - §FEach achievements in /gca to earn achievement points!
-    - §FSpend points at /gca shop
-    - §7=======================================================
+    - '&7====================[ &2Achievements &7]==================='
+    - '&fEach achievements with /gca to earn points!'
+    - '&fSpend points at /gca shop'
+    - '&7======================================================='
+
   
 ## Happens when a player earns an achievement
 achievementNotification:

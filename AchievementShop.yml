@@ -6,7 +6,7 @@
 ##
 ##    ItemAmount: OPT INT
 ##    ItemData: OPT INT
-##    EnchantCode: OPT INT
+##    EnchantCodes: OPT LIST INT:INT ( EnchantID : level )
 ##    CustomName: OPT STRING
 ##    ItemLore: OPT LIST STRING
 ##    Commands: OPT LIST STRING
@@ -31,17 +31,31 @@ shop:
     GiveItem: true
     ItemAmount: 64
     CustomName: '&aMAGICAL DIRT BLOCKS!!!'
+    Commands:
+      - /give {player} 1
+    PlayerMessages:
+      - '&1 have an extra random dirt block for fun :D'
+    ItemLore:
+      - '&aLike really magical'
   Slot1:
     ItemID: 306
     Cost: 1
     GiveItem: false
-    CustomName: '&aIron Armor'
+    CustomName: '&aSuperman Iron Armor'
     ExtraItems:
       Item0:
         ItemID: 306
+        EnchantCodes:
+          - 0:10
       Item1:
         ItemID: 307
+        EnchantCodes:
+          - 0:10
       Item2:
         ItemID: 308
+        EnchantCodes:
+          - 0:10
       Item3:
         ItemID: 309
+        EnchantCodes:
+          - 0:10
