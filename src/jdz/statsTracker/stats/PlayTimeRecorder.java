@@ -54,6 +54,11 @@ public class PlayTimeRecorder extends TimedTask{
 	}
 	
 	public static void updateTime(Player p){
+		if (lastTime.get(p) == null){
+			lastTime.put(p, System.currentTimeMillis());
+			return;
+		}
+		
 		if (strikes.get(p) < maxStrikes){
 			long time = System.currentTimeMillis();
 			if (SqlApi.isConnected()){
