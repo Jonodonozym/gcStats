@@ -113,7 +113,7 @@ public class AchievementShop implements Listener{
 			List<String> lore = new ArrayList<String>();
 			if (copy.getItemMeta().getLore() != null)
 				lore = copy.getItemMeta().getLore();
-			lore.add(0,purchasedBy);
+			lore.add(purchasedBy);
 			im.setLore(lore);
 			copy.setItemMeta(im);
 			
@@ -189,6 +189,9 @@ public class AchievementShop implements Listener{
 				customName = shopConfig.getString(key+".CustomName").replaceAll("&", "§");
 			if (shopConfig.contains(key+".ItemLore"))
 				lore = shopConfig.getStringList(key+".ItemLore");
+
+			for (int i=0; i<lore.size(); i++)
+				lore.set(0, lore.get(i).replaceAll("&([0-9a-f])", "\u00A7$1"));
 			
 			ItemStack item = new ItemStack(Material.getMaterial(id), amount, (short)data);
 
@@ -213,6 +216,7 @@ public class AchievementShop implements Listener{
 				throw new RuntimeException("Cost missing from config");
 			
 			ItemStack displayItem = stackFromConfig(shopConfig, key);
+			
 			int slot = Integer.parseInt(key.substring(9));
 			int cost = shopConfig.getInt(key+".Cost");
 			boolean giveItem = shopConfig.getBoolean(key+".GiveItem");
@@ -223,11 +227,12 @@ public class AchievementShop implements Listener{
 			
 			if (shopConfig.contains(key+".Commands"))
 				commands = shopConfig.getStringList(key+".Commands");
-			if (shopConfig.contains(key+".EnchantCodes"))
-				enchants = shopConfig.getStringList(key+".EnchantCodes");
 			if (shopConfig.contains(key+".PlayerMessages"))
 				messages = shopConfig.getStringList(key+".PlayerMessages");
 
+			for (int i=0; i<messages.size(); i++)
+				messages.set(0, messages.get(i).replaceAll("&([0-9a-f])", "\u00A7$1"));
+			
 			List<ItemStack> extraItems = new ArrayList<ItemStack>();
 			if (shopConfig.contains(key+".ExtraItems")){
 				for (String itemKey: shopConfig.getConfigurationSection(key+".ExtraItems").getKeys(false)){

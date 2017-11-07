@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.bukkit.Material;
@@ -96,7 +95,6 @@ public class SqlApi {
 					+ dbPassword + "&loginTimeout=1000&useSSL=false";
 
 			Connection dbConnection = DriverManager.getConnection(url, dbUsername, dbPassword);
-			dbConnection.setNetworkTimeout(Executors.newFixedThreadPool(2), 15000);
 			if (logger != null)
 				logger.info("Successfully connected to the " + dbName + " database at the host " + dbURL);
 

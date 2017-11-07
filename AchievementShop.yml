@@ -22,7 +22,7 @@
 ##        ItemLore: OPT LIST STRING
 
 shop:
-  enabled: true
+  enabled: false
   
   ## Examples
   Slot0:

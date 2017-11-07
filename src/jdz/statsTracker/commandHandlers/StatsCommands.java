@@ -101,7 +101,7 @@ public class StatsCommands implements CommandExecutor {
 		String list = ChatColor.WHITE + "";
 		for (String server : Config.servers)
 			list = list + server.replaceAll(" ", "_") + ", ";
-		list.substring(0,list.length() - 2);
+		list.substring(0,list.length() - 3);
 		sender.sendMessage(list);
 		sender.sendMessage( ChatColor.GRAY + "====================================");
 	}
