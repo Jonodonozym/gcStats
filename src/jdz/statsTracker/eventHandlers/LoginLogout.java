@@ -6,8 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.guildcraft.EventOrganizer.Main;
 
 import jdz.statsTracker.achievement.AchievementData;
 import jdz.statsTracker.main.Config;
@@ -25,15 +23,10 @@ public class LoginLogout implements Listener{
 	}
 	
 	public static void setupPlayer(Player p){
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				SqlApi.addPlayer(p);
-				PlayTimeRecorder.addPlayer(p);
-				AchievementData.addPlayer(p);
-				StatBuffer.addPlayer(p);
-			}
-		}.runTaskAsynchronously(Main.instance);
+		SqlApi.addPlayer(p);
+		PlayTimeRecorder.addPlayer(p);
+		AchievementData.addPlayer(p);
+		StatBuffer.addPlayer(p);
 	}
 
 	@EventHandler

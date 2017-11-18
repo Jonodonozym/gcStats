@@ -21,6 +21,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.statsTracker.achievement.Achievement;
+import jdz.statsTracker.achievement.AchievementData;
 import jdz.statsTracker.main.Config;
 import jdz.statsTracker.main.Main;
 import jdz.statsTracker.stats.StatBuffer;
@@ -193,13 +194,18 @@ public class SqlApi {
 	public static void addPlayer(Player p) {
 		if (autoReconnect())
 			return;
-		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + p.getName() + "' FROM dual "
-				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + p.getName() + "' ) LIMIT 1;";
-		executeUpdate(update.replaceAll("\\{table\\}", achievementPointsTable));
-		for (String server : getServers()) {
-			executeUpdate(update.replaceAll("\\{table\\}", getStatTableName(server)));
-			executeUpdate(update.replaceAll("\\{table\\}", getAchTableName(server)));
-		}
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				String update = "INSERT INTO {table} (UUID) " + "SELECT '" + p.getName() + "' FROM dual "
+						+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + p.getName() + "' ) LIMIT 1;";
+				executeUpdate(update.replaceAll("\\{table\\}", achievementPointsTable));
+				for (String server : getServers()) {
+					executeUpdate(update.replaceAll("\\{table\\}", getStatTableName(server)));
+					executeUpdate(update.replaceAll("\\{table\\}", getAchTableName(server)));
+				}
+			}
+		}.runTaskAsynchronously(Main.plugin);
 	}
 
 	public static boolean hasPlayer(String server, OfflinePlayer offlinePlayer) {
@@ -216,9 +222,10 @@ public class SqlApi {
 	public static void awardAchievementPoints(Player p, int points) {
 		if (autoReconnect())
 			return;
-		String update = "UPDATE " + achievementPointsTable + " SET " + Config.serverName.replaceAll(" ", "_") + " = "
-				+ Config.serverName.replaceAll(" ", "_") + " + " + points + " WHERE UUID = '" + p.getName() + "';";
-		executeUpdate(update);
+		String column = AchievementData.isGlobal?"Global":Config.serverName.replaceAll(" ", "_");
+		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = "
+				+ column + " + " + points + " WHERE UUID = '" + p.getName() + "';";
+		executeUpdateAsync(update);
 	}
 
 	public static int getAchievementPoints(Player p) {
@@ -270,7 +277,12 @@ public class SqlApi {
 			return false;
 		String query = "SELECT " + a.name.replace(' ', '_') + " FROM " + getAchTableName(a.server) + " WHERE UUID = '"
 				+ offlinePlayer.getName() + "';";
+		try {
 		return Integer.parseInt(fetchRows(query).get(0)[0]) == 1;
+		}
+		catch (Exception e) {
+			return true;
+		}
 	}
 
 	public static void setAchieved(Player p, Achievement a) {
@@ -279,7 +291,8 @@ public class SqlApi {
 		if (!isAchieved(p, a)) {
 			String update = "UPDATE " + getAchTableName(a.server) + " SET " + a.name.replace(' ', '_')
 					+ " = true WHERE UUID = '" + p.getName() + "';";
-			executeUpdate(update);
+			executeUpdateAsync(update);
+			if (AchievementData.awardPoints)
 			awardAchievementPoints(p, a.points);
 			a.doFirework(p);
 		}
@@ -292,10 +305,17 @@ public class SqlApi {
 	public static double getStat(OfflinePlayer offlinePlayer, String statType, String server) {
 		if (autoReconnect())
 			return 0;
+		
 		String query = "SELECT " + statType + " FROM " + getStatTableName(server) + " WHERE UUID = '"
 				+ offlinePlayer.getName() + "';";
 		List<String[]> values = fetchRows(query);
-		return Double.parseDouble(values.get(0)[0]);
+		
+		try {
+			return Double.parseDouble(values.get(0)[0]);
+		}
+		catch (Exception e) {
+			return 0;
+		}
 	}
 
 	public static void setStat(Player p, StatType stat, double newValue) {
@@ -317,7 +337,7 @@ public class SqlApi {
 			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + stat + " = " + newValue + " WHERE UUID = '"
 				+ p.getName() + "';";
-		executeUpdate(update);
+		executeUpdateAsync(update);
 	}
 
 	public static void addStatDirect(Player p, StatType stat, double change) {
@@ -325,7 +345,7 @@ public class SqlApi {
 			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + stat + " = " + stat + " + " + change
 				+ " WHERE UUID = '" + p.getName() + "';";
-		executeUpdate(update);
+		executeUpdateAsync(update);
 	}
 
 	public static List<String> getServers() {
@@ -333,6 +353,7 @@ public class SqlApi {
 			return new ArrayList<String>();
 		List<String> columns = fetchColumns(achievementPointsTable);
 		columns.remove("UUID");
+		columns.remove("Global");
 		List<String> servers = new ArrayList<String>();
 		for (String s : columns)
 			servers.add(s.replaceAll("_", " "));
@@ -357,6 +378,10 @@ public class SqlApi {
 		executeUpdate(update);
 
 		List<String> columns = fetchColumns(achievementPointsTable);
+		
+		if (!columns.contains("Global"))
+			executeUpdate("ALTER TABLE " + achievementPointsTable + " ADD COLUMN Global DOUBLE default 0");
+		
 		if (!columns.contains(Config.serverName.replaceAll(" ", "_")))
 			executeUpdate("ALTER TABLE " + achievementPointsTable + " ADD COLUMN "
 					+ Config.serverName.replaceAll(" ", "_") + " DOUBLE default 0");
@@ -552,27 +577,31 @@ public class SqlApi {
 	 * @param connection
 	 * @param update
 	 */
-	private static void executeUpdate(String update) {
+	private static void executeUpdateAsync(String update) {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				Statement stmt = null;
-				try {
-					stmt = dbConnection.createStatement();
-					stmt.executeUpdate(update);
-				} catch (SQLException e) {
-					ErrorLogger.createLog(e);
-				} finally {
-					if (stmt != null) {
-						try {
-							stmt.close();
-						} catch (SQLException e) {
-							ErrorLogger.createLog(e);
-						}
-					}
-				}
+				executeUpdate(update);
 			}
 		}.runTaskAsynchronously(Main.plugin);
+	}
+
+	private static void executeUpdate(String update) {
+		Statement stmt = null;
+		try {
+			stmt = dbConnection.createStatement();
+			stmt.executeUpdate(update);
+		} catch (SQLException e) {
+			ErrorLogger.createLog(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					ErrorLogger.createLog(e);
+				}
+			}
+		}
 	}
 
 	public static List<String> getEnabledStats(String server) {

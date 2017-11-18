@@ -26,6 +26,9 @@ public class AchievementData {
 	public static Map<String, List<Achievement>> achievements = new HashMap<String, List<Achievement>>();
 	public static Map<Achievement, Integer> numTiers = new HashMap<Achievement, Integer>();
 	
+	public static boolean awardPoints = true;
+	public static boolean isGlobal = false;
+	
 	public static void addPlayer(Player p) {
 		new BukkitRunnable() {
 			@Override
@@ -53,6 +56,10 @@ public class AchievementData {
 
 		HashMap<StatType, List<Achievement>> localAchievements = new HashMap<StatType, List<Achievement>>();
 		FileConfiguration achConfig = YamlConfiguration.loadConfiguration(file);
+		
+		awardPoints = achConfig.getBoolean("points.enabled", true);
+		isGlobal = achConfig.getBoolean("points.isGlobal", false);
+		
 		for (StatType type : Config.enabledStats)
 			localAchievements.put(type, new ArrayList<Achievement>());
 		for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false)) {
