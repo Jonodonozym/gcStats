@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.statsTracker.main.Config;
 import jdz.statsTracker.main.Main;
@@ -26,16 +27,21 @@ public class AchievementData {
 	public static Map<Achievement, Integer> numTiers = new HashMap<Achievement, Integer>();
 	
 	public static void addPlayer(Player p) {
-		for (String server : Config.servers) {
-			List<String> statTypes = SqlApi.getEnabledStats(server);
-			statTypes.remove("UUID");
-			for (String type : statTypes) {
-				double value = SqlApi.getStat(p, type.toString(), server);
-				for (Achievement a : achievementsByType.get(server).get(type))
-					if (a.isAchieved(value))
-						SqlApi.setAchieved(p, a);
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				for (String server : Config.servers) {
+					List<String> statTypes = SqlApi.getEnabledStats(server);
+					statTypes.remove("UUID");
+					for (String type : statTypes) {
+						double value = SqlApi.getStat(p, type.toString(), server);
+						for (Achievement a : achievementsByType.get(server).get(type))
+							if (a.isAchieved(value))
+								SqlApi.setAchieved(p, a);
+					}
+				}
 			}
-		}
+		}.runTaskAsynchronously(Main.plugin);
 	}
 
 	public static void reloadData() {

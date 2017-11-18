@@ -4,9 +4,10 @@ package jdz.statsTracker.eventHandlers;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.guildcraft.EventOrganizer.Main;
 
 import jdz.statsTracker.achievement.AchievementData;
 import jdz.statsTracker.main.Config;
@@ -18,19 +19,24 @@ import jdz.statsTracker.util.SqlApi;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class LoginLogout implements Listener{	
-	@EventHandler(ignoreCancelled=true, priority=EventPriority.LOWEST)
+	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e){
 		setupPlayer(e.getPlayer());
 	}
 	
 	public static void setupPlayer(Player p){
-		SqlApi.addPlayer(p);
-		PlayTimeRecorder.addPlayer(p);
-		AchievementData.addPlayer(p);
-		StatBuffer.addPlayer(p);
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				SqlApi.addPlayer(p);
+				PlayTimeRecorder.addPlayer(p);
+				AchievementData.addPlayer(p);
+				StatBuffer.addPlayer(p);
+			}
+		}.runTaskAsynchronously(Main.instance);
 	}
 
-	@EventHandler(ignoreCancelled=true, priority=EventPriority.LOWEST)
+	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent e){
 		Player player = e.getPlayer();
 		if (Config.enabledStats.contains(StatType.PLAY_TIME))

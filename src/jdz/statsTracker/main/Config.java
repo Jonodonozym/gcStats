@@ -24,7 +24,7 @@ public class Config {
 	public static String serverName = "";
 	public static Set<StatType> enabledStats = new HashSet<StatType>();
 
-	public static int autoUpdateDelay = 1200;
+	public static int autoUpdateDelay = 600;
 	public static int afkTime = 12000;
 
 	public static String statsCommand = "gcs";
