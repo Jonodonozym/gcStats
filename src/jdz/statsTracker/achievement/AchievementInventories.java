@@ -24,16 +24,17 @@ import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.util.SqlApi;
 
 public class AchievementInventories implements Listener {
+	public static final String SERVER_SELECT_INV_NAME = ChatColor.DARK_GREEN + "Achievements: server select";
 	public static Inventory serverSelect;
+
 	public static Map<Achievement, ItemStack> achievementToStack = new HashMap<Achievement, ItemStack>();
 	public static Map<Player, OfflinePlayer> targets = new HashMap<Player, OfflinePlayer>();
 	public static Map<Player, Integer> page = new HashMap<Player, Integer>();
 	public static Map<Player, String> server = new HashMap<Player, String>();
 
 	public static void reload() {
-		achievementToStack = createDefaultItemStacks();
 		targets.clear();
-
+		achievementToStack = createDefaultItemStacks();
 		serverSelect = createServerSelectInv();
 	}
 
@@ -44,37 +45,40 @@ public class AchievementInventories implements Listener {
 
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent e) {
-		Player p = (Player)e.getWhoClicked();
-		Inventory inv = p.getOpenInventory().getTopInventory();
+		Player player = (Player) e.getWhoClicked();
 
-        ItemStack stack = null;
-        if (e.getCurrentItem() != null)
-            stack = e.getCurrentItem();
-        else if (e.getCursor() != null)
-            stack = e.getCursor();
-        
-        if (inv != null){
-			if (inv.getName().endsWith(serverSelect.getName())){
-	        	if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null){
-	        		server.put(p, stack.getItemMeta().getDisplayName().substring(2));
-	        		openPage(p, server.get(p), 0);
-	        	}
-				e.setCancelled(true);
+		Inventory inv = e.getClickedInventory();
+
+		if (inv == null)
+			return;
+
+		ItemStack stack = null;
+		if (e.getCurrentItem() != null)
+			stack = e.getCurrentItem();
+		else if (e.getCursor() != null)
+			stack = e.getCursor();
+
+		if (stack == null)
+			return;
+
+		if (inv.getName().equals(SERVER_SELECT_INV_NAME)) {
+			if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null) {
+				server.put(player, stack.getItemMeta().getDisplayName().substring(2));
+				openPage(player, server.get(player), 0);
 			}
-			else if (inv.getName().endsWith(" Achievements")){
-	        	if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null){
-					if (stack.getItemMeta().getDisplayName().equals(ArrowType.NEXT.toString()))
-						openPage(p, server.get(p), page.get(p)+1);
-					if (stack.getItemMeta().getDisplayName().equals(ArrowType.PREVIOUS.toString()))
-						openPage(p, server.get(p), page.get(p)-1);
-					if (stack.getItemMeta().getDisplayName().equals(ArrowType.SELECT_SERVER.toString()))
-						p.openInventory(serverSelect);
-	        	}
-				e.setCancelled(true);
+			e.setCancelled(true);
+		} else if (inv.getName().endsWith(" Achievements")) {
+			if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null) {
+				if (stack.getItemMeta().getDisplayName().equals(ArrowType.NEXT.toString()))
+					openPage(player, server.get(player), page.get(player) + 1);
+				if (stack.getItemMeta().getDisplayName().equals(ArrowType.PREVIOUS.toString()))
+					openPage(player, server.get(player), page.get(player) - 1);
+				if (stack.getItemMeta().getDisplayName().equals(ArrowType.SELECT_SERVER.toString()))
+					player.openInventory(serverSelect);
 			}
-        }
+			e.setCancelled(true);
+		}
 	}
-	
 
 	/**
 	 * Creates a sever select inventory
@@ -89,7 +93,7 @@ public class AchievementInventories implements Listener {
 			itemStacks.add(SqlApi.getServerIcon(server));
 
 		int rows = (int) (Math.ceil(itemStacks.size() / 4.0));
-		Inventory inv = Bukkit.createInventory(null, rows * 9, ChatColor.DARK_GREEN + "Achievements: server select");
+		Inventory inv = Bukkit.createInventory(null, rows * 9, SERVER_SELECT_INV_NAME);
 
 		int index = 0;
 		for (ItemStack itemStack : itemStacks) {
@@ -131,16 +135,17 @@ public class AchievementInventories implements Listener {
 			}
 		return achToItem;
 	}
-	
-	private static void openPage(Player p, String server, int number){
+
+	private static void openPage(Player p, String server, int number) {
 		page.put(p, number);
 		p.openInventory(getPageInventory(targets.get(p), server, number));
-		
+
 	}
 
 	private static Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
 		List<Achievement> achievements = AchievementData.achievements.get(server);
-		Inventory pageInventory = Bukkit.createInventory(null, 54, ChatColor.DARK_GREEN+offlinePlayer.getName()+ChatColor.DARK_GREEN+"'s Achievements");
+		Inventory pageInventory = Bukkit.createInventory(null, 54,
+				ChatColor.DARK_GREEN + offlinePlayer.getName() + ChatColor.DARK_GREEN + "'s Achievements");
 		int i = 0;
 		for (int achIndex = page * 36; achIndex < Math.min((page + 1) * 36, achievements.size()); achIndex++) {
 			Achievement achievement = achievements.get(achIndex);
@@ -149,13 +154,13 @@ public class AchievementInventories implements Listener {
 
 			pageInventory.setItem(i++, itemStack);
 		}
-		
+
 		if ((page + 1) * 36 < achievements.size())
 			pageInventory.setItem(53, new ChangePageArrow(ArrowType.NEXT));
 		if (page > 0)
 			pageInventory.setItem(45, new ChangePageArrow(ArrowType.PREVIOUS));
 		pageInventory.setItem(49, new ChangePageArrow(ArrowType.SELECT_SERVER));
-		
+
 		return pageInventory;
 	}
 
@@ -165,19 +170,18 @@ public class AchievementInventories implements Listener {
 		ItemMeta itemMeta = newStack.getItemMeta();
 		List<String> lore = itemMeta.getLore();
 		if (isAchieved) {
-			itemMeta.setDisplayName(ChatColor.GREEN+achievement.name.replace('_', ' '));
+			itemMeta.setDisplayName(ChatColor.GREEN + achievement.name.replace('_', ' '));
 			newStack.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
 			lore.add(ChatColor.GREEN + "Achievement Unlocked!");
 			lore.get(1).replaceAll(ChatColor.GRAY.toString(), ChatColor.WHITE.toString());
 		} else {
-			itemMeta.setDisplayName(ChatColor.RED+achievement.name.replace('_', ' '));
+			itemMeta.setDisplayName(ChatColor.RED + achievement.name.replace('_', ' '));
 			double progress = SqlApi.getStat(offlinePlayer, achievement.statType, server);
-			try{
-			String progressStr = StatType.valueOf(achievement.statType).valueToString(progress);
-			String requiredStr = StatType.valueOf(achievement.statType).valueToString(achievement.required);
-			lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progressStr + " / " + requiredStr);
-			}
-			catch (Exception e){
+			try {
+				String progressStr = StatType.valueOf(achievement.statType).valueToString(progress);
+				String requiredStr = StatType.valueOf(achievement.statType).valueToString(achievement.required);
+				lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progressStr + " / " + requiredStr);
+			} catch (Exception e) {
 				lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progress + " / " + achievement.required);
 			}
 		}
@@ -185,10 +189,10 @@ public class AchievementInventories implements Listener {
 		newStack.setItemMeta(itemMeta);
 		return newStack;
 	}
-	
-	private static class ChangePageArrow extends ItemStack{
-		
-		public ChangePageArrow(ArrowType type){
+
+	private static class ChangePageArrow extends ItemStack {
+
+		public ChangePageArrow(ArrowType type) {
 			super(Material.ARROW);
 			ItemMeta im = getItemMeta();
 			im.setDisplayName(type.toString());
@@ -196,18 +200,19 @@ public class AchievementInventories implements Listener {
 			setType(Material.ARROW);
 		}
 	}
-	
-	private static enum ArrowType{
-		SELECT_SERVER,
-		PREVIOUS,
-		NEXT;
-		
+
+	private static enum ArrowType {
+		SELECT_SERVER, PREVIOUS, NEXT;
+
 		@Override
-		public String toString(){
-			switch(this){
-			case NEXT: return ChatColor.GREEN+"Next Page";
-			case PREVIOUS: return ChatColor.GREEN+"Previous Page";
-			case SELECT_SERVER: return ChatColor.GREEN+"Select Server";
+		public String toString() {
+			switch (this) {
+			case NEXT:
+				return ChatColor.GREEN + "Next Page";
+			case PREVIOUS:
+				return ChatColor.GREEN + "Previous Page";
+			case SELECT_SERVER:
+				return ChatColor.GREEN + "Select Server";
 			}
 			return "";
 		}
