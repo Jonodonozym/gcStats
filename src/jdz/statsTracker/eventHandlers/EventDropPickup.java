@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.guildcraft.EventOrganizer.events.EventDropPickupEvent;
 
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public class EventDropPickup implements Listener{
 
@@ -16,11 +16,11 @@ public class EventDropPickup implements Listener{
 		Player p = e.getPlayer();
 		switch(e.getType()){
 		case "keydrop":
-			SqlApi.addStat(p, StatType.KEY_DROPS_WON, 1);
+			StatsDatabase.getInstance().addStat(p, StatType.KEY_DROPS_WON, 1);
 			break;
 		case "supplydrop":
 		case "supplydrops":
-			SqlApi.addStat(p, StatType.SUPPLY_DROPS_WON, 1);
+			StatsDatabase.getInstance().addStat(p, StatType.SUPPLY_DROPS_WON, 1);
 			break;
 		}
 	}

@@ -8,12 +8,10 @@ import java.util.Set;
 
 import org.bukkit.entity.Player;
 
+import jdz.bukkitUtils.misc.TimedTask;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.achievement.AchievementData;
-import jdz.statsTracker.main.Config;
-import jdz.statsTracker.main.Main;
-import jdz.statsTracker.util.SqlApi;
-import jdz.statsTracker.util.TimedTask;
-
+import jdz.statsTracker.config.Config;
 public class StatBuffer {
 	private static Map<StatType, TimedTask> tasks = new HashMap<StatType, TimedTask>();
 	private static Map<Player, Map<StatType, Double>> bufferedStats = new HashMap<Player, Map<StatType, Double>>();
@@ -22,11 +20,11 @@ public class StatBuffer {
 	public static void addType(StatType type){
 		if (Config.enabledStats.contains(type))
 			if (!tasks.containsKey(type)){
-				tasks.put(type, new TimedTask(Config.autoUpdateDelay, ()->{
-					if (SqlApi.isConnected())
-						for(Player p: Main.plugin.getServer().getOnlinePlayers()){
+				tasks.put(type, new TimedTask(GCStats.plugin, Config.autoUpdateDelay, ()->{
+					if (StatsDatabase.getInstance().getApi().isConnected())
+						for(Player p: GCStats.plugin.getServer().getOnlinePlayers()){
 							if (hasChanged.get(p).contains(type)){
-								SqlApi.setStat(p, StatType.BLOCKS_PLACED, bufferedStats.get(p).get(type));
+								StatsDatabase.getInstance().setStat(p, type, bufferedStats.get(p).get(type));
 								AchievementData.updateAchievements(p, type);
 								hasChanged.get(p).remove(type);
 							}
@@ -57,14 +55,14 @@ public class StatBuffer {
 	public static void addPlayer(Player player){
 		Map<StatType, Double> map = new HashMap<StatType, Double>();
 		for (StatType s: tasks.keySet())
-			map.put(s, SqlApi.getStat(player, s.toString()));
+			map.put(s, StatsDatabase.getInstance().getStat(player, s.toString()));
 		bufferedStats.put(player, map);
 		hasChanged.put(player, new HashSet<StatType>());
 	}
 	
 	public static void removePlayer(Player player){
 		for(StatType s: tasks.keySet())
-			SqlApi.setStat(player, s, bufferedStats.get(player).get(s));
+			StatsDatabase.getInstance().setStat(player, s, bufferedStats.get(player).get(s));
 		hasChanged.remove(player);
 		bufferedStats.remove(player);
 	}

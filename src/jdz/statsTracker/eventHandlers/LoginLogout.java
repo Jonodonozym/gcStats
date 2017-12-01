@@ -8,11 +8,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import jdz.statsTracker.achievement.AchievementData;
-import jdz.statsTracker.main.Config;
+import jdz.statsTracker.config.Config;
 import jdz.statsTracker.stats.PlayTimeRecorder;
 import jdz.statsTracker.stats.StatBuffer;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -23,8 +23,8 @@ public class LoginLogout implements Listener{
 	}
 	
 	public static void setupPlayer(Player p){
-		SqlApi.addPlayer(p);
-		PlayTimeRecorder.addPlayer(p);
+		StatsDatabase.getInstance().addPlayer(p);
+		PlayTimeRecorder.getInstance().addPlayer(p);
 		AchievementData.addPlayer(p);
 		StatBuffer.addPlayer(p);
 	}
@@ -33,10 +33,10 @@ public class LoginLogout implements Listener{
 	public void onPlayerLeave(PlayerQuitEvent e){
 		Player player = e.getPlayer();
 		if (Config.enabledStats.contains(StatType.PLAY_TIME))
-		SqlApi.addStat(e.getPlayer(), StatType.PLAY_TIME, 
-				(System.currentTimeMillis() - PlayTimeRecorder.lastTime.get(e.getPlayer()))/1000);
-		SqlApi.setStat(player, StatType.DIST_WALKED, player.getStatistic(Statistic.WALK_ONE_CM)/100.0);
-		PlayTimeRecorder.removePlayer(player);
+			StatsDatabase.getInstance().addStat(e.getPlayer(), StatType.PLAY_TIME, 
+				(System.currentTimeMillis() - PlayTimeRecorder.getInstance().lastTime.get(e.getPlayer()))/1000);
+		StatsDatabase.getInstance().setStat(player, StatType.DIST_WALKED, player.getStatistic(Statistic.WALK_ONE_CM)/100.0);
+		PlayTimeRecorder.getInstance().removePlayer(player);
 		StatBuffer.removePlayer(player);
 	}
 }

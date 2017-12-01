@@ -19,9 +19,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import jdz.statsTracker.main.Config;
+import jdz.statsTracker.config.Config;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public class AchievementInventories implements Listener {
 	public static final String SERVER_SELECT_INV_NAME = ChatColor.DARK_GREEN + "Achievements: server select";
@@ -90,7 +90,7 @@ public class AchievementInventories implements Listener {
 		List<ItemStack> itemStacks = new ArrayList<ItemStack>();
 
 		for (String server : Config.servers)
-			itemStacks.add(SqlApi.getServerIcon(server));
+			itemStacks.add(StatsDatabase.getInstance().getServerIcon(server));
 
 		int rows = (int) (Math.ceil(itemStacks.size() / 4.0));
 		Inventory inv = Bukkit.createInventory(null, rows * 9, SERVER_SELECT_INV_NAME);
@@ -165,7 +165,7 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, Achievement achievement, String server) {
-		boolean isAchieved = SqlApi.isAchieved(offlinePlayer, achievement);
+		boolean isAchieved = StatsDatabase.getInstance().isAchieved(offlinePlayer, achievement);
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
 		List<String> lore = itemMeta.getLore();
@@ -176,7 +176,7 @@ public class AchievementInventories implements Listener {
 			lore.get(1).replaceAll(ChatColor.GRAY.toString(), ChatColor.WHITE.toString());
 		} else {
 			itemMeta.setDisplayName(ChatColor.RED + achievement.name.replace('_', ' '));
-			double progress = SqlApi.getStat(offlinePlayer, achievement.statType, server);
+			double progress = StatsDatabase.getInstance().getStat(offlinePlayer, achievement.statType, server);
 			try {
 				String progressStr = StatType.valueOf(achievement.statType).valueToString(progress);
 				String requiredStr = StatType.valueOf(achievement.statType).valueToString(achievement.required);

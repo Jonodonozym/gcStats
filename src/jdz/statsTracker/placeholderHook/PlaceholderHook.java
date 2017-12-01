@@ -3,15 +3,15 @@ package jdz.statsTracker.placeholderHook;
 
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.main.Main;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 import me.clip.placeholderapi.external.EZPlaceholderHook;
 
 public class PlaceholderHook extends EZPlaceholderHook{
 
 	public PlaceholderHook() {
-		super(Main.plugin, "gcStats");
+		super(GCStats.plugin, "gcStats");
 	}
 
 	@Override
@@ -20,11 +20,11 @@ public class PlaceholderHook extends EZPlaceholderHook{
 			if (identifier.contains(":")){
 				String[] args = identifier.split(":");
 				StatType stat = StatType.valueOf(args[0].toUpperCase().replaceAll(" ", "_"));
-				return stat.valueToString(SqlApi.getStat(player, stat.toString(), args[1]));
+				return stat.valueToString(StatsDatabase.getInstance().getStat(player, stat.toString(), args[1]));
 			}
 			else{
 				StatType stat = StatType.valueOf(identifier.toUpperCase().replaceAll(" ", "_"));
-				return stat.valueToString(SqlApi.getStat(player, stat.toString()));
+				return stat.valueToString(StatsDatabase.getInstance().getStat(player, stat.toString()));
 			}
 		}
 		catch(IllegalArgumentException e){ }

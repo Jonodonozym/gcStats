@@ -15,8 +15,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import jdz.statsTracker.main.Config;
-import jdz.statsTracker.main.Main;
+import jdz.statsTracker.GCStats;
+import jdz.statsTracker.config.Config;
 
 public class Achievement {
 	// static field for the firework effect
@@ -75,6 +75,6 @@ public class Achievement {
 					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
 				}
 			}
-		}.runTask(Main.plugin);
+		}.runTask(GCStats.plugin);
 	}
 }

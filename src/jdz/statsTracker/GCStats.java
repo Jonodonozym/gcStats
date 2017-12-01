@@ -1,5 +1,5 @@
 
-package jdz.statsTracker.main;
+package jdz.statsTracker;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -8,14 +8,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementShop;
-import jdz.statsTracker.commandHandlers.*;
+import jdz.statsTracker.commandHandlers.gca.AchievementCommandExecutor;
+import jdz.statsTracker.commandHandlers.gcs.StatsCommandExecutor;
+import jdz.statsTracker.config.Config;
 import jdz.statsTracker.eventHandlers.*;
 import jdz.statsTracker.placeholderHook.PlaceholderHook;
 import jdz.statsTracker.stats.StatBuffer;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsDatabase;
 
-public class Main extends JavaPlugin {
-	public static Main plugin;
+public class GCStats extends JavaPlugin {
+	public static GCStats plugin;
 
 	@Override
 	public void onEnable() {
@@ -27,6 +30,8 @@ public class Main extends JavaPlugin {
 			StatBuffer.addType(StatType.BLOCKS_MINED);
 		if (Config.enabledStats.contains(StatType.BLOCKS_PLACED))
 			StatBuffer.addType(StatType.BLOCKS_PLACED);
+		
+		StatsDatabase.init(this);
 
 		PluginManager pm = Bukkit.getPluginManager();
 
@@ -66,8 +71,8 @@ public class Main extends JavaPlugin {
 			getLogger().severe("EventOrganizer plugin didn't load correctly or is outdated, skipping");
 		}
 
-		getCommand(Config.achCommand).setExecutor(new AchievementCommands());
-		getCommand(Config.statsCommand).setExecutor(new StatsCommands());
+		new AchievementCommandExecutor(this).register();
+		new StatsCommandExecutor(this).register();
 
 		for (Player p : Bukkit.getOnlinePlayers())
 			LoginLogout.setupPlayer(p);

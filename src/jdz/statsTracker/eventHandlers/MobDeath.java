@@ -8,10 +8,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
 import jdz.statsTracker.achievement.AchievementData;
-import jdz.statsTracker.main.Config;
+import jdz.statsTracker.config.Config;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
-
+import jdz.statsTracker.stats.StatsDatabase;
 public class MobDeath implements Listener{
 
 	@EventHandler(priority=EventPriority.LOWEST)
@@ -19,7 +18,7 @@ public class MobDeath implements Listener{
 		if (Config.enabledStats.contains(StatType.MOB_KILLS)){
 			Player p = e.getEntity().getKiller();
 			if (p != null){
-				SqlApi.addStat(p, StatType.MOB_KILLS, 1);
+				StatsDatabase.getInstance().addStat(p, StatType.MOB_KILLS, 1);
 				AchievementData.updateAchievements(p, StatType.MOB_KILLS);
 			}
 		}

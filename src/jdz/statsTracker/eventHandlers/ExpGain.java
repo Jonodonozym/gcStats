@@ -7,16 +7,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 
 import jdz.statsTracker.achievement.AchievementData;
-import jdz.statsTracker.main.Config;
+import jdz.statsTracker.config.Config;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public class ExpGain implements Listener {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onExpGain(PlayerExpChangeEvent e) {
 		if (Config.enabledStats.contains(StatType.EXP_GAINED) && e.getAmount() > 0) {
-			SqlApi.addStat(e.getPlayer(), StatType.EXP_GAINED, e.getAmount());
+			StatsDatabase.getInstance().addStat(e.getPlayer(), StatType.EXP_GAINED, e.getAmount());
 			AchievementData.updateAchievements(e.getPlayer(), StatType.EXP_GAINED);
 		}
 	}

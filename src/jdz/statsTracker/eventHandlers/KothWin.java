@@ -9,9 +9,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 import jdz.statsTracker.achievement.AchievementData;
-import jdz.statsTracker.main.Config;
+import jdz.statsTracker.config.Config;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 import subside.plugins.koth.events.KothEndEvent;
 import subside.plugins.koth.gamemodes.RunningKoth.EndReason;
 
@@ -22,7 +22,7 @@ public class KothWin implements Listener{
 		if (Config.enabledStats.contains(StatType.KOTH_WINS) && e.getReason().equals(EndReason.WON)){
 			Collection<Player> players = e.getWinner().getAvailablePlayers(e.getKoth());
 			for (Player p: players){
-				SqlApi.addStat(p, StatType.KOTH_WINS, 1);
+				StatsDatabase.getInstance().addStat(p, StatType.KOTH_WINS, 1);
 				AchievementData.updateAchievements(p, StatType.KOTH_WINS);
 			}
 		}

@@ -21,21 +21,22 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import jdz.statsTracker.main.Main;
-import jdz.statsTracker.util.FileExporter;
-import jdz.statsTracker.util.SqlApi;
+import jdz.bukkitUtils.fileIO.FileExporter;
+import jdz.statsTracker.GCStats;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public class AchievementShop implements Listener{
 	private static boolean isEnabled = false;
 	private static Inventory inventory;
 	private static Map<Integer, ShopItem> items;
 	
-	public static void reload(){
-		String location = Main.plugin.getDataFolder().getPath() + File.separator + "AchievementShop.yml";
+	public static void reload(JavaPlugin plugin){
+		String location = GCStats.plugin.getDataFolder().getPath() + File.separator + "AchievementShop.yml";
 		File file = new File(location);
 		if (!file.exists())
-			FileExporter.ExportResource("/AchievementShop.yml", location);
+			new FileExporter(plugin).ExportResource("AchievementShop.yml", location);
 
 		FileConfiguration shopConfig = YamlConfiguration.loadConfiguration(file);
 		
@@ -49,7 +50,7 @@ public class AchievementShop implements Listener{
 					items.put(item.slot, item);
 				}
 				catch (Exception e){
-					Main.plugin.getLogger().info(s+" in achievements shop has invalid configuration, ("+e.getMessage()+") skipping...");
+					GCStats.plugin.getLogger().info(s+" in achievements shop has invalid configuration, ("+e.getMessage()+") skipping...");
 					e.printStackTrace();
 				}
 			}	
@@ -82,17 +83,17 @@ public class AchievementShop implements Listener{
 			int slot = e.getSlot();
 			if (items.containsKey(slot)){
 				ShopItem item = items.get(slot);
-				int currentPoints = SqlApi.getAchievementPoints(p);
-				if (SqlApi.getAchievementPoints(p) >= item.cost ){
+				int currentPoints = StatsDatabase.getInstance().getAchievementPoints(p);
+				if (StatsDatabase.getInstance().getAchievementPoints(p) >= item.cost ){
 					giveItems(item.items, p);
 					for (String s: item.commands)
-						Main.plugin.getServer().dispatchCommand(Main.plugin.getServer().getConsoleSender(), 
+						GCStats.plugin.getServer().dispatchCommand(GCStats.plugin.getServer().getConsoleSender(), 
 								s.replaceAll("\\{player\\}", p.getName()));
 					if (item.messages.length > 0)
 						p.sendMessage(item.messages);
 					p.closeInventory();
-					SqlApi.awardAchievementPoints(p, -item.cost);
-					Main.plugin.getServer().dispatchCommand(p, "gca bal");
+					StatsDatabase.getInstance().awardAchievementPoints(p, -item.cost);
+					GCStats.plugin.getServer().dispatchCommand(p, "gca bal");
 				}
 				else{
 					p.closeInventory();
@@ -150,7 +151,7 @@ public class AchievementShop implements Listener{
 					this.displayItem.addUnsafeEnchantment(Enchantment.getById(id), level);
 				}
 				catch (Exception e){
-					Main.plugin.getLogger().info("Invalid enchantment '"+s+"' on achievement shop item '"+displayItem.getItemMeta().getDisplayName()+"', skipping enchant...");
+					GCStats.plugin.getLogger().info("Invalid enchantment '"+s+"' on achievement shop item '"+displayItem.getItemMeta().getDisplayName()+"', skipping enchant...");
 				}
 			}
 			
