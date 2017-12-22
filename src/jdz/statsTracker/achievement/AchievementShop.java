@@ -78,7 +78,7 @@ public class AchievementShop implements Listener{
 		Player p = (Player)e.getWhoClicked();
 		Inventory inv = p.getOpenInventory().getTopInventory();
         
-		if (inv != null && inv.getName().equals(ChatColor.DARK_GREEN+"Achievement shop")){
+		if (inv != null && inv.getName() != null && inv.getName().equals(ChatColor.DARK_GREEN+"Achievement shop")){
 			int slot = e.getSlot();
 			if (items.containsKey(slot)){
 				ShopItem item = items.get(slot);

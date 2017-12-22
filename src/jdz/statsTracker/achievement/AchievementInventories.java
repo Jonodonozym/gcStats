@@ -46,10 +46,9 @@ public class AchievementInventories implements Listener {
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent e) {
 		Player player = (Player) e.getWhoClicked();
-
 		Inventory inv = e.getClickedInventory();
 
-		if (inv == null)
+		if (inv == null || inv.getName() == null)
 			return;
 
 		ItemStack stack = null;
@@ -60,7 +59,7 @@ public class AchievementInventories implements Listener {
 
 		if (stack == null)
 			return;
-
+		
 		if (inv.getName().equals(SERVER_SELECT_INV_NAME)) {
 			if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null) {
 				server.put(player, stack.getItemMeta().getDisplayName().substring(2));
