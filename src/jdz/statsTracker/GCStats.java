@@ -23,6 +23,8 @@ public class GCStats extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		plugin = this;
+		
+		StatsDatabase.init(this);
 
 		Config.reloadConfig();
 
@@ -31,7 +33,6 @@ public class GCStats extends JavaPlugin {
 		if (Config.enabledStats.contains(StatType.BLOCKS_PLACED))
 			StatBuffer.addType(StatType.BLOCKS_PLACED);
 		
-		StatsDatabase.init(this);
 
 		PluginManager pm = Bukkit.getPluginManager();
 
