@@ -126,12 +126,17 @@ public class AchievementData {
 	}
 
 	public static void updateAchievements(Player p, StatType s) {
-		try{
-			double value = SqlApi.getStat(p, s.toString());
-			for (Achievement a : achievementsByType.get(Config.serverName).get(s.toString()))
-				if (a.isAchieved(value))
-					SqlApi.setAchieved(p, a);
-		}
-		catch(NullPointerException e){} // so it shuts up on auto-reconnect
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				try{
+					double value = SqlApi.getStat(p, s.toString());
+					for (Achievement a : achievementsByType.get(Config.serverName).get(s.toString()))
+						if (a.isAchieved(value))
+							SqlApi.setAchieved(p, a);
+				}
+				catch(NullPointerException e){} // so it shuts up on auto-reconnect
+			}
+		}.runTaskAsynchronously(Main.plugin);
 	}
 }

@@ -18,6 +18,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.statsTracker.main.Config;
 import jdz.statsTracker.stats.StatType;
@@ -136,8 +137,13 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static void openPage(Player p, String server, int number) {
-		page.put(p, number);
-		p.openInventory(getPageInventory(targets.get(p), server, number));
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				p.openInventory(getPageInventory(targets.get(p), server, number));
+				page.put(p, number);
+			}
+		};
 
 	}
 

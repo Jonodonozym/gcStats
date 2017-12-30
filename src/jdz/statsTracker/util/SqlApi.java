@@ -288,14 +288,19 @@ public class SqlApi {
 	public static void setAchieved(Player p, Achievement a) {
 		if (autoReconnect())
 			return;
-		if (!isAchieved(p, a)) {
-			String update = "UPDATE " + getAchTableName(a.server) + " SET " + a.name.replace(' ', '_')
-					+ " = true WHERE UUID = '" + p.getName() + "';";
-			executeUpdateAsync(update);
-			if (AchievementData.awardPoints)
-			awardAchievementPoints(p, a.points);
-			a.doFirework(p);
-		}
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (!isAchieved(p, a)) {
+					String update = "UPDATE " + getAchTableName(a.server) + " SET " + a.name.replace(' ', '_')
+							+ " = true WHERE UUID = '" + p.getName() + "';";
+					executeUpdateAsync(update);
+					if (AchievementData.awardPoints)
+					awardAchievementPoints(p, a.points);
+					a.doFirework(p);
+				}
+			}
+		}.runTaskAsynchronously(Main.plugin);
 	}
 
 	public static double getStat(Player p, String statType) {
@@ -332,7 +337,7 @@ public class SqlApi {
 			addStatDirect(p, stat, change);
 	}
 
-	public static void setStatDirect(Player p, StatType stat, double newValue) {
+	private static void setStatDirect(Player p, StatType stat, double newValue) {
 		if (autoReconnect())
 			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + stat + " = " + newValue + " WHERE UUID = '"
@@ -340,7 +345,7 @@ public class SqlApi {
 		executeUpdateAsync(update);
 	}
 
-	public static void addStatDirect(Player p, StatType stat, double change) {
+	private static void addStatDirect(Player p, StatType stat, double change) {
 		if (autoReconnect())
 			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + stat + " = " + stat + " + " + change
@@ -517,7 +522,7 @@ public class SqlApi {
 		return rows;
 	}
 
-	public static List<String> fetchColumns(String table) {
+	private static List<String> fetchColumns(String table) {
 		List<String> columns = new ArrayList<String>();
 		String query = "SHOW columns FROM " + table + ";";
 		Statement stmt = null;
@@ -538,37 +543,6 @@ public class SqlApi {
 			}
 		}
 		return columns;
-	}
-
-	/**
-	 * Checks to see if the database has a table
-	 * 
-	 * @param connection
-	 * @param Table
-	 * @return
-	 */
-	public static boolean hasTable(String Table) {
-		boolean returnValue = false;
-		String query = "SHOW TABLES LIKE '" + Table + "';";
-		Statement stmt = null;
-		try {
-			stmt = dbConnection.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-			while (rs.next()) {
-				returnValue = true;
-			}
-		} catch (SQLException e) {
-			ErrorLogger.createLog(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					ErrorLogger.createLog(e);
-				}
-			}
-		}
-		return returnValue;
 	}
 
 	/**
