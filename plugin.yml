@@ -1,9 +1,9 @@
-main: jdz.statsTracker.main.Main
+main: jdz.statsTracker.GCStatsTracker
 name: gcStats
 version: 1.0
 author: Jonodonozym
 description: Tracks player stats and achievements, storing them on an SQL database
-softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI]
+softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI,JBU]
 
 commands:
   gca:

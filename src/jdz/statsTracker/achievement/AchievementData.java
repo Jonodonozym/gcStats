@@ -14,12 +14,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import jdz.statsTracker.main.Config;
-import jdz.statsTracker.main.Main;
+import jdz.statsTracker.stats.StatsDatabase;
+import jdz.bukkitUtils.fileIO.FileExporter;
+import jdz.bukkitUtils.misc.RomanNumber;
+import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStatsTrackerConfig;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.FileExporter;
-import jdz.statsTracker.util.RomanNumber;
-import jdz.statsTracker.util.SqlApi;
 
 public class AchievementData {
 	public static Map<String, Map<String, List<Achievement>>> achievementsByType = new HashMap<String, Map<String, List<Achievement>>>();
@@ -28,31 +28,12 @@ public class AchievementData {
 	
 	public static boolean awardPoints = true;
 	public static boolean isGlobal = false;
-	
-	public static void addPlayer(Player p) {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				for (String server : Config.servers) {
-					List<String> statTypes = SqlApi.getEnabledStats(server);
-					statTypes.remove("UUID");
-					for (String type : statTypes) {
-						double value = SqlApi.getStat(p, type.toString(), server);
-						for (Achievement a : achievementsByType.get(server).get(type))
-							if (a.isAchieved(value))
-								SqlApi.setAchieved(p, a);
-					}
-				}
-			}
-		}.runTaskAsynchronously(Main.plugin);
-	}
 
 	public static void reloadData() {
-		// loading from the local file
-		String location = Main.plugin.getDataFolder().getPath() + File.separator + "Achievements.yml";
+		String location = GCStatsTracker.instance.getDataFolder().getPath() + File.separator + "Achievements.yml";
 		File file = new File(location);
 		if (!file.exists())
-			FileExporter.ExportResource("/Achievements.yml", location);
+			new FileExporter(GCStatsTracker.instance).ExportResource("Achievements.yml", location);
 
 		HashMap<StatType, List<Achievement>> localAchievements = new HashMap<StatType, List<Achievement>>();
 		FileConfiguration achConfig = YamlConfiguration.loadConfiguration(file);
@@ -60,13 +41,13 @@ public class AchievementData {
 		awardPoints = achConfig.getBoolean("points.enabled", true);
 		isGlobal = achConfig.getBoolean("points.isGlobal", false);
 		
-		for (StatType type : Config.enabledStats)
+		for (StatType type : GCStatsTrackerConfig.enabledStats)
 			localAchievements.put(type, new ArrayList<Achievement>());
 		for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false)) {
 			try {
 				StatType type = StatType.valueOf(achConfig.getString("achievements." + achievement + ".type"));
-				if (!Config.enabledStats.contains(type)){
-					Main.plugin.getLogger().info("achievement " + achievement + " stat type is disabled in config.yml, skipping...");
+				if (!GCStatsTrackerConfig.enabledStats.contains(type)){
+					GCStatsTracker.instance.getLogger().info("achievement " + achievement + " stat type is disabled in config.yml, skipping...");
 					continue;
 				}
 				String description = achConfig.getString("achievements." + achievement + ".description");
@@ -87,56 +68,56 @@ public class AchievementData {
 				}
 
 				for (int i = 0; i < required.size(); i++) {
-					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.toRoman(i+1));
+					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i+1));
 					Achievement ach = new Achievement(name, type.toString(), required.get(i), points.get(i), m, iconDamage,
-							description.replaceAll("\\{required\\}", type.valueToString(required.get(i)) + ""), Config.serverName);
+							description.replaceAll("\\{required\\}", type.valueToString(required.get(i)) + ""), GCStatsTrackerConfig.serverName);
 					localAchievements.get(type).add(ach);
 					numTiers.put(ach, required.size());
 				}
 
 			} catch (Exception e) {
-				Main.plugin.getLogger().info("achievement " + achievement + " has invalid configuration, skipping...");
+				GCStatsTracker.instance.getLogger().info("achievement " + achievement + " has invalid configuration, skipping...");
 			}
 		}
 
 		// updating the sql db to match
-		SqlApi.ensureCorrectAchMetaTable(localAchievements);
-		SqlApi.ensureCorrectAchTable(localAchievements);
+		AchievementDatabase.getInstance().ensureCorrectAchMetaTable(localAchievements);
+		AchievementDatabase.getInstance().ensureCorrectAchTable(localAchievements);
 		
 		achievements.clear();
 
 		// fetching the entire achievements db from the sql db
-		for (String s : Config.servers) {
+		for (String s : GCStatsTrackerConfig.servers) {
 			achievementsByType.put(s, new HashMap<String, List<Achievement>>());
 			achievements.put(s, new ArrayList<Achievement>());
-			for (String stat : SqlApi.getEnabledStats(s))
+			for (String stat : StatsDatabase.getInstance().getEnabledStats(s))
 				achievementsByType.get(s).put(stat, new ArrayList<Achievement>());
 		}
 
-		for (Achievement a : SqlApi.getAllAchievements()) {
+		for (Achievement a : AchievementDatabase.getInstance().getAllAchievements()) {
 			achievementsByType.get(a.server).get(a.statType).add(a);
 			achievements.get(a.server).add(a);
 		}
 		
-		for (String s: Config.servers) {
+		for (String s: GCStatsTrackerConfig.servers) {
 			Collections.sort(achievements.get(s),  (a,b)->{
 				return a.name.compareTo(b.name);
 			});
 		}
 	}
 
-	public static void updateAchievements(Player p, StatType s) {
+	public static void checkAchievements(Player p, StatType s) {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
 				try{
-					double value = SqlApi.getStat(p, s.toString());
-					for (Achievement a : achievementsByType.get(Config.serverName).get(s.toString()))
+					double value = StatsDatabase.getInstance().getStat(p, s);
+					for (Achievement a : achievementsByType.get(GCStatsTrackerConfig.serverName).get(s.toString()))
 						if (a.isAchieved(value))
-							SqlApi.setAchieved(p, a);
+							AchievementDatabase.getInstance().setAchieved(p, a);
 				}
 				catch(NullPointerException e){} // so it shuts up on auto-reconnect
 			}
-		}.runTaskAsynchronously(Main.plugin);
+		}.runTaskAsynchronously(GCStatsTracker.instance);
 	}
 }

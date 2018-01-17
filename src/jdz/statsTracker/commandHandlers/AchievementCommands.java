@@ -10,22 +10,22 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementShop;
-import jdz.statsTracker.main.Config;
-import jdz.statsTracker.main.Main;
 import jdz.statsTracker.stats.PlayTimeRecorder;
-import jdz.statsTracker.util.SqlApi;
 
 public class AchievementCommands implements CommandExecutor {
 	static String[] gcaHelpMessages = new String[] {
 			ChatColor.GRAY + "=============[ " + ChatColor.GOLD + "GCA Help" + ChatColor.GRAY + " ]=============",
-			ChatColor.WHITE + "/gcs help - commands for stats",
-			ChatColor.WHITE + "/gca - shows your cross-server achievements",
-			ChatColor.WHITE + "/gca [player] - shows another player's cross-server achievements",
-			ChatColor.WHITE + "/gca points [server] - shows the amount of points you have racked up",
-			ChatColor.WHITE + "/gca redeem - redeem your achievement points for shiny new items!",
-			ChatColor.WHITE + "/gca about - info about the plugin",
+			ChatColor.GREEN + "/gcs help "+ChatColor.WHITE+"- commands for stats",
+			ChatColor.GREEN + "/gca "+ChatColor.WHITE+"- shows your cross-server achievements",
+			ChatColor.GREEN + "/gca [player] "+ChatColor.WHITE+"- shows another player's cross-server achievements",
+			ChatColor.GREEN + "/gca points [server] "+ChatColor.WHITE+"- shows the amount of points you have racked up",
+			ChatColor.GREEN + "/gca redeem "+ChatColor.WHITE+"- redeem your achievement points for shiny new items!",
+			ChatColor.GREEN + "/gca about "+ChatColor.WHITE+"- info about the plugin",
 			ChatColor.GRAY + "===================================="
 
 	};
@@ -33,7 +33,7 @@ public class AchievementCommands implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
-		if (cmd.getName().equals(Config.achCommand)) {
+		if (cmd.getName().equals(GCStatsTrackerConfig.achCommand)) {
 			if (!(sender instanceof Player)) {
 				sender.sendMessage("You must be a player to run this command");
 				return true;
@@ -42,8 +42,8 @@ public class AchievementCommands implements CommandExecutor {
 			Player player = (Player) sender;
 
 			if (args.length == 0) {
-				if (SqlApi.isConnected()) {
-					PlayTimeRecorder.updateTime(player);
+				if (AchievementDatabase.getInstance().isConnected()) {
+					PlayTimeRecorder.getInstance().updateTime(player);
 					AchievementInventories.openServerSelect(player, player);
 				} else
 					player.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
@@ -55,11 +55,12 @@ public class AchievementCommands implements CommandExecutor {
 					sender.sendMessage(StatsCommands.aboutMessages);
 					break;
 				case "help":
+				case "?":
 					sender.sendMessage(gcaHelpMessages);
 					break;
 				case "redeem":
 				case "shop":
-					if (SqlApi.isConnected())
+					if (AchievementDatabase.getInstance().isConnected())
 						AchievementShop.openShop(player);
 					else
 						player.sendMessage(
@@ -68,40 +69,40 @@ public class AchievementCommands implements CommandExecutor {
 				case "bal":
 				case "balance":
 				case "points":
-					if (SqlApi.isConnected()) {
+					if (AchievementDatabase.getInstance().isConnected()) {
 						new BukkitRunnable() {
 							@Override
 							public void run() {
 								if (args.length == 1)
 									sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
-											+ SqlApi.getAchievementPoints(player));
-								else if (Config.servers.contains(args[1].replaceAll("_", " ")))
+											+ AchievementDatabase.getInstance().getAchievementPoints(player));
+								else if (GCStatsTrackerConfig.servers.contains(args[1].replaceAll("_", " ")))
 									sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
-											+ SqlApi.getAchievementPoints(player, args[1]));
+											+ AchievementDatabase.getInstance().getAchievementPoints(player, args[1]));
 								else
 									sender.sendMessage(ChatColor.RED + "'" + args[1].replaceAll("_", " ")
 											+ "' is not a valid server!");
 							}
-						}.runTaskAsynchronously(Main.plugin);
+						}.runTaskAsynchronously(GCStatsTracker.instance);
 					} else
 						player.sendMessage(
 								ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
 					break;
 				default:
-					if (SqlApi.isConnected()) {
+					if (AchievementDatabase.getInstance().isConnected()) {
 						new BukkitRunnable() {
 							@Override
 							public void run() {
 								@SuppressWarnings("deprecation")
 								OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
-								if (SqlApi.hasPlayer(Config.serverName, otherPlayer)) {
+								if (otherPlayer.hasPlayedBefore()) {
 									if (otherPlayer.isOnline())
-										PlayTimeRecorder.updateTime((Player) otherPlayer);
+										PlayTimeRecorder.getInstance().updateTime((Player) otherPlayer);
 									AchievementInventories.openServerSelect(player, otherPlayer);
 								} else
 									sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid player");
 							}
-						}.runTaskAsynchronously(Main.plugin);
+						}.runTaskAsynchronously(GCStatsTracker.instance);
 					} else
 						player.sendMessage(
 								ChatColor.RED + "Couldn't connect to the stats and achievements database D:");

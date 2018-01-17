@@ -15,8 +15,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import jdz.statsTracker.main.Config;
-import jdz.statsTracker.main.Main;
+import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStatsTrackerConfig;
 
 public class Achievement {
 	// static field for the firework effect
@@ -61,7 +61,7 @@ public class Achievement {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				if (Config.achievementFireworkEnabled){
+				if (GCStatsTrackerConfig.achievementFireworkEnabled){
 					Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
 					FireworkMeta fwm = fw.getFireworkMeta();
 					fwm.addEffect(fwe);
@@ -69,12 +69,12 @@ public class Achievement {
 					fw.setFireworkMeta(fwm);
 				}
 
-				if (Config.achievementMessageEnabled) {
+				if (GCStatsTrackerConfig.achievementMessageEnabled) {
 					p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
 					p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
 					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
 				}
 			}
-		}.runTask(Main.plugin);
+		}.runTask(GCStatsTracker.instance);
 	}
 }

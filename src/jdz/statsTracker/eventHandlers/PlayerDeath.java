@@ -7,31 +7,31 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStatsTrackerConfig;
 import jdz.statsTracker.achievement.AchievementData;
-import jdz.statsTracker.main.Config;
-import jdz.statsTracker.main.Main;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public class PlayerDeath implements Listener{
 	
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent e){
 		Player killed = e.getEntity();
-		if (Config.enabledStats.contains(StatType.DEATHS)){
-			SqlApi.addStat(killed, StatType.DEATHS, 1);
-			AchievementData.updateAchievements(killed, StatType.DEATHS);
+		if (GCStatsTrackerConfig.enabledStats.contains(StatType.DEATHS)){
+			StatsDatabase.getInstance().addStat(killed, StatType.DEATHS, 1);
+			AchievementData.checkAchievements(killed, StatType.DEATHS);
 		}
-		if (Config.enabledStats.contains(StatType.KDR)){
+		if (GCStatsTrackerConfig.enabledStats.contains(StatType.KDR)){
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					double kills = (int)SqlApi.getStat(killed, StatType.KILLS+"");
-					double deaths = (int)SqlApi.getStat(killed, StatType.DEATHS+"");
+					double kills = (int)StatsDatabase.getInstance().getStat(killed, StatType.KILLS);
+					double deaths = (int)StatsDatabase.getInstance().getStat(killed, StatType.DEATHS);
 					if (deaths > 0)
-						SqlApi.setStat(killed, StatType.KDR, Math.round(kills/deaths*100)/100.0);
+						StatsDatabase.getInstance().setStat(killed, StatType.KDR, Math.round(kills/deaths*100)/100.0);
 				}
-			}.runTaskAsynchronously(Main.plugin);
+			}.runTaskAsynchronously(GCStatsTracker.instance);
 		}
 		
 		Player killer = e.getEntity().getKiller();
@@ -39,23 +39,23 @@ public class PlayerDeath implements Listener{
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					if (Config.enabledStats.contains(StatType.KILLS)) {
-						SqlApi.addStat(killer, StatType.KILLS, 1);
-						AchievementData.updateAchievements(killer, StatType.KILLS);
+					if (GCStatsTrackerConfig.enabledStats.contains(StatType.KILLS)) {
+						StatsDatabase.getInstance().addStat(killer, StatType.KILLS, 1);
+						AchievementData.checkAchievements(killer, StatType.KILLS);
 					}
-					if (Config.enabledStats.contains(StatType.KDR)) {
-						double kills = (int) SqlApi.getStat(killer, StatType.KILLS + "");
-						double deaths = (int) SqlApi.getStat(killer, StatType.DEATHS + "");
+					if (GCStatsTrackerConfig.enabledStats.contains(StatType.KDR)) {
+						double kills = (int) StatsDatabase.getInstance().getStat(killer, StatType.KILLS);
+						double deaths = (int) StatsDatabase.getInstance().getStat(killer, StatType.DEATHS);
 						if (deaths > 0) {
-							SqlApi.setStat(killer, StatType.KDR, Math.round(kills / deaths * 100) / 100.0);
-							AchievementData.updateAchievements(killer, StatType.KDR);
+							StatsDatabase.getInstance().setStat(killer, StatType.KDR, Math.round(kills / deaths * 100) / 100.0);
+							AchievementData.checkAchievements(killer, StatType.KDR);
 						} else {
-							SqlApi.setStat(killer, StatType.KDR, kills);
-							AchievementData.updateAchievements(killer, StatType.KDR);
+							StatsDatabase.getInstance().setStat(killer, StatType.KDR, kills);
+							AchievementData.checkAchievements(killer, StatType.KDR);
 						}
 					}
 				}
-			}.runTaskAsynchronously(Main.plugin);
+			}.runTaskAsynchronously(GCStatsTracker.instance);
 		}
 	}
 }

@@ -1,30 +1,28 @@
 
-package jdz.statsTracker.main;
+package jdz.statsTracker;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import jdz.bukkitUtils.misc.Config;
+import jdz.bukkitUtils.misc.TimedTask;
 import jdz.statsTracker.achievement.AchievementData;
+import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementShop;
-import jdz.statsTracker.stats.PlayTimeRecorder;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
-import jdz.statsTracker.util.TimedTask;
+import jdz.statsTracker.stats.StatsDatabase;
 
-public class Config {
+public class GCStatsTrackerConfig {
 	public static String serverName = "";
-	public static Set<StatType> enabledStats = new HashSet<StatType>();
+	public static List<StatType> enabledStats = new ArrayList<StatType>();
 
-	public static int autoUpdateDelay = 600;
+	public static int autoUpdateDelay = 100;
 	public static int afkTime = 12000;
 
 	public static String statsCommand = "gcs";
@@ -39,15 +37,10 @@ public class Config {
 	public static boolean achievementFireworkEnabled = true;
 	public static boolean achievementMessageEnabled = false;
 
-	private static TimedTask broadcastTask = null, updateGeneralStats = null, updatePlayTime = null;
+	private static TimedTask broadcastTask = null, updateGeneralStats = null;
 
 	public static void reloadConfig() {
-		File file = new File(Main.plugin.getDataFolder() + File.separator + "config.yml");
-		if (!file.exists())
-			Main.plugin.saveDefaultConfig();
-
-		Main.plugin.reloadConfig();
-		FileConfiguration config = Main.plugin.getConfig();
+		FileConfiguration config = Config.getConfig(GCStatsTracker.instance);
 
 		serverName = config.getString("server.name");
 
@@ -61,8 +54,8 @@ public class Config {
 		if (broadcastEnabled){
 			if (broadcastTask != null)
 				broadcastTask.stop();
-			broadcastTask = new TimedTask(broadcastMinTime*1200, broadcastMaxTime*1200, ()->{
-				for(Player p: Main.plugin.getServer().getOnlinePlayers())
+			broadcastTask = new TimedTask(GCStatsTracker.instance, broadcastMaxTime*1200, ()->{
+				for(Player p: GCStatsTracker.instance.getServer().getOnlinePlayers())
 					p.sendMessage(broadcastMessage);
 			});
 			broadcastTask.start();
@@ -84,31 +77,22 @@ public class Config {
 		final short damage = (short)config.getInt("server.iconDamage");
 		final Material m2 = m;
 		
-		SqlApi.addConnectHook(()->{
-			servers = SqlApi.getServers();
-			SqlApi.setServerMeta(serverName, m2, damage);
+		StatsDatabase.getInstance().runOnConnect(()->{
+			servers = StatsDatabase.getInstance().getServers();
+			AchievementDatabase.getInstance().setServerIcon(serverName, m2, damage);
 			
 			if (updateGeneralStats != null)
 				updateGeneralStats.stop();
-			updateGeneralStats = new TimedTask(Config.autoUpdateDelay, ()-> {
-				if (Config.enabledStats.contains(StatType.DIST_WALKED))
-					for(Player p: Main.plugin.getServer().getOnlinePlayers())
-						SqlApi.setStat(p, StatType.DIST_WALKED, p.getStatistic(Statistic.WALK_ONE_CM)/100.0);
+			updateGeneralStats = new TimedTask(GCStatsTracker.instance, GCStatsTrackerConfig.autoUpdateDelay, ()-> {
+				if (GCStatsTrackerConfig.enabledStats.contains(StatType.DIST_WALKED))
+					for(Player p: GCStatsTracker.instance.getServer().getOnlinePlayers())
+						StatsDatabase.getInstance().setStat(p, StatType.DIST_WALKED, p.getStatistic(Statistic.WALK_ONE_CM)/100.0);
 			});
 			updateGeneralStats.start();
-			
-			if (updatePlayTime != null)
-				updatePlayTime.stop();
-			
-			updatePlayTime = new PlayTimeRecorder();
-			updatePlayTime.start();
 			
 			AchievementData.reloadData();
 			AchievementInventories.reload();
 			AchievementShop.reload();
 		});
-		
-		if (SqlApi.reloadConfig(config))
-			SqlApi.open(Main.plugin.getLogger());
 	}
 }

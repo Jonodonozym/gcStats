@@ -20,9 +20,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import jdz.statsTracker.main.Config;
+import jdz.statsTracker.stats.StatsDatabase;
+import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStatsTrackerConfig;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.util.SqlApi;
 
 public class AchievementInventories implements Listener {
 	public static final String SERVER_SELECT_INV_NAME = ChatColor.DARK_GREEN + "Achievements: server select";
@@ -60,7 +61,7 @@ public class AchievementInventories implements Listener {
 
 		if (stack == null)
 			return;
-		
+
 		if (inv.getName().equals(SERVER_SELECT_INV_NAME)) {
 			if (stack != null && stack.getItemMeta() != null && stack.getItemMeta().getDisplayName() != null) {
 				server.put(player, stack.getItemMeta().getDisplayName().substring(2));
@@ -89,8 +90,8 @@ public class AchievementInventories implements Listener {
 	private static Inventory createServerSelectInv() {
 		List<ItemStack> itemStacks = new ArrayList<ItemStack>();
 
-		for (String server : Config.servers)
-			itemStacks.add(SqlApi.getServerIcon(server));
+		for (String server : GCStatsTrackerConfig.servers)
+			itemStacks.add(AchievementDatabase.getInstance().getServerIcon(server));
 
 		int rows = (int) (Math.ceil(itemStacks.size() / 4.0));
 		Inventory inv = Bukkit.createInventory(null, rows * 9, SERVER_SELECT_INV_NAME);
@@ -137,27 +138,28 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static void openPage(Player p, String server, int number) {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				p.openInventory(getPageInventory(targets.get(p), server, number));
-				page.put(p, number);
-			}
-		};
-
+		p.openInventory(getPageInventory(targets.get(p), server, number));
+		page.put(p, number);
 	}
 
 	private static Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
 		List<Achievement> achievements = AchievementData.achievements.get(server);
 		Inventory pageInventory = Bukkit.createInventory(null, 54,
 				ChatColor.DARK_GREEN + offlinePlayer.getName() + ChatColor.DARK_GREEN + "'s Achievements");
+
 		int i = 0;
 		for (int achIndex = page * 36; achIndex < Math.min((page + 1) * 36, achievements.size()); achIndex++) {
 			Achievement achievement = achievements.get(achIndex);
+			final int f = i;
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					ItemStack itemStack = getPlayerStack(offlinePlayer, achievement, server);
 
-			ItemStack itemStack = getPlayerStack(offlinePlayer, achievement, server);
-
-			pageInventory.setItem(i++, itemStack);
+					pageInventory.setItem(f, itemStack);
+				}
+			}.runTaskAsynchronously(GCStatsTracker.instance);
+			i++;
 		}
 
 		if ((page + 1) * 36 < achievements.size())
@@ -170,7 +172,7 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, Achievement achievement, String server) {
-		boolean isAchieved = SqlApi.isAchieved(offlinePlayer, achievement);
+		boolean isAchieved = AchievementDatabase.getInstance().isAchieved(offlinePlayer, achievement);
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
 		List<String> lore = itemMeta.getLore();
@@ -181,7 +183,7 @@ public class AchievementInventories implements Listener {
 			lore.get(1).replaceAll(ChatColor.GRAY.toString(), ChatColor.WHITE.toString());
 		} else {
 			itemMeta.setDisplayName(ChatColor.RED + achievement.name.replace('_', ' '));
-			double progress = SqlApi.getStat(offlinePlayer, achievement.statType, server);
+			double progress = StatsDatabase.getInstance().getStatDirect(offlinePlayer, achievement.statType, server);
 			try {
 				String progressStr = StatType.valueOf(achievement.statType).valueToString(progress);
 				String requiredStr = StatType.valueOf(achievement.statType).valueToString(achievement.required);

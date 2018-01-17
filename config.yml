@@ -27,14 +27,6 @@ server:
   icon: "INK_SACK"
   iconDamage: 2
 
-## Guess what this does!!!
-database:
-  URL: "localhost"
-  name: ""
-  username: ""
-  password: "" 
-  autoReconnectSeconds: 60
-
 ## Enabling then disabling will truncate (delete) the old data for the disabled stat types
 statsEnabled:
   PLAY_TIME: false
