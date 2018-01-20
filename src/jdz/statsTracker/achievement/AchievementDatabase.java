@@ -2,42 +2,34 @@
 package jdz.statsTracker.achievement;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-
+import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.sql.Database;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
-import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.StatsDatabase;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 public class AchievementDatabase extends Database implements Listener {
+	@Getter
 	private static final AchievementDatabase instance = new AchievementDatabase(GCStatsTracker.instance);
 
 	public final String achievementPointsTable = "gcs_Achievement_Points";
 	public final String achievementMetaTable = "gcs_Achievement_MetaData";
 	private final String serverIconTable = "gcs_Server_MetaData";
-
-	private final HashMap<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
-
-	public static AchievementDatabase getInstance() {
-		return instance;
-	}
 
 	private AchievementDatabase(JavaPlugin plugin) {
 		super(plugin);
@@ -46,65 +38,34 @@ public class AchievementDatabase extends Database implements Listener {
 		});
 	}
 
-	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent e) {
-		onPlayerJoin(e.getPlayer());
-	}
-
-	public void onPlayerJoin(Player p) {
-		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + p.getName() + "' FROM dual "
-				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + p.getName() + "' ) LIMIT 1;";
-		api.executeUpdateAsync(update.replaceAll("\\{table\\}", achievementPointsTable));
-		for (String server : getServers())
-			api.executeUpdateAsync(update.replaceAll("\\{table\\}", getAchTableName(server)));
-
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				for (StatType type : GCStatsTrackerConfig.enabledStats) {
-					double value = StatsDatabase.getInstance().getStat(p, type);
-					for (Achievement a : AchievementData.achievementsByType.get(GCStatsTrackerConfig.serverName)
-							.get(type.toString()))
-						if (a.isAchieved(value))
-							setAchieved(p, a);
-				}
-			}
-		}.runTaskAsynchronously(GCStatsTracker.instance);
-
-		achievementPoints.put(p, getAchievementPoints(p));
-	}
-
-	@EventHandler
-	public void onPlayerQuit(PlayerQuitEvent e) {
-		onPlayerQuit(e.getPlayer());
-	}
-
-	public void onPlayerQuit(Player p) {
-		achievementPoints.remove(p);
-	}
-	
 	public boolean isConnected() {
 		return api.isConnected();
 	}
 
-	public void awardAchievementPoints(Player p, int points) {
-		if (!api.isConnected())
-			return;
-		String column = AchievementData.isGlobal ? "Global" : GCStatsTrackerConfig.serverName.replaceAll(" ", "_");
-		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + column + " + " + points
-				+ " WHERE UUID = '" + p.getName() + "';";
+	public void runOnConnect(Runnable r) {
+		api.runOnConnect(r);
+	}
+
+	void addPlayer(Player p) {
+		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + p.getName() + "' FROM dual "
+				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + p.getName() + "' ) LIMIT 1;";
+		api.executeUpdateAsync(update.replaceAll("\\{table\\}", achievementPointsTable));
+		api.executeUpdateAsync(update.replaceAll("\\{table\\}", getAchTableName()));
+	}
+
+	void setAchievementPoints(Player p, int points) {
+		String column = GCStatsTrackerConfig.achievementPointsGlobal ? "Global"
+				: GCStatsTrackerConfig.serverName.replaceAll(" ", "_");
+		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + points + " WHERE UUID = '"
+				+ p.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
 
-	public int getAchievementPoints(Player p) {
-		try {
-			return achievementPoints.get(p);
-		} catch (NullPointerException e) {
-			return (getAchievementPoints(p, GCStatsTrackerConfig.serverName.replaceAll(" ", "_")));
-		}
+	public int getAchievementPoints(OfflinePlayer p) {
+		return (getAchievementPoints(p, GCStatsTrackerConfig.serverName.replaceAll(" ", "_")));
 	}
 
-	public int getAchievementPoints(Player p, String server) {
+	public int getAchievementPoints(OfflinePlayer p, String server) {
 		if (!api.isConnected())
 			return 0;
 		String query = "SELECT " + server + " FROM " + achievementPointsTable + " WHERE UUID = '" + p.getName() + "';";
@@ -112,18 +73,47 @@ public class AchievementDatabase extends Database implements Listener {
 		return (Integer.parseInt(values.get(0)[0]));
 	}
 
-	public List<Achievement> getAllAchievements() {
-		List<Achievement> achievements = new ArrayList<Achievement>();
-		if (!api.isConnected())
-			return achievements;
-		List<String> servers = StatsDatabase.getInstance().getServers();
-		for (String server : servers)
-			achievements.addAll(getServerAchievements(server));
-		return achievements;
+	public void addAchievements(Achievement[] achievements) {
+		ExecutorService es = Executors.newFixedThreadPool(achievements.length);
+		for (Achievement a : achievements) {
+			if (a == null)
+				continue;
+			String update = "REPLACE INTO " + achievementMetaTable
+					+ " (server,name,statType,required,points,icon,iconDamage,description) VALUES" + "('"
+					+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "','" + a.getName().replaceAll(" ", "_")
+					+ "','"
+					+ (a instanceof StatAchievement ? ((StatAchievement) a).getStatType().getNameUnderscores() : "null")
+					+ "'," + (a instanceof StatAchievement ? ((StatAchievement) a).getRequired() : "0") + ","
+					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + ",'" + a.getDescription() + "');";
+
+			es.execute(() -> {
+				api.executeUpdate(update);
+			});
+		}
+
+		Set<String> columns = new HashSet<String>();
+		columns.addAll(api.getColumns(getAchTableName()));
+		String columnsAddBoolean = "ALTER TABLE " + getAchTableName()
+				+ " ADD COLUMN {column} Boolean NOT NULL default 0";
+
+		for (Achievement a : achievements)
+			if (a == null)
+				continue;
+			else if (!columns.contains(a.getName().replace(' ', '_')))
+				es.execute(() -> {
+					api.executeUpdate(columnsAddBoolean.replaceAll("\\{column\\}", a.getName().replace(' ', '_')));
+				});
+
+		es.shutdown();
+		try {
+			es.awaitTermination(1, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			new FileLogger(GCStatsTracker.instance).createErrorLog(e);
+		}
 	}
 
-	public List<Achievement> getServerAchievements(String server) {
-		List<Achievement> achievements = new ArrayList<Achievement>();
+	List<RemoteAchievement> getServerAchievements(String server) {
+		List<RemoteAchievement> achievements = new ArrayList<RemoteAchievement>();
 		if (!api.isConnected())
 			return achievements;
 		String query = "SELECT * FROM " + achievementMetaTable + " WHERE server = '" + server.replaceAll(" ", "_")
@@ -138,17 +128,24 @@ public class AchievementDatabase extends Database implements Listener {
 			short iconDamage = Short.parseShort(s[6]);
 			String description = s[7];
 
-			achievements.add(new Achievement(name, statType, required, points, m, iconDamage, description,
-					server.replaceAll("_", " ")));
+			if (statType.equalsIgnoreCase("null"))
+				achievements.add(new RemoteAchievement(name, points, m, iconDamage, description, server));
+			else
+				achievements.add(new RemoteStatAchievement(name, points, m, iconDamage, description, server, statType,
+						required));
 		}
 		return achievements;
 	}
 
-	public boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
+	boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
+		return isAchieved(offlinePlayer, a, GCStatsTrackerConfig.serverName);
+	}
+
+	boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a, String server) {
 		if (!api.isConnected())
-			return false;
-		String query = "SELECT " + a.name.replace(' ', '_') + " FROM " + getAchTableName(a.server) + " WHERE UUID = '"
-				+ offlinePlayer.getName() + "';";
+			return true;
+		String query = "SELECT " + a.getName().replace(' ', '_') + " FROM " + getAchTableName(server)
+				+ " WHERE UUID = '" + offlinePlayer.getName() + "';";
 		try {
 			return Integer.parseInt(api.getRows(query).get(0)[0]) == 1;
 		} catch (Exception e) {
@@ -156,22 +153,10 @@ public class AchievementDatabase extends Database implements Listener {
 		}
 	}
 
-	public void setAchieved(Player p, Achievement a) {
-		if (!api.isConnected())
-			return;
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (!isAchieved(p, a)) {
-					String update = "UPDATE " + getAchTableName(a.server) + " SET " + a.name.replace(' ', '_')
-							+ " = true WHERE UUID = '" + p.getName() + "';";
-					api.executeUpdateAsync(update);
-					if (AchievementData.awardPoints)
-						awardAchievementPoints(p, a.points);
-					a.doFirework(p);
-				}
-			}
-		}.runTaskAsynchronously(GCStatsTracker.instance);
+	void setAchieved(Player p, Achievement a) {
+		String update = "UPDATE " + getAchTableName() + " SET " + a.getName().replace(' ', '_')
+				+ " = true WHERE UUID = '" + p.getName() + "';";
+		api.executeUpdateAsync(update);
 	}
 
 	public List<String> getServers() {
@@ -193,15 +178,15 @@ public class AchievementDatabase extends Database implements Listener {
 	public void setServerIcon(String server, Material m, short damage) {
 		if (!api.isConnected())
 			return;
-		String update = "REPLACE into " + serverIconTable + " (server, iconMaterial, iconDamage) values('"
+		String update = "REPLACE INTO " + serverIconTable + " (server, iconMaterial, iconDamage) values('"
 				+ server.replaceAll(" ", "_") + "','" + m + "'," + damage + ");";
-		api.executeUpdateAsync(update);
+		api.executeUpdate(update);
 	}
 
-	public ItemStack getServerIcon(String server) {
+	ItemStack getServerIcon(String server) {
 		if (!api.isConnected())
 			return new ItemStack(Material.STONE);
-		String query = "Select iconMaterial, iconDamage FROM " + serverIconTable + " WHERE server = '"
+		String query = "SELECT iconMaterial, iconDamage FROM " + serverIconTable + " WHERE server = '"
 				+ server.replaceAll(" ", "_") + "';";
 		List<String[]> list = api.getRows(query);
 		Material m = Material.valueOf(list.get(0)[0]);
@@ -216,11 +201,13 @@ public class AchievementDatabase extends Database implements Listener {
 	public void ensureCorrectTables() {
 		ensureCorrectPointsTable();
 		ensureCorrectServerIconTable();
+		ensureCorrectAchMetaTable();
+		ensureCorrectAchTable();
 	}
 
 	private void ensureCorrectServerIconTable() {
 		String update = "CREATE TABLE IF NOT EXISTS " + serverIconTable
-				+ " (server varchar(127), iconMaterial varchar(63), iconDamage int);";
+				+ " (server varchar(127), iconMaterial varchar(63), iconDamage int, PRIMARY KEY(server));";
 		api.executeUpdate(update);
 	}
 
@@ -238,42 +225,16 @@ public class AchievementDatabase extends Database implements Listener {
 					+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + " DOUBLE default 0");
 	}
 
-	void ensureCorrectAchMetaTable(HashMap<StatType, List<Achievement>> localAchievements) {
-		if (!api.isConnected())
-			return;
+	private void ensureCorrectAchMetaTable() {
 		String update = "CREATE TABLE IF NOT EXISTS " + achievementMetaTable
-				+ "(server varchar(127), name varchar(127), statType varchar(63), required double, points int,"
-				+ "icon varchar(63), iconDamage int, description varchar(1024));";
+				+ "(server varchar(63), name varchar(127), statType varchar(63), required double, points int,"
+				+ "icon varchar(63), iconDamage int, description varchar(1024), PRIMARY KEY (server, name));";
 		api.executeUpdate(update);
-
-		update = "DELETE FROM " + achievementMetaTable + " WHERE server = '"
-				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "';";
-		api.executeUpdate(update);
-
-		for (List<Achievement> list : localAchievements.values())
-			for (Achievement a : list) {
-				update = "INSERT INTO " + achievementMetaTable
-						+ " (server,name,statType,required,points,icon,iconDamage,description) VALUES" + "('"
-						+ a.server.replaceAll(" ", "_") + "','" + a.name.replace(' ', '_') + "','" + a.statType + "',"
-						+ a.required + "," + a.points + ",'" + a.icon + "'," + a.iconDamage + ",'" + a.description
-						+ "');";
-				api.executeUpdate(update);
-			}
 	}
 
-	void ensureCorrectAchTable(HashMap<StatType, List<Achievement>> localAchievements) {
+	private void ensureCorrectAchTable() {
 		String update = "CREATE TABLE IF NOT EXISTS " + getAchTableName() + " (UUID varchar(127));";
-		String columnsAddBoolean = "ALTER TABLE " + getAchTableName()
-				+ " ADD COLUMN {column} Boolean NOT NULL default 0";
 		api.executeUpdate(update);
-
-		Set<String> columns = new HashSet<String>();
-		columns.addAll(api.getColumns(getAchTableName()));
-
-		for (List<Achievement> list : localAchievements.values())
-			for (Achievement a : list)
-				if (!columns.contains(a.name.replace(' ', '_')))
-					api.executeUpdate(columnsAddBoolean.replaceAll("\\{column\\}", a.name.replace(' ', '_')));
 	}
 
 	private String getAchTableName() {

@@ -3,7 +3,8 @@ name: gcStats
 version: 1.0
 author: Jonodonozym
 description: Tracks player stats and achievements, storing them on an SQL database
-softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI,JBU]
+depend: [JBU]
+softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI]
 
 commands:
   gca:

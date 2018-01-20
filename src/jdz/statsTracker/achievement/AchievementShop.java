@@ -87,7 +87,7 @@ public class AchievementShop implements Listener {
 					@Override
 					public void run() {
 						ShopItem item = items.get(slot);
-						int currentPoints = AchievementDatabase.getInstance().getAchievementPoints(p);
+						int currentPoints = AchievementManager.getInstance().getAchievementPoints(p);
 						if (currentPoints >= item.cost) {
 							giveItems(item.items, p);
 							for (String s : item.commands)
@@ -96,7 +96,7 @@ public class AchievementShop implements Listener {
 							if (item.messages.length > 0)
 								p.sendMessage(item.messages);
 							p.closeInventory();
-							AchievementDatabase.getInstance().awardAchievementPoints(p, -item.cost);
+							AchievementManager.getInstance().addAchievementPoints(p, -item.cost);
 							GCStatsTracker.instance.getServer().dispatchCommand(p, "gca bal");
 						} else {
 							p.closeInventory();

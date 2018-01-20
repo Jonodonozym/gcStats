@@ -4,28 +4,11 @@
 ##                                                   ##
 #######################################################
 
-# Types of achievements:
-#   - PLAY_TIME
-#   - KILLS
-#   - DEATHS
-#   - KDR
-#   - HEAD_DROPS (requires bounty plugin)
-#   - KOTH_WINS (requires KOTH plugin)
-#   - BLOCKS_MINED
-#   - BLOCKS_PLACED
-#   - MOB_KILLS
-#   - EXP_GAINED
-#   - Dist_WALKED
-
-points:
-  enabled: true
-  isGlobal: false # if true, points carry across and can be redeemed on other servers with true
-
 # For item icons names, see https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 
 achievements:
   Butcher: 
-    type: MOB_KILLS
+    type: Monsters killed
     icon: DIAMOND_SWORD
     iconDamage: # can remove this line if not used
     description: Kill {required} mobs

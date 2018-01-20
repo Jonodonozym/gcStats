@@ -13,12 +13,10 @@ import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import jdz.statsTracker.GCStatsTracker;
-import jdz.statsTracker.GCStatsTrackerConfig;
+import lombok.Getter;
 
-public class Achievement {
+public abstract class Achievement {
 	// static field for the firework effect
 	private static final FireworkEffect fwe;
 	static {
@@ -27,29 +25,18 @@ public class Achievement {
 		fwe = FireworkEffect.builder().flicker(true).withColor(c).withFade(c).with(Type.BALL_LARGE).trail(true).build();
 	}
 
-	public final String name;
-	public final String statType;
-	public final double required;
-	public final int points;
-	public final Material icon;
-	public final short iconDamage;
-	public final String description;
-	public final String server;
+	@Getter private final String name;
+	@Getter private final int points;
+	@Getter private final Material icon;
+	@Getter private final short iconDamage;
+	@Getter private final String description;
 
-	public Achievement(String name, String statType, double required, int points, Material m, short iconDamage, String description,
-			String server) {
+	public Achievement(String name, int points, Material m, short iconDamage, String description) {
 		this.name = name;
-		this.statType = statType;
-		this.required = required;
 		this.icon = m;
 		this.iconDamage = iconDamage;
 		this.description = description;
 		this.points = points;
-		this.server = server;
-	}
-
-	public boolean isAchieved(double stat) {
-		return (stat >= required);
 	}
 
 	/**
@@ -58,23 +45,16 @@ public class Achievement {
 	 * @param p
 	 */
 	public void doFirework(Player p) {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (GCStatsTrackerConfig.achievementFireworkEnabled){
-					Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
-					FireworkMeta fwm = fw.getFireworkMeta();
-					fwm.addEffect(fwe);
-					fwm.setPower(2);
-					fw.setFireworkMeta(fwm);
-				}
+		Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
+		FireworkMeta fwm = fw.getFireworkMeta();
+		fwm.addEffect(fwe);
+		fwm.setPower(1);
+		fw.setFireworkMeta(fwm);
+	}
 
-				if (GCStatsTrackerConfig.achievementMessageEnabled) {
-					p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
-					p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
-					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
-				}
-			}
-		}.runTask(GCStatsTracker.instance);
+	public void doMessages(Player p) {
+		p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
+		p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
+		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
 	}
 }

@@ -14,8 +14,8 @@ import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
 import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.achievement.AchievementInventories;
+import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
-import jdz.statsTracker.stats.PlayTimeRecorder;
 
 public class AchievementCommands implements CommandExecutor {
 	static String[] gcaHelpMessages = new String[] {
@@ -42,10 +42,9 @@ public class AchievementCommands implements CommandExecutor {
 			Player player = (Player) sender;
 
 			if (args.length == 0) {
-				if (AchievementDatabase.getInstance().isConnected()) {
-					PlayTimeRecorder.getInstance().updateTime(player);
+				if (AchievementDatabase.getInstance().isConnected())
 					AchievementInventories.openServerSelect(player, player);
-				} else
+				else
 					player.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
 			}
 
@@ -75,7 +74,7 @@ public class AchievementCommands implements CommandExecutor {
 							public void run() {
 								if (args.length == 1)
 									sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
-											+ AchievementDatabase.getInstance().getAchievementPoints(player));
+											+ AchievementManager.getInstance().getAchievementPoints(player));
 								else if (GCStatsTrackerConfig.servers.contains(args[1].replaceAll("_", " ")))
 									sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
 											+ AchievementDatabase.getInstance().getAchievementPoints(player, args[1]));
@@ -95,11 +94,9 @@ public class AchievementCommands implements CommandExecutor {
 							public void run() {
 								@SuppressWarnings("deprecation")
 								OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
-								if (otherPlayer.hasPlayedBefore()) {
-									if (otherPlayer.isOnline())
-										PlayTimeRecorder.getInstance().updateTime((Player) otherPlayer);
+								if (otherPlayer.hasPlayedBefore())
 									AchievementInventories.openServerSelect(player, otherPlayer);
-								} else
+								else
 									sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid player");
 							}
 						}.runTaskAsynchronously(GCStatsTracker.instance);

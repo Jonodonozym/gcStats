@@ -1,10 +1,12 @@
-
 package jdz.statsTracker.achievement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,22 +22,46 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsDatabase;
+import jdz.statsTracker.stats.StatsManager;
+import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
-import jdz.statsTracker.stats.StatType;
 
 public class AchievementInventories implements Listener {
 	public static final String SERVER_SELECT_INV_NAME = ChatColor.DARK_GREEN + "Achievements: server select";
 	public static Inventory serverSelect;
 
-	public static Map<Achievement, ItemStack> achievementToStack = new HashMap<Achievement, ItemStack>();
+	private static Map<String, List<RemoteAchievement>> allAchievements = new HashMap<String, List<RemoteAchievement>>();
+	public static Map<RemoteAchievement, ItemStack> achievementToStack = new HashMap<RemoteAchievement, ItemStack>();
+	
 	public static Map<Player, OfflinePlayer> targets = new HashMap<Player, OfflinePlayer>();
 	public static Map<Player, Integer> page = new HashMap<Player, Integer>();
 	public static Map<Player, String> server = new HashMap<Player, String>();
 
 	public static void reload() {
 		targets.clear();
+		
+		List<String> servers = AchievementDatabase.getInstance().getServers();
+		ExecutorService es = Executors.newFixedThreadPool(servers.size());
+		for (String server: servers) {
+			es.execute(()->{
+				List<RemoteAchievement> removeAchievements = AchievementDatabase.getInstance().getServerAchievements(server);
+				removeAchievements.sort((a,b)->{
+					return a.getName().compareTo(b.getName());
+				});
+				allAchievements.put(server, removeAchievements);
+			});
+		}
+
+		es.shutdown();
+		try {
+			es.awaitTermination(1, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			new FileLogger(GCStatsTracker.instance).createErrorLog(e);
+		}
+		
 		achievementToStack = createDefaultItemStacks();
 		serverSelect = createServerSelectInv();
 	}
@@ -90,7 +116,7 @@ public class AchievementInventories implements Listener {
 	private static Inventory createServerSelectInv() {
 		List<ItemStack> itemStacks = new ArrayList<ItemStack>();
 
-		for (String server : GCStatsTrackerConfig.servers)
+		for (String server : AchievementDatabase.getInstance().getServers())
 			itemStacks.add(AchievementDatabase.getInstance().getServerIcon(server));
 
 		int rows = (int) (Math.ceil(itemStacks.size() / 4.0));
@@ -118,16 +144,16 @@ public class AchievementInventories implements Listener {
 		return inv;
 	}
 
-	private static Map<Achievement, ItemStack> createDefaultItemStacks() {
-		Map<Achievement, ItemStack> achToItem = new HashMap<Achievement, ItemStack>();
-		for (List<Achievement> list : AchievementData.achievements.values())
-			for (Achievement a : list) {
-				ItemStack itemStack = new ItemStack(a.icon, 1, a.iconDamage);
+	private static Map<RemoteAchievement, ItemStack> createDefaultItemStacks() {
+		Map<RemoteAchievement, ItemStack> achToItem = new HashMap<RemoteAchievement, ItemStack>();
+		for (List<RemoteAchievement> list : allAchievements.values())
+			for (RemoteAchievement a : list) {
+				ItemStack itemStack = new ItemStack(a.getIcon(), 1, a.getIconDamage());
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
 				List<String> lore = new ArrayList<String>();
-				lore.add(ChatColor.YELLOW + a.description);
-				lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + a.points + " Achievement Points");
+				lore.add(ChatColor.YELLOW + a.getDescription());
+				lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + a.getPoints() + " Achievement Points");
 				lore.add("");
 
 				itemMeta.setLore(lore);
@@ -143,18 +169,18 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
-		List<Achievement> achievements = AchievementData.achievements.get(server);
+		List<RemoteAchievement> achievements = allAchievements.get(server);
 		Inventory pageInventory = Bukkit.createInventory(null, 54,
 				ChatColor.DARK_GREEN + offlinePlayer.getName() + ChatColor.DARK_GREEN + "'s Achievements");
 
 		int i = 0;
 		for (int achIndex = page * 36; achIndex < Math.min((page + 1) * 36, achievements.size()); achIndex++) {
-			Achievement achievement = achievements.get(achIndex);
+			RemoteAchievement achievement = achievements.get(achIndex);
 			final int f = i;
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					ItemStack itemStack = getPlayerStack(offlinePlayer, achievement, server);
+					ItemStack itemStack = getPlayerStack(offlinePlayer, achievement);
 
 					pageInventory.setItem(f, itemStack);
 				}
@@ -171,25 +197,34 @@ public class AchievementInventories implements Listener {
 		return pageInventory;
 	}
 
-	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, Achievement achievement, String server) {
-		boolean isAchieved = AchievementDatabase.getInstance().isAchieved(offlinePlayer, achievement);
+	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, RemoteAchievement achievement) {
+		boolean isAchieved = AchievementDatabase.getInstance().isAchieved(offlinePlayer, achievement, achievement.getServer());
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
 		List<String> lore = itemMeta.getLore();
 		if (isAchieved) {
-			itemMeta.setDisplayName(ChatColor.GREEN + achievement.name.replace('_', ' '));
+			itemMeta.setDisplayName(ChatColor.GREEN + achievement.getName().replace('_', ' '));
 			newStack.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
 			lore.add(ChatColor.GREEN + "Achievement Unlocked!");
 			lore.get(1).replaceAll(ChatColor.GRAY.toString(), ChatColor.WHITE.toString());
 		} else {
-			itemMeta.setDisplayName(ChatColor.RED + achievement.name.replace('_', ' '));
-			double progress = StatsDatabase.getInstance().getStatDirect(offlinePlayer, achievement.statType, server);
-			try {
-				String progressStr = StatType.valueOf(achievement.statType).valueToString(progress);
-				String requiredStr = StatType.valueOf(achievement.statType).valueToString(achievement.required);
-				lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progressStr + " / " + requiredStr);
-			} catch (Exception e) {
-				lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progress + " / " + achievement.required);
+			itemMeta.setDisplayName(ChatColor.RED + achievement.getName().replace('_', ' '));
+			if (achievement instanceof RemoteStatAchievement) {
+				StatType type = StatsManager.getInstance().getType(((RemoteStatAchievement) achievement).getStatTypeName());
+				
+				double progress;
+				if (achievement.getServer().replaceAll("_", " ").equalsIgnoreCase(GCStatsTrackerConfig.serverName) && offlinePlayer.isOnline())
+					progress = type.get(offlinePlayer.getPlayer());
+				else
+					progress = StatsDatabase.getInstance().getStat(offlinePlayer, ((RemoteStatAchievement) achievement).getStatTypeName(), achievement.getServer());
+				double required = ((RemoteStatAchievement) achievement).getRequirement();
+				if (type == null)
+					lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progress + " / " + required);
+				else {
+					String progressStr = type.valueToString(progress);
+					String requiredStr = type.valueToString(required);
+					lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progressStr + " / " + requiredStr);
+				}
 			}
 		}
 		itemMeta.setLore(lore);

@@ -17,29 +17,14 @@ broadcastInfo:
 
   
 ## Happens when a player earns an achievement
-achievementNotification:
+achievements:
   doFirework: true
   doMessage: true
+  awardPoints: true
+  globalPoints: false # if true, points carry across, and can be redeemed on, multiple servers
 
 ## Name of the server in the database
 server:
   name: "defaultName"
   icon: "INK_SACK"
   iconDamage: 2
-
-## Enabling then disabling will truncate (delete) the old data for the disabled stat types
-statsEnabled:
-  PLAY_TIME: false
-  KILLS: false
-  DEATHS: false
-  KDR: false
-  HEAD_DROPS: false
-  KOTH_WINS: false
-  BLOCKS_MINED: false
-  BLOCKS_PLACED: false
-  MOB_KILLS: false
-  EXP_GAINED: false
-  DIST_WALKED: false
-  DEATHMATCH_EVENTS_WON: false
-  KEY_DROPS_WON: false
-  SUPPLY_DROPS_WON: false

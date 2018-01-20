@@ -1,0 +1,17 @@
+## Changes requires gcs to be reloaded
+
+enabledStats:
+  Play time: false
+  Kills: false
+  Deaths: false
+  KDR: false
+  Heads removed: false
+  KOTH wins: false
+  Blocks mined: false
+  Blocks placed: false
+  Monsters killed: false
+  Exp gained: false
+  Distance walked: false
+  Deathmatch events won: false
+  Key drops won: false
+  Supply drops won: false
