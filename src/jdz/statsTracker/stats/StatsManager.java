@@ -43,9 +43,9 @@ public class StatsManager implements Listener {
 	}
 
 	public StatType getType(String name) {
-		name = name.replaceAll("_", " ");
+		name = name.replaceAll("_", "").replaceAll(" ", "");
 		for (StatType statType : enabledStats)
-			if (statType.getName().equalsIgnoreCase(name))
+			if (statType.getName().replaceAll(" ", "").equalsIgnoreCase(name))
 				return statType;
 		return null;
 	}

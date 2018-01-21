@@ -61,6 +61,14 @@ public class AchievementDatabase extends Database implements Listener {
 		api.executeUpdateAsync(update);
 	}
 
+	public void addAchievementPoints(Player p, int points) {
+		String column = GCStatsTrackerConfig.achievementPointsGlobal ? "Global"
+				: GCStatsTrackerConfig.serverName.replaceAll(" ", "_");
+		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + column +" + " +points + " WHERE UUID = '"
+				+ p.getName() + "';";
+		api.executeUpdateAsync(update);
+	}
+
 	public int getAchievementPoints(OfflinePlayer p) {
 		return (getAchievementPoints(p, GCStatsTrackerConfig.serverName.replaceAll(" ", "_")));
 	}

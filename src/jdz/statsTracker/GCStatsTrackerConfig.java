@@ -28,7 +28,7 @@ public class GCStatsTrackerConfig {
 
 	public static boolean achievementFireworkEnabled = true;
 	public static boolean achievementMessageEnabled = false;
-	public static boolean achievementAwardPoints = true;
+	public static boolean achievementGiveRewards = true;
 	public static boolean achievementPointsGlobal = false;
 
 	private static TimedTask broadcastTask = null;
@@ -59,7 +59,7 @@ public class GCStatsTrackerConfig {
 
 		achievementFireworkEnabled = config.getBoolean("achievements.doFirework");
 		achievementMessageEnabled = config.getBoolean("achievements.doMessage");
-		achievementAwardPoints = config.getBoolean("achievements.awardPoints");
+		achievementGiveRewards = config.getBoolean("achievements.giveRewards");
 		achievementPointsGlobal = config.getBoolean("achievements.globalPoints");
 
 		Material m = Material.GRASS;

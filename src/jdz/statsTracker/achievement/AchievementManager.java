@@ -76,6 +76,8 @@ public class AchievementManager implements Listener{
 			achievement.doFirework(player);
 		if (GCStatsTrackerConfig.achievementMessageEnabled)
 			achievement.doMessages(player);
+		if (GCStatsTrackerConfig.achievementGiveRewards)
+			achievement.giveRewards(player);
 		
 		Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, ()->{
 			AchievementDatabase.getInstance().setAchieved(player, achievement);
@@ -164,9 +166,22 @@ public class AchievementManager implements Listener{
 				}
 
 				for (int i = 0; i < required.size(); i++) {
+					List<String> commands = achConfig.getStringList("achievements." + achievement + ".rewardCommands."+i);
+					List<String> messages = achConfig.getStringList("achievements." + achievement + ".rewardMessages."+i);
+					
 					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i+1));
-					Achievement ach = new StatAchievement(name, type, required.get(i), points.get(i), m, iconDamage,
+					Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
 							description.replaceAll("\\{required\\}", type.valueToString(required.get(i)) + ""));
+					
+					if (points != null && points.size() < i && points.get(i) != null)
+						ach.setPoints(points.get(i));
+					
+					if (commands != null)
+						ach.setRewardCommands(commands);
+					
+					if (messages != null)
+						ach.setRewardMessages(messages);
+					
 					localAchievements.add(ach);
 				}
 

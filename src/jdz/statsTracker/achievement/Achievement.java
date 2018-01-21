@@ -4,6 +4,7 @@ package jdz.statsTracker.achievement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -14,7 +15,9 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 
+import jdz.statsTracker.GCStatsTrackerConfig;
 import lombok.Getter;
+import lombok.Setter;
 
 public abstract class Achievement {
 	// static field for the firework effect
@@ -26,17 +29,20 @@ public abstract class Achievement {
 	}
 
 	@Getter private final String name;
-	@Getter private final int points;
 	@Getter private final Material icon;
 	@Getter private final short iconDamage;
 	@Getter private final String description;
 
-	public Achievement(String name, int points, Material m, short iconDamage, String description) {
+	@Getter @Setter private int points = 0;
+	@Getter @Setter private List<String> rewardCommands = new ArrayList<String>();
+	@Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
+	
+
+	public Achievement(String name, Material m, short iconDamage, String description) {
 		this.name = name;
 		this.icon = m;
 		this.iconDamage = iconDamage;
 		this.description = description;
-		this.points = points;
 	}
 
 	/**
@@ -54,7 +60,19 @@ public abstract class Achievement {
 
 	public void doMessages(Player p) {
 		p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
-		p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
+		if (GCStatsTrackerConfig.achievementGiveRewards) {
+			if (points > 0)
+				p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
+			for (String s: rewardMessages)
+				p.sendMessage(ChatColor.GREEN + s);
+		}
 		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
+	}
+	
+	public void giveRewards(Player p) {
+		if (points > 0)
+			AchievementDatabase.getInstance().addAchievementPoints(p, points);
+		for (String command: rewardCommands)
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player\\}", p.getName()));
 	}
 }

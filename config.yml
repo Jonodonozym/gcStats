@@ -20,7 +20,7 @@ broadcastInfo:
 achievements:
   doFirework: true
   doMessage: true
-  awardPoints: true
+  giveRewards: true
   globalPoints: false # if true, points carry across, and can be redeemed on, multiple servers
 
 ## Name of the server in the database
