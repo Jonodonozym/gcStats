@@ -10,13 +10,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.commands.SubCommand;
+import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.achievement.AchievementInventories;
 
+@CommandLabel("DEFAULT")
 @CommandShortDescription("shows your or another player's cross-server achievements")
-@CommandUsage("/gca\n/gca [player]")
+@CommandUsage("[player]")
 class CommandAchievementDefault extends SubCommand {
 
 	@Override

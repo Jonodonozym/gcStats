@@ -18,7 +18,7 @@ class StatTypeKDR extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return null;
+		return value+"";
 	}
 
 	@EventHandler(priority = EventPriority.HIGH)

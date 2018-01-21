@@ -162,7 +162,7 @@ public class StatsDatabase extends Database {
 	}
 
 	public List<String[]> getAllSorted(StatType type) {
-		String query = "Select " + type.getNameUnderscores() + ", UUID FROM " + getStatTableName() + " ORDER BY "
+		String query = "Select UUID, "+type.getNameUnderscores() +" FROM " + getStatTableName() + " ORDER BY "
 				+ type.getNameUnderscores() + " DESC;";
 		return api.getRows(query);
 	}

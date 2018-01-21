@@ -11,15 +11,9 @@ import jdz.bukkitUtils.commands.CommandExecutor;
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.statsTracker.GCStatsTracker;
 
-
 public class StatsCommandExecutor extends CommandExecutor {
-	final AboutPluginCommand about = new AboutPluginCommand(GCStatsTracker.instance);
-	
-	private final List<SubCommand> subCommands = Arrays.asList( about, 
-			CommandStatTop.getInstance(),
-			new CommandStatRank(),
-			new CommandListServers()
-			);
+	private final List<SubCommand> subCommands = Arrays.asList(new AboutPluginCommand(GCStatsTracker.instance),
+			CommandStatTop.getInstance(), new CommandStatRank(), new CommandListServers());
 
 	public StatsCommandExecutor(JavaPlugin plugin) {
 		super(plugin, "gcs", false);

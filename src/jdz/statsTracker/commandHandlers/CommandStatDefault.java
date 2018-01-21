@@ -11,6 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.commands.SubCommand;
+import jdz.bukkitUtils.commands.annotations.CommandLabel;
+import jdz.bukkitUtils.commands.annotations.CommandPermission;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.GCStatsTrackerConfig;
@@ -19,14 +21,15 @@ import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
 
+@CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
-@CommandUsage("/gcs\n/gcs [server]\n/gcs [player] [server]")
+@CommandUsage("[player] [server]")
+@CommandPermission("gcs.top")
 class CommandStatDefault extends SubCommand {
 
 	@SuppressWarnings("deprecation")
 	@Override
 	public void execute(CommandSender sender, Set<String> flags, String... args) {
-
 		if (args.length == 0) {
 			if (sender instanceof Player)
 				showStats(sender, (Player) sender);

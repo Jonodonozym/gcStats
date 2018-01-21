@@ -11,18 +11,18 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.statsTracker.GCStatsTrackerConfig;
 
-@CommandLabel("servers")
 @CommandShortDescription("lists avaliable servers")
+@CommandLabel("servers")
 class CommandListServers extends SubCommand{
 
 	@Override
 	public void execute(CommandSender sender, Set<String> flags, String... args) {
+		String list = "";
+		for (String server : GCStatsTrackerConfig.servers)
+			list = list + ", " + server.replaceAll(" ", "_");
+		list = ChatColor.WHITE + list.substring(2);
 		sender.sendMessage(
 				ChatColor.GRAY + "============[ " + ChatColor.GOLD + "Server list" + ChatColor.GRAY + " ]============");
-		String list = ChatColor.WHITE + "";
-		for (String server : GCStatsTrackerConfig.servers)
-			list = list + server.replaceAll(" ", "_") + ", ";
-		list.substring(0, list.length() - 3);
 		sender.sendMessage(list);
 		sender.sendMessage(ChatColor.GRAY + "====================================");
 	}

@@ -21,7 +21,7 @@ import jdz.statsTracker.achievement.AchievementManager;
 @CommandLabel("balance")
 @CommandLabel("points")
 @CommandShortDescription("shows the amount of points you have racked up")
-@CommandUsage("/gca bal [server]")
+@CommandUsage("bal [server]")
 class CommandAchievementPoints extends SubCommand {
 
 	@Override

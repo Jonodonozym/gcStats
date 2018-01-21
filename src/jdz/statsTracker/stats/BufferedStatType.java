@@ -4,18 +4,11 @@ package jdz.statsTracker.stats;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
-import jdz.statsTracker.GCStatsTracker;
-
 public abstract class BufferedStatType implements StatType, Listener{
 	private final Map<Player, Double> onlinePlayerStats = new HashMap<Player, Double>();
-	
-	protected BufferedStatType() {
-		Bukkit.getPluginManager().registerEvents(this, GCStatsTracker.instance);
-	}
 	
 	@Override
 	public void addPlayer(Player player, double value) {

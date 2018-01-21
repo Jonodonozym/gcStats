@@ -14,12 +14,8 @@ import jdz.statsTracker.GCStatsTracker;
 
 @CommandExecutorPlayerOnly
 public class AchievementCommandHandler extends CommandExecutor {
-	final AboutPluginCommand about = new AboutPluginCommand(GCStatsTracker.instance);
-	
-	private final List<SubCommand> subCommands = Arrays.asList( about,
-			new CommandAchievementPoints(),
-			new CommandAchievementShop()
-			);
+	private final List<SubCommand> subCommands = Arrays.asList(new AboutPluginCommand(GCStatsTracker.instance),
+			new CommandAchievementPoints(), new CommandAchievementShop());
 
 	public AchievementCommandHandler(JavaPlugin plugin) {
 		super(plugin, "gca", false);

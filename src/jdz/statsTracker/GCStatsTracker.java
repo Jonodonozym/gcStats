@@ -48,8 +48,8 @@ public class GCStatsTracker extends JavaPlugin {
 		pm.registerEvents(new AchievementInventories(), this);
 		pm.registerEvents(new AchievementShop(), this);
 
-		new AchievementCommandHandler(this).register();
 		new StatsCommandExecutor(this).register();
+		new AchievementCommandHandler(this).register();
 
 		for (Player p : Bukkit.getOnlinePlayers()){
 			AchievementManager.getInstance().addPlayer(p);

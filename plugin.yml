@@ -24,3 +24,9 @@ commands:
       /gcs (player) (server) - shows stats for another player on another server
       /gcs about - info about the plugin
       
+permissions:
+  gcs.top:
+    description: allows use of /gcs top and /gcs rank commands
+    default: false
+    
+      

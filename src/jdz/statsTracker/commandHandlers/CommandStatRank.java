@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
+import jdz.bukkitUtils.commands.annotations.CommandPermission;
 import jdz.bukkitUtils.commands.annotations.CommandPlayerOnly;
 import jdz.bukkitUtils.commands.annotations.CommandRequiredArgs;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
@@ -21,7 +22,8 @@ import net.md_5.bungee.api.ChatColor;
 @CommandRequiredArgs(1)
 @CommandShortDescription("Displays your rank for a specific stat")
 @CommandPlayerOnly
-@CommandUsage("/gcs rank <stat> [player]")
+@CommandUsage("rank <statNoSpaces> [player]")
+@CommandPermission("gcs.top")
 class CommandStatRank extends SubCommand {
 
 	@SuppressWarnings("deprecation")

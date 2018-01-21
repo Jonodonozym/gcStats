@@ -39,7 +39,6 @@ public class AchievementManager implements Listener{
 	public void addAchievements(Achievement...achievements) {
 		this.achievements.addAll(Arrays.asList(achievements));
 		for (Achievement achievement: achievements) {
-			System.out.println(achievement);
 			if (achievement instanceof StatAchievement) {
 				StatType type = ((StatAchievement)achievement).getStatType();
 				if (!achievementsByType.containsKey(type))
@@ -128,9 +127,10 @@ public class AchievementManager implements Listener{
 	
 	@EventHandler
 	public void onStatChange(StatChangeEvent e) {
-		for (StatAchievement a: achievementsByType.get(e.getType()))
-			if (!isAchieved(e.getPlayer(), a) && e.getNewValue() >= a.getRequired())
-				setAchieved(e.getPlayer(), a);
+		if (achievementsByType.containsKey(e.getType()))
+			for (StatAchievement a: achievementsByType.get(e.getType()))
+				if (!isAchieved(e.getPlayer(), a) && e.getNewValue() >= a.getRequired())
+					setAchieved(e.getPlayer(), a);
 	}
 	
 	public void reloadData() {
