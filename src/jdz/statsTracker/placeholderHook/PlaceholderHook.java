@@ -16,11 +16,9 @@ public class PlaceholderHook extends EZPlaceholderHook{
 
 	@Override
 	public String onPlaceholderRequest(Player player, String identifier) {
-		try{
-			StatType stat = StatsManager.getInstance().getType(identifier.toUpperCase().replaceAll(" ", "_"));
-			return stat.valueToString(StatsManager.getInstance().getType(stat.getName()).get(player));
-		}
-		catch(IllegalArgumentException e){ }
-		return null;
+		StatType stat = StatsManager.getInstance().getType(identifier);
+		if (stat == null)
+			return null;
+		return stat.valueToString(stat.get(player));
 	}
 }
