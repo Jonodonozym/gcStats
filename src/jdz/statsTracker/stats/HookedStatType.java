@@ -22,6 +22,10 @@ public abstract class HookedStatType implements StatType{
 		task = new TimedTask(GCStatsTracker.instance, refreshRate, ()-> {
 			for (Player player: Bukkit.getOnlinePlayers()){
 				double newValue = get(player);
+				if (!lastValues.containsKey(player)) {
+					lastValues.put(player, newValue);
+					return;
+				}
 				if (newValue != lastValues.get(player))
 					new StatChangeEvent(player, this, lastValues.get(player), newValue).call();
 				lastValues.put(player, newValue);
