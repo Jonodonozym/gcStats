@@ -10,6 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.misc.StringUtils;
 import jdz.bukkitUtils.sql.Database;
+import jdz.bukkitUtils.sql.SqlColumn;
+import jdz.bukkitUtils.sql.SqlColumnType;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
 import lombok.Getter;
@@ -54,11 +56,10 @@ public class StatsDatabase extends Database {
 
 	private void ensureCorrectStatMetaTable() {
 		String newTable = "CREATE TABLE IF NOT EXISTS " + statsMetaTable + " (server varchar(127));";
-		String newRow = "INSERT INTO " + statsMetaTable + " (server) " + "SELECT '"
-				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "' FROM dual "
-				+ "WHERE NOT EXISTS ( SELECT server FROM " + statsMetaTable + " WHERE server = '"
-				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "' ) LIMIT 1;";
+		String deleteOldRow = "DELETE FROM "+statsMetaTable + " WHERE server = '"+GCStatsTrackerConfig.serverName.replaceAll(" ", "_")+"';";
+		String newRow = "INSERT INTO " + statsMetaTable + " (server) " + " VALUES('"+GCStatsTrackerConfig.serverName.replaceAll(" ", "_")+"');";
 		api.executeUpdate(newTable);
+		api.executeUpdate(deleteOldRow);
 		api.executeUpdate(newRow);
 	}
 
@@ -67,25 +68,19 @@ public class StatsDatabase extends Database {
 		api.executeUpdate(update);
 	}
 
-	public void addStatType(StatType type) {
+	public void addStatType(StatType type, boolean isEnabled) {
 		// Stat Meta-data
-		String columnsAddBoolean = "ALTER TABLE " + statsMetaTable + " ADD COLUMN {column} Boolean NOT NULL default 0";
 		String setValue = "UPDATE " + statsMetaTable + " SET {column} = {value} WHERE server = '"
 				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "';";
-		List<String> columns = api.getColumns(statsMetaTable);
-
-		if (!columns.contains(type.getNameUnderscores()))
-			api.executeUpdate(columnsAddBoolean.replaceAll("\\{column\\}", type.getNameUnderscores()));
-		api.executeUpdate(
-				setValue.replaceAll("\\{column\\}", type.getNameUnderscores()).replaceAll("\\{value\\}", "true"));
+		
+		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores()+"_enabled", SqlColumnType.BOOLEAN));
+		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores()+"_visible", SqlColumnType.BOOLEAN));
+		
+		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores()+"_enabled").replaceAll("\\{value\\}", isEnabled+""));
+		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores()+"_visible").replaceAll("\\{value\\}", type.isVisible()+""));
 
 		// stat table
-		String columnsAdd = "ALTER TABLE " + getStatTableName() + " ADD COLUMN {column} DOUBLE DEFAULT 0";
-
-		columns = api.getColumns(getStatTableName());
-
-		if (!columns.contains(type.getNameUnderscores()))
-			api.executeUpdate(columnsAdd.replaceAll("\\{column\\}", type.getNameUnderscores()));
+		api.addColumn(getStatTableName(), new SqlColumn(type.getNameUnderscores(), SqlColumnType.DOUBLE));
 	}
 
 	private String getStatTableName() {
@@ -108,7 +103,30 @@ public class StatsDatabase extends Database {
 		for (String s : columns) {
 			try {
 				if (Integer.parseInt(row[i++]) == 1)
-					enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_", " ")));
+					if (s.endsWith("_enabled"))
+						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_enabled", "").replaceAll("_", " ")));
+			} catch (NumberFormatException e) {
+			}
+		}
+
+		Collections.sort(enabledStats);
+		return enabledStats;
+	}
+
+	public List<String> getVisibleStats(String server) {
+		List<String> enabledStats = new ArrayList<String>();
+		if (!api.isConnected())
+			return enabledStats;
+		List<String> columns = api.getColumns(statsMetaTable);
+
+		String query = "SELECT * FROM " + statsMetaTable + " WHERE server = '" + server.replaceAll(" ", "_") + "';";
+		String[] row = api.getRows(query).get(0);
+		int i = 0;
+		for (String s : columns) {
+			try {
+				if (Integer.parseInt(row[i++]) == 1)
+					if (s.endsWith("_visible"))
+						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_enabled", "").replaceAll("_", " ")));
 			} catch (NumberFormatException e) {
 			}
 		}

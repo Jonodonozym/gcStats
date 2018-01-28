@@ -78,7 +78,7 @@ class CommandStatDefault extends SubCommand {
 			return;
 		}
 
-		List<String> types = StatsDatabase.getInstance().getEnabledStats(server);
+		List<String> types = StatsDatabase.getInstance().getVisibleStats(server);
 		List<Double> stats = new ArrayList<Double>(types.size());
 		for (String type : types)
 			stats.add(StatsDatabase.getInstance().getStat(offlinePlayer, type.toString(), server));
@@ -87,10 +87,10 @@ class CommandStatDefault extends SubCommand {
 	}
 
 	private void showStats(CommandSender sender, Player target) {
-
 		List<String> types = new ArrayList<String>(StatsManager.getInstance().enabledStatsSorted().size());
 		List<Double> stats = new ArrayList<Double>(StatsManager.getInstance().enabledStatsSorted().size());
 		for (StatType type : StatsManager.getInstance().enabledStatsSorted()) {
+			if (!type.isVisible()) continue;
 			types.add(type.getName());
 			stats.add(type.get(target));
 		}

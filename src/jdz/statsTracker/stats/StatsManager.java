@@ -64,7 +64,7 @@ public class StatsManager implements Listener {
 				Bukkit.getPluginManager().registerEvents((Listener) statType, GCStatsTracker.instance);
 
 			es.execute(() -> {
-				StatsDatabase.getInstance().addStatType(statType);
+				StatsDatabase.getInstance().addStatType(statType, true);
 				for (Player player : Bukkit.getOnlinePlayers())
 					statType.addPlayer(player, StatsDatabase.getInstance().getStat(player, statType));
 			});

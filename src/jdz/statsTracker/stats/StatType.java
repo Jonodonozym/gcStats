@@ -1,14 +1,9 @@
 
 package jdz.statsTracker.stats;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bukkit.entity.Player;
 
 public interface StatType{
-	static final Map<Class<? extends StatType>, Integer> classToID = new HashMap<Class<? extends StatType>, Integer>();
-
 	public void addPlayer(Player player, double value);
 	public double removePlayer(Player player);
 	public double get(Player player);
@@ -21,5 +16,9 @@ public interface StatType{
 	
 	public default Integer getID() {
 		return this.getClass().hashCode();
+	}
+	
+	public default boolean isVisible() {
+		return true;
 	}
 }
