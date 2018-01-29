@@ -4,6 +4,7 @@ package jdz.statsTracker.stats;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
@@ -31,6 +32,24 @@ public abstract class BufferedStatType implements StatType, Listener{
 	public abstract String getName();
 	@Override
 	public abstract String valueToString(double value);
+	
+	public void add(OfflinePlayer player, double amount) {
+		if (player.isOnline())
+			add(player.getPlayer(), amount);
+		else
+			StatsDatabase.getInstance().addStat(player, this, amount);
+	}
+	
+	public void set(OfflinePlayer player, double amount) {
+		if (player.isOnline())
+			set(player.getPlayer(), amount);
+		else
+			StatsDatabase.getInstance().setStat(player, this, amount);
+	}
+	
+	public void add(Player player, double amount) {
+		set(player, get(player) + amount);
+	}
 	
 	public void set(Player player, double value) {
 		double oldValue = onlinePlayerStats.get(player);

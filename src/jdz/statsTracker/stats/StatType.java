@@ -1,6 +1,7 @@
 
 package jdz.statsTracker.stats;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 public interface StatType{
@@ -20,5 +21,12 @@ public interface StatType{
 	
 	public default boolean isVisible() {
 		return true;
+	}
+	
+	public default double get(OfflinePlayer player) {
+		if (player.isOnline())
+			return get(player.getPlayer());
+		else
+			return StatsDatabase.getInstance().getStat(player, this);		
 	}
 }

@@ -135,13 +135,19 @@ public class StatsDatabase extends Database {
 		return enabledStats;
 	}
 
-	public void setStat(Player player, StatType statType, double newValue) {
+	public void setStat(OfflinePlayer player, StatType statType, double newValue) {
 		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " + newValue
 				+ " WHERE UUID = '" + player.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
+	
+	public void addStat(OfflinePlayer player, StatType statType, double change) {
+		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " +statType.getNameUnderscores() + " + "+ change
+				+ " WHERE UUID = '" + player.getName() + "';";
+		api.executeUpdateAsync(update);
+	}
 
-	public void setStatSync(Player player, StatType statType, double newValue) {
+	public void setStatSync(OfflinePlayer player, StatType statType, double newValue) {
 		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " + newValue
 				+ " WHERE UUID = '" + player.getName() + "';";
 		api.executeUpdate(update);
