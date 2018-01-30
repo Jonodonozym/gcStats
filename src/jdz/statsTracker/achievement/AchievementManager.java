@@ -25,7 +25,8 @@ import jdz.bukkitUtils.misc.Config;
 import jdz.bukkitUtils.misc.RomanNumber;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
-import jdz.statsTracker.stats.StatChangeEvent;
+import jdz.statsTracker.event.AchievementUnlockEvent;
+import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.stats.StatType;
 
 public class AchievementManager implements Listener{

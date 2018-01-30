@@ -1,10 +1,11 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.stats.defaults;
 
 
 import org.bukkit.event.EventHandler;
 import org.guildcraft.EventOrganizer.events.deathmatch.DeathmatchWonEvent;
 
+import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
 class StatTypeDeathmatchesWon extends BufferedStatType {

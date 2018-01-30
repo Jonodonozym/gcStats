@@ -1,10 +1,11 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.event;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 import jdz.bukkitUtils.events.Event;
+import jdz.statsTracker.stats.StatType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

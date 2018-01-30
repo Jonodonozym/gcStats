@@ -1,9 +1,10 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.stats.defaults;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 
+import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
 class StatTypeBlocksMined extends BufferedStatType{

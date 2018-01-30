@@ -1,9 +1,10 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.stats.defaults;
 
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
+import jdz.statsTracker.stats.HookedStatType;
 import lombok.Getter;
 
 class StatTypeDistanceWalked extends HookedStatType{

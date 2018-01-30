@@ -1,9 +1,10 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.stats.defaults;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
+import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 import me.Indyuce.bh.ressource.HeadDropEvent;
 

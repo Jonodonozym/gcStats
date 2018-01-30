@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.misc.TimedTask;
 import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.event.StatChangeEvent;
 
 public abstract class HookedStatType implements StatType{
 	private final Map<Player, Double> lastValues = new HashMap<Player, Double>();

@@ -1,5 +1,5 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.stats.defaults;
 
 import java.util.Collection;
 
@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
+import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 import subside.plugins.koth.events.KothEndEvent;
 

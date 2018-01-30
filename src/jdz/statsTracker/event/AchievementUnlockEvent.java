@@ -1,9 +1,10 @@
 
-package jdz.statsTracker.achievement;
+package jdz.statsTracker.event;
 
 import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.events.Event;
+import jdz.statsTracker.achievement.Achievement;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

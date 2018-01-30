@@ -2,7 +2,6 @@
 package jdz.statsTracker.stats;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +24,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.stats.defaults.DefaultStats;
 import lombok.Getter;
 
 public class StatsManager implements Listener {
@@ -33,12 +33,12 @@ public class StatsManager implements Listener {
 
 	private final Set<StatType> enabledStats = new HashSet<StatType>();
 	private final List<StatType> enabledStatsList = new ArrayList<StatType>();
-	
+
 	public Set<StatType> enabledStats() {
 		return enabledStats;
 	}
-	
-	public List<StatType> enabledStatsSorted(){
+
+	public List<StatType> enabledStatsSorted() {
 		return enabledStatsList;
 	}
 
@@ -76,8 +76,8 @@ public class StatsManager implements Listener {
 		} catch (InterruptedException e) {
 			new FileLogger(plugin).createErrorLog(e);
 		}
-		
-		Collections.sort(enabledStatsList, (a,b)->{
+
+		Collections.sort(enabledStatsList, (a, b) -> {
 			return a.getName().compareTo(b.getName());
 		});
 	}
@@ -93,45 +93,16 @@ public class StatsManager implements Listener {
 
 			if (statType instanceof Listener)
 				HandlerList.unregisterAll((Listener) statType);
-			
+
 			if (statType instanceof HookedStatType)
-				((HookedStatType)statType).disable();
-			
+				((HookedStatType) statType).disable();
+
 			enabledStats.remove(statType);
 			enabledStatsList.remove(statType);
 		}
 	}
 
-	private final Set<StatType> defaultStats = new HashSet<StatType>(Arrays.asList(StatTypeBlocksMined.getInstance(),
-			StatTypeBlocksPlaced.getInstance(), StatTypeDeaths.getInstance(), StatTypeDistanceWalked.getInstance(),
-			StatTypeExpGained.getInstance(), StatTypeKDR.getInstance(), StatTypeKills.getInstance(),
-			StatTypeMobKills.getInstance(), StatTypePlayTime.getInstance()));
-
 	public void loadDefaultStats() {
-		if (!enabledStats.isEmpty())
-			throw new RuntimeException("Should not be loading default stats multiple times...");
-
-		try {
-			if (Bukkit.getPluginManager().getPlugin("KOTH") != null)
-				defaultStats.add(StatTypeKothWins.getInstance());
-		} catch (Exception e) {
-		}
-
-		try {
-			if (Bukkit.getPluginManager().getPlugin("BountyHunter") != null)
-				defaultStats.add(StatTypeHeadDrop.getInstance());
-		} catch (Exception e) {
-		}
-
-		try {
-			if (Bukkit.getPluginManager().getPlugin("EventOrganizer") != null) {
-				defaultStats.add(StatTypeDeathmatchesWon.getInstance());
-				defaultStats.add(StatTypeKeyDrops.getInstance());
-				defaultStats.add(StatTypeSupplyDrops.getInstance());
-			}
-		} catch (Exception e) {
-		}
-
 		Set<StatType> enabledStats = new HashSet<StatType>();
 
 		FileConfiguration config = Config.getConfig(GCStatsTracker.instance, "enabledStats.yml");
@@ -139,7 +110,7 @@ public class StatsManager implements Listener {
 			if (!config.getBoolean("enabledStats." + key))
 				continue;
 
-			for (StatType type : defaultStats)
+			for (StatType type : DefaultStats.getInstance().getAll())
 				if (type.getName().equalsIgnoreCase(key)) {
 					enabledStats.add(type);
 					break;
@@ -156,7 +127,7 @@ public class StatsManager implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		addPlayer(e.getPlayer());
 	}
-	
+
 	public void addPlayer(Player player) {
 		new BukkitRunnable() {
 			@Override

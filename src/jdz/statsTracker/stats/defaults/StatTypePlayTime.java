@@ -1,5 +1,5 @@
 
-package jdz.statsTracker.stats;
+package jdz.statsTracker.stats.defaults;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.misc.TimedTask;
 import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
 class StatTypePlayTime extends BufferedStatType {
