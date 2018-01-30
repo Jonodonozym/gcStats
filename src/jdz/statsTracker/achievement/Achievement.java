@@ -32,11 +32,12 @@ public abstract class Achievement {
 	@Getter private final Material icon;
 	@Getter private final short iconDamage;
 	@Getter private final String description;
+	
+	@Getter @Setter private boolean doFirework = true;
 
 	@Getter @Setter private int points = 0;
 	@Getter @Setter private List<String> rewardCommands = new ArrayList<String>();
 	@Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
-	
 
 	public Achievement(String name, Material m, short iconDamage, String description) {
 		this.name = name;
@@ -51,11 +52,13 @@ public abstract class Achievement {
 	 * @param p
 	 */
 	public void doFirework(Player p) {
-		Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
-		FireworkMeta fwm = fw.getFireworkMeta();
-		fwm.addEffect(fwe);
-		fwm.setPower(1);
-		fw.setFireworkMeta(fwm);
+		if (doFirework) {
+			Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
+			FireworkMeta fwm = fw.getFireworkMeta();
+			fwm.addEffect(fwe);
+			fwm.setPower(1);
+			fw.setFireworkMeta(fwm);
+		}
 	}
 
 	public void doMessages(Player p) {

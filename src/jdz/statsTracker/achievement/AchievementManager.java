@@ -81,6 +81,8 @@ public class AchievementManager implements Listener{
 		Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, ()->{
 			AchievementDatabase.getInstance().setAchieved(player, achievement);
 		});
+		
+		new AchievementUnlockEvent(achievement, player).call();
 	}
 	
 	public int getAchievementPoints(OfflinePlayer player) {
