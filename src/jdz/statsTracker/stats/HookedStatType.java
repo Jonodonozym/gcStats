@@ -16,7 +16,7 @@ public abstract class HookedStatType implements StatType{
 	private final TimedTask task;
 	
 	protected HookedStatType() {
-		this(5);
+		this(10);
 	}
 	
 	protected HookedStatType(int refreshRate) {

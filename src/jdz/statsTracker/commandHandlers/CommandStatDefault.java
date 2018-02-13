@@ -16,7 +16,6 @@ import jdz.bukkitUtils.commands.annotations.CommandPermission;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.GCStatsTrackerConfig;
-import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
@@ -29,17 +28,12 @@ class CommandStatDefault extends SubCommand {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, Set<String> flags, String... args) {		
 		if (args.length == 0) {
 			if (sender instanceof Player)
 				showStats(sender, (Player) sender);
 			else
 				sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
-			return;
-		}
-
-		if (!AchievementDatabase.getInstance().isConnected()) {
-			sender.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
 			return;
 		}
 		
@@ -52,7 +46,7 @@ class CommandStatDefault extends SubCommand {
 					sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
 			} else {
 				OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-				if (target.hasPlayedBefore())
+				if (target.hasPlayedBefore() || target.isOnline())
 					showStats(sender, GCStatsTrackerConfig.serverName, target);
 				else
 					sender.sendMessage(ChatColor.RED + "'" + args[0]
@@ -63,13 +57,25 @@ class CommandStatDefault extends SubCommand {
 		// for player AND server
 		else if (GCStatsTrackerConfig.servers.contains(args[1].replaceAll("_", " "))) {
 			OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-			if (target.hasPlayedBefore())
+			if (target.hasPlayedBefore() || target.isOnline())
 				showStats(sender, args[1].replaceAll("_", " "), target);
 			else
 				sender.sendMessage(ChatColor.RED + args[0] + " has never played on that server before!");
 		} else
 			sender.sendMessage(ChatColor.RED + args[1] + " is not a valid server!");
 
+	}
+
+	private void showStats(CommandSender sender, OfflinePlayer target) {		
+		List<String> types = new ArrayList<String>(StatsManager.getInstance().enabledStatsSorted().size());
+		List<Double> stats = new ArrayList<Double>(StatsManager.getInstance().enabledStatsSorted().size());
+		for (StatType type : StatsManager.getInstance().enabledStatsSorted()) {
+			if (!type.isVisible()) continue;
+			types.add(type.getName());
+			stats.add(type.get(target));
+		}
+
+		showStats(sender, target.getName(), "", types, stats);
 	}
 
 	private void showStats(CommandSender sender, String server, OfflinePlayer offlinePlayer) {
@@ -84,18 +90,6 @@ class CommandStatDefault extends SubCommand {
 			stats.add(StatsDatabase.getInstance().getStat(offlinePlayer, type.toString(), server));
 
 		showStats(sender, offlinePlayer.getName(), server, types, stats);
-	}
-
-	private void showStats(CommandSender sender, Player target) {
-		List<String> types = new ArrayList<String>(StatsManager.getInstance().enabledStatsSorted().size());
-		List<Double> stats = new ArrayList<Double>(StatsManager.getInstance().enabledStatsSorted().size());
-		for (StatType type : StatsManager.getInstance().enabledStatsSorted()) {
-			if (!type.isVisible()) continue;
-			types.add(type.getName());
-			stats.add(type.get(target));
-		}
-
-		showStats(sender, target.getName(), "", types, stats);
 	}
 
 	private void showStats(CommandSender sender, String targetName, String server, List<String> types,

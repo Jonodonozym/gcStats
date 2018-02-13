@@ -14,13 +14,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.GCStatsTracker;
@@ -123,20 +122,13 @@ public class StatsManager implements Listener {
 		addTypes(GCStatsTracker.instance, enabledStats.toArray(new StatType[1]));
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent e) {
-		addPlayer(e.getPlayer());
-	}
-
-	public void addPlayer(Player player) {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				StatsDatabase.getInstance().addPlayer(player);
-				for (StatType statType : StatsManager.getInstance().enabledStats())
-					statType.addPlayer(player, StatsDatabase.getInstance().getStat(player, statType));
-			}
-		}.runTaskAsynchronously(GCStatsTracker.instance);
+		Player player = e.getPlayer();
+		for (StatType statType : StatsManager.getInstance().enabledStats())
+			Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+				statType.addPlayer(player, StatsDatabase.getInstance().getStat(player, statType));
+			});
 	}
 
 	@EventHandler

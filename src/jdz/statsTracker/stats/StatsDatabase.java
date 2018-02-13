@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.misc.StringUtils;
@@ -21,7 +24,7 @@ import lombok.Getter;
  * 
  * @author Jonodonozym
  */
-public class StatsDatabase extends Database {
+public class StatsDatabase extends Database implements Listener {
 	@Getter
 	private static final StatsDatabase instance = new StatsDatabase(GCStatsTracker.instance);
 
@@ -42,7 +45,9 @@ public class StatsDatabase extends Database {
 		return api.isConnected();
 	}
 
-	void addPlayer(Player player) {
+	@EventHandler
+	public void onJoin(PlayerJoinEvent event) {
+		Player player = event.getPlayer();
 		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + player.getName() + "' FROM dual "
 				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + player.getName() + "' ) LIMIT 1;";
 		for (String server : GCStatsTrackerConfig.servers)
@@ -68,7 +73,7 @@ public class StatsDatabase extends Database {
 		api.executeUpdate(update);
 	}
 
-	public void addStatType(StatType type, boolean isEnabled) {
+	void addStatType(StatType type, boolean isEnabled) {
 		// Stat Meta-data
 		String setValue = "UPDATE " + statsMetaTable + " SET {column} = {value} WHERE server = '"
 				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "';";
@@ -80,7 +85,7 @@ public class StatsDatabase extends Database {
 		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores()+"_visible").replaceAll("\\{value\\}", type.isVisible()+""));
 
 		// stat table
-		api.addColumn(getStatTableName(), new SqlColumn(type.getNameUnderscores(), SqlColumnType.DOUBLE));
+		api.addColumn(getStatTableName(), new SqlColumn(type.getNameUnderscores(), SqlColumnType.DOUBLE, type.getDefault()+""));
 	}
 
 	private String getStatTableName() {
@@ -126,7 +131,7 @@ public class StatsDatabase extends Database {
 			try {
 				if (Integer.parseInt(row[i++]) == 1)
 					if (s.endsWith("_visible"))
-						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_enabled", "").replaceAll("_", " ")));
+						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_visible", "").replaceAll("_", " ")));
 			} catch (NumberFormatException e) {
 			}
 		}
@@ -173,14 +178,16 @@ public class StatsDatabase extends Database {
 				+ "';";
 		List<String[]> values = api.getRows(query);
 
-		try {
-			return Double.parseDouble(values.get(0)[0]);
-		} catch (Exception e) {
+		if (values.isEmpty())
 			return 0;
-		}
+		
+		return Double.parseDouble(values.get(0)[0]);
 	}
 	
 	public int getNumRows() {
+		if (!api.isConnected())
+			return 0;
+		
 		String query = "Select COUNT(*) FROM "+getStatTableName()+";";
 		return Integer.parseInt(api.getRows(query).get(0)[0]);
 	}

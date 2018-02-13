@@ -9,10 +9,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -33,6 +36,7 @@ public class AchievementDatabase extends Database implements Listener {
 
 	private AchievementDatabase(JavaPlugin plugin) {
 		super(plugin);
+		Bukkit.getPluginManager().registerEvents(this, plugin);
 		api.runOnConnect(() -> {
 			ensureCorrectTables();
 		});
@@ -45,8 +49,10 @@ public class AchievementDatabase extends Database implements Listener {
 	public void runOnConnect(Runnable r) {
 		api.runOnConnect(r);
 	}
-
-	void addPlayer(Player p) {
+	
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		Player p = e.getPlayer();
 		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + p.getName() + "' FROM dual "
 				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + p.getName() + "' ) LIMIT 1;";
 		api.executeUpdateAsync(update.replaceAll("\\{table\\}", achievementPointsTable));
@@ -76,12 +82,17 @@ public class AchievementDatabase extends Database implements Listener {
 	public int getAchievementPoints(OfflinePlayer p, String server) {
 		if (!api.isConnected())
 			return 0;
+		
 		String query = "SELECT " + server + " FROM " + achievementPointsTable + " WHERE UUID = '" + p.getName() + "';";
 		List<String[]> values = api.getRows(query);
+		
+		if (values.isEmpty())
+			return 0;
+		
 		return (Integer.parseInt(values.get(0)[0]));
 	}
 
-	public void addAchievements(Achievement[] achievements) {
+	void addAchievements(Achievement[] achievements) {
 		ExecutorService es = Executors.newFixedThreadPool(achievements.length);
 		for (Achievement a : achievements) {
 			if (a == null)
@@ -122,8 +133,10 @@ public class AchievementDatabase extends Database implements Listener {
 
 	List<RemoteAchievement> getServerAchievements(String server) {
 		List<RemoteAchievement> achievements = new ArrayList<RemoteAchievement>();
+		
 		if (!api.isConnected())
 			return achievements;
+		
 		String query = "SELECT * FROM " + achievementMetaTable + " WHERE server = '" + server.replaceAll(" ", "_")
 				+ "';";
 		List<String[]> result = api.getRows(query);

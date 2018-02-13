@@ -15,6 +15,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -102,15 +103,10 @@ public class AchievementManager implements Listener{
 		setAchievementPoints(player, change + getAchievementPoints(player));
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent e) {
-		addPlayer(e.getPlayer());
-	}
-	
-	public void addPlayer(Player player) {
+		Player player = e.getPlayer();
 		localEarntAchievements.put(player, new HashSet<Achievement>());
-		
-		AchievementDatabase.getInstance().addPlayer(player);
 
 		for (Achievement a: achievements)
 			Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {

@@ -33,4 +33,8 @@ public interface StatType{
 	public default void updateDatabase(Player player) {
 		StatsDatabase.getInstance().setStat(player, this, get(player));
 	}
+	
+	public default double getDefault() {
+		return 0;
+	}
 }

@@ -15,7 +15,7 @@ commands:
       /gca about - info about the plugin
   gcs:
     description: Displays your stats
-    aliases: [gcstats,gcstat]
+    aliases: [gcstats,gcstat,stats]
     usage: |
       /gcs - shows your stats for your current server
       /gcs servers - lists avaliable servers
@@ -28,5 +28,3 @@ permissions:
   gcs.top:
     description: allows use of /gcs top and /gcs rank commands
     default: false
-    
-      
