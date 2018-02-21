@@ -11,7 +11,8 @@ achievements:
     type: Monsters killed
     icon: DIAMOND_SWORD
     iconDamage: # can remove this if not used
-    description: Kill {required} mobs
+    description: Kill %required% mobs
+    hidden: false
     required:
       - 10
       - 100
@@ -22,11 +23,12 @@ achievements:
       - 2
       - 3
       - 4
+    rewardText: # can remove this if not used, auto-generates if using achievement points
+      - "1 achievement point"
     rewardCommands: # can remove this if not used
       1:
-        - /eco give {player} 500
-        - /eco give {player} 500
-      2: # etc
+        - /eco give %player% 500
+        - /eco give %player% 500
     rewardMessages: # can remove this if not used
       1:
         - You earned a meager $500 for your services to the realm

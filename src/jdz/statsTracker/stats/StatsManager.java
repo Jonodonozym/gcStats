@@ -136,10 +136,4 @@ public class StatsManager implements Listener {
 		for (StatType statType : StatsManager.getInstance().enabledStats())
 			StatsDatabase.getInstance().setStat(e.getPlayer(), statType, statType.removePlayer(e.getPlayer()));
 	}
-
-	public void onShutDown() {
-		for (Player player : Bukkit.getOnlinePlayers())
-			for (StatType statType : StatsManager.getInstance().enabledStats())
-				StatsDatabase.getInstance().setStatSync(player, statType, statType.get(player));
-	}
 }

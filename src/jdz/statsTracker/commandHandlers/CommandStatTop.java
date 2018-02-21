@@ -90,7 +90,7 @@ class CommandStatTop extends SubCommand {
 
 		es.shutdown();
 		try {
-			es.awaitTermination(30, TimeUnit.SECONDS);
+			es.awaitTermination(15, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

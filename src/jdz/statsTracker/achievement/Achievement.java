@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.Firework;
@@ -32,18 +33,30 @@ public abstract class Achievement {
 	@Getter private final Material icon;
 	@Getter private final short iconDamage;
 	@Getter private final String description;
-	
+	@Getter private final int points;
+	@Getter private final String rewardText;
+	@Getter private final boolean hidden;
+
 	@Getter @Setter private boolean doFirework = true;
 
-	@Getter @Setter private int points = 0;
 	@Getter @Setter private List<String> rewardCommands = new ArrayList<String>();
 	@Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
 
 	public Achievement(String name, Material m, short iconDamage, String description) {
+		this(name, m, iconDamage, description, 0, null, false);
+	}
+	
+	public Achievement(String name, Material m, short iconDamage, String description, int points, String rewardText,
+			boolean hidden) {
 		this.name = name;
 		this.icon = m;
 		this.iconDamage = iconDamage;
 		this.description = description;
+		this.points = points;
+		this.rewardText = (rewardText == null || rewardText.equals("")
+				? (points > 0 ? points + " Achievement point" + (points > 1 ? "s" : "") : "")
+				: rewardText).replaceAll("%points%", this.points + "");
+		this.hidden = hidden;
 	}
 
 	/**
@@ -66,16 +79,25 @@ public abstract class Achievement {
 		if (GCStatsTrackerConfig.achievementGiveRewards) {
 			if (points > 0)
 				p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
-			for (String s: rewardMessages)
+			for (String s : rewardMessages)
 				p.sendMessage(ChatColor.GREEN + s);
 		}
 		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
 	}
-	
+
 	public void giveRewards(Player p) {
 		if (points > 0)
 			AchievementDatabase.getInstance().addAchievementPoints(p, points);
-		for (String command: rewardCommands)
+		for (String command : rewardCommands)
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player\\}", p.getName()));
+	}
+
+	
+	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
+		return AchievementManager.getInstance().isAchieved(player, achievement);
+	}
+	
+	public List<Achievement> getPreRequisites(){
+		return new ArrayList<Achievement>();
 	}
 }

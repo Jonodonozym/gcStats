@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventException;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,7 +29,7 @@ public class GCStatsTracker extends JavaPlugin {
 		instance = this;
 
 		GCStatsTrackerConfig.reloadConfig();
-		
+
 		StatsManager.getInstance().loadDefaultStats();
 
 		AchievementDatabase.getInstance().runOnConnect(() -> {
@@ -52,7 +53,7 @@ public class GCStatsTracker extends JavaPlugin {
 		pm.registerEvents(StatsDatabase.getInstance(), this);
 		pm.registerEvents(AchievementManager.getInstance(), this);
 		pm.registerEvents(AchievementDatabase.getInstance(), this);
-		
+
 		pm.registerEvents(new AchievementInventories(), this);
 		pm.registerEvents(new AchievementShop(), this);
 
@@ -63,13 +64,21 @@ public class GCStatsTracker extends JavaPlugin {
 			try {
 				for (Player p : Bukkit.getOnlinePlayers())
 					l.callEvent(new PlayerJoinEvent(p, ""));
-			} catch (EventException e) {
+			}
+			catch (EventException e) {
 				new FileLogger(this).createErrorLog(e);
 			}
 	}
 
 	@Override
 	public void onDisable() {
-		StatsManager.getInstance().onShutDown();
+		for (RegisteredListener l : HandlerList.getRegisteredListeners(this))
+			try {
+				for (Player p : Bukkit.getOnlinePlayers())
+					l.callEvent(new PlayerQuitEvent(p, ""));
+			}
+			catch (EventException e) {
+				new FileLogger(this).createErrorLog(e);
+			}
 	}
 }
