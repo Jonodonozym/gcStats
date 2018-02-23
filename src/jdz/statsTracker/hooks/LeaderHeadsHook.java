@@ -1,6 +1,8 @@
 
 package jdz.statsTracker.hooks;
 
+import java.util.Arrays;
+
 import org.bukkit.entity.Player;
 
 import jdz.statsTracker.stats.StatType;
@@ -17,7 +19,7 @@ public class LeaderHeadsHook {
 	public void addType(StatType type) {
 		if (type instanceof StatTypePlayTime)
 			new OnlineDataCollector(type.getName(), "gcStats", BoardType.TIME, "",
-					"gcs rank " + type.getNameNoSpaces(), null) {
+					"gcs rank " + type.getNameNoSpaces(), Arrays.asList(null, null, null, null)) {
 				@Override
 				public Double getScore(Player player) {
 					return type.get(player) / 60;
@@ -25,7 +27,7 @@ public class LeaderHeadsHook {
 			};
 		else
 			new OnlineDataCollector(type.getName(), "gcStats", BoardType.DEFAULT, "",
-					"gcs rank " + type.getNameNoSpaces(), null) {
+					"gcs rank " + type.getNameNoSpaces(), Arrays.asList(null, null, null, null)) {
 				@Override
 				public Double getScore(Player player) {
 					return type.get(player);
