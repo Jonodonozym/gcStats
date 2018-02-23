@@ -51,6 +51,9 @@ public class StatsManager implements Listener {
 	}
 
 	public void addTypes(JavaPlugin plugin, StatType... statTypes) {
+		if (statTypes.length == 0)
+			return;
+		
 		ExecutorService es = Executors.newFixedThreadPool(statTypes.length);
 
 		for (StatType statType : statTypes) {
@@ -131,7 +134,7 @@ public class StatsManager implements Listener {
 		Collections.sort(enabledStatsList, comparator);
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
 		for (StatType statType : StatsManager.getInstance().enabledStats())

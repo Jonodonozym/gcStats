@@ -44,24 +44,27 @@ public class AchievementInventories implements Listener {
 		targets.clear();
 
 		List<String> servers = AchievementDatabase.getInstance().getServers();
-		ExecutorService es = Executors.newFixedThreadPool(servers.size());
-		for (String server : servers) {
-			es.execute(() -> {
-				List<RemoteAchievement> removeAchievements = AchievementDatabase.getInstance()
-						.getServerAchievements(server);
-				removeAchievements.sort((a, b) -> {
-					return a.getName().compareTo(b.getName());
+		
+		if (servers.size() > 0) {
+			ExecutorService es = Executors.newFixedThreadPool(servers.size());
+			for (String server : servers) {
+				es.execute(() -> {
+					List<RemoteAchievement> removeAchievements = AchievementDatabase.getInstance()
+							.getServerAchievements(server);
+					removeAchievements.sort((a, b) -> {
+						return a.getName().compareTo(b.getName());
+					});
+					allAchievements.put(server, removeAchievements);
 				});
-				allAchievements.put(server, removeAchievements);
-			});
-		}
-
-		es.shutdown();
-		try {
-			es.awaitTermination(1, TimeUnit.MINUTES);
-		}
-		catch (InterruptedException e) {
-			new FileLogger(GCStatsTracker.instance).createErrorLog(e);
+			}
+	
+			es.shutdown();
+			try {
+				es.awaitTermination(1, TimeUnit.MINUTES);
+			}
+			catch (InterruptedException e) {
+				new FileLogger(GCStatsTracker.instance).createErrorLog(e);
+			}
 		}
 
 		achievementToStack = createDefaultItemStacks();

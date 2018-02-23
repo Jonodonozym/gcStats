@@ -27,6 +27,8 @@ public abstract class BufferedStatType implements StatType, Listener {
 
 	@Override
 	public double get(Player player) {
+		if (!onlinePlayerStats.containsKey(player))
+			return 0;
 		return onlinePlayerStats.get(player);
 	}
 
