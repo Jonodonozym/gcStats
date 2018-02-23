@@ -3,6 +3,7 @@ package jdz.statsTracker.stats;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -120,6 +121,10 @@ public class StatsManager implements Listener {
 			return;
 
 		addTypes(GCStatsTracker.instance, enabledStats.toArray(new StatType[1]));
+	}
+	
+	public void sort(Comparator<StatType> comparator) {
+		Collections.sort(enabledStatsList, comparator);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
