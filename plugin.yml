@@ -4,7 +4,7 @@ version: 1.0
 author: Jonodonozym
 description: Tracks player stats and achievements, storing them on an SQL database
 depend: [JBU]
-softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI]
+softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI,LeaderHeads]
 
 commands:
   gca:

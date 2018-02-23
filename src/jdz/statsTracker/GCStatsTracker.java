@@ -17,7 +17,7 @@ import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
-import jdz.statsTracker.placeholderHook.PlaceholderHook;
+import jdz.statsTracker.hooks.PlaceholderHook;
 import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
 
@@ -47,7 +47,6 @@ public class GCStatsTracker extends JavaPlugin {
 		if (pm.isPluginEnabled("PlaceholderAPI")) {
 			new PlaceholderHook().hook();
 		}
-
 
 		pm.registerEvents(StatsManager.getInstance(), this);
 		pm.registerEvents(StatsDatabase.getInstance(), this);

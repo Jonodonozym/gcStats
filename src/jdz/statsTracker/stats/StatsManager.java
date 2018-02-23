@@ -24,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.hooks.LeaderHeadsHook;
 import jdz.statsTracker.stats.defaults.DefaultStats;
 import lombok.Getter;
 
@@ -67,6 +68,9 @@ public class StatsManager implements Listener {
 				for (Player player : Bukkit.getOnlinePlayers())
 					statType.addPlayer(player, StatsDatabase.getInstance().getStat(player, statType));
 			});
+
+			if (Bukkit.getPluginManager().isPluginEnabled("LeaderHeads"))
+				LeaderHeadsHook.getInstance().addType(statType);
 		}
 
 		es.shutdown();

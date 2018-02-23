@@ -18,6 +18,9 @@ public interface StatType {
 	public default String getNameUnderscores() {
 		return getName().replaceAll(" ", "_");
 	}
+	public default String getNameNoSpaces() {
+		return getName().replaceAll(" ", "");
+	}
 
 	public default Integer getID() {
 		return this.getClass().hashCode();

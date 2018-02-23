@@ -1,5 +1,5 @@
 
-package jdz.statsTracker.placeholderHook;
+package jdz.statsTracker.hooks;
 
 import org.bukkit.entity.Player;
 
