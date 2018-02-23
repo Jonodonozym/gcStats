@@ -6,9 +6,12 @@ import org.bukkit.entity.Player;
 
 import jdz.statsTracker.stats.HookedStatType;
 
-public class StatTypeJumps extends HookedStatType{
+public class StatTypeJumps extends HookedStatType {
 	private static final StatTypeJumps instance = new StatTypeJumps();
-	public static StatTypeJumps getInstance() { return instance; }
+
+	public static StatTypeJumps getInstance() {
+		return instance;
+	}
 
 	@Override
 	public double get(Player player) {
@@ -22,7 +25,7 @@ public class StatTypeJumps extends HookedStatType{
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
 }

@@ -28,7 +28,7 @@ class CommandStatDefault extends SubCommand {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {		
+	public void execute(CommandSender sender, Set<String> flags, String... args) {
 		if (args.length == 0) {
 			if (sender instanceof Player)
 				showStats(sender, (Player) sender);
@@ -36,7 +36,7 @@ class CommandStatDefault extends SubCommand {
 				sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
 			return;
 		}
-		
+
 		// for player OR server
 		if (args.length == 1) {
 			if (GCStatsTrackerConfig.servers.contains(args[0].replaceAll("_", " "))) {
@@ -44,7 +44,8 @@ class CommandStatDefault extends SubCommand {
 					showStats(sender, args[0].replaceAll("_", " "), (OfflinePlayer) sender);
 				else
 					sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
-			} else {
+			}
+			else {
 				OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
 				if (target.hasPlayedBefore() || target.isOnline())
 					showStats(sender, GCStatsTrackerConfig.serverName, target);
@@ -61,16 +62,18 @@ class CommandStatDefault extends SubCommand {
 				showStats(sender, args[1].replaceAll("_", " "), target);
 			else
 				sender.sendMessage(ChatColor.RED + args[0] + " has never played on that server before!");
-		} else
+		}
+		else
 			sender.sendMessage(ChatColor.RED + args[1] + " is not a valid server!");
 
 	}
 
-	private void showStats(CommandSender sender, OfflinePlayer target) {		
+	private void showStats(CommandSender sender, OfflinePlayer target) {
 		List<String> types = new ArrayList<String>(StatsManager.getInstance().enabledStatsSorted().size());
 		List<Double> stats = new ArrayList<Double>(StatsManager.getInstance().enabledStatsSorted().size());
 		for (StatType type : StatsManager.getInstance().enabledStatsSorted()) {
-			if (!type.isVisible()) continue;
+			if (!type.isVisible())
+				continue;
 			types.add(type.getName());
 			stats.add(type.get(target));
 		}
@@ -104,7 +107,8 @@ class CommandStatDefault extends SubCommand {
 				StatType type = StatsManager.getInstance().getType(typeStr.replaceAll("_", " "));
 				messages[i] = ChatColor.DARK_GREEN + type.getName() + ": " + ChatColor.GREEN + ": "
 						+ type.valueToString(stats.get(i - 1));
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				messages[i] = ChatColor.DARK_GREEN + typeStr + ": " + ChatColor.GREEN + ": " + stats.get(i - 1);
 			}
 			i++;

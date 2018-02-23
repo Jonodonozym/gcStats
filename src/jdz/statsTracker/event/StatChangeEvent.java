@@ -14,7 +14,7 @@ public class StatChangeEvent extends Event {
 	@Getter private final Player player;
 	@Getter private final StatType type;
 	@Getter private final double oldValue, newValue;
-	
+
 	public static HandlerList getHandlerList() {
 		return getHandlers(StatChangeEvent.class);
 	}

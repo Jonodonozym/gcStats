@@ -7,7 +7,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeBlocksMined extends BufferedStatType{
+public class StatTypeBlocksMined extends BufferedStatType {
 	@Getter private static final StatTypeBlocksMined instance = new StatTypeBlocksMined();
 
 	@Override
@@ -17,11 +17,11 @@ class StatTypeBlocksMined extends BufferedStatType{
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
 	@EventHandler
-	public void onBreak(BlockBreakEvent e){
-		set(e.getPlayer(), get(e.getPlayer())+1);
+	public void onBreak(BlockBreakEvent e) {
+		set(e.getPlayer(), get(e.getPlayer()) + 1);
 	}
 }

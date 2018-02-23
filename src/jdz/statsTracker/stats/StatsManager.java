@@ -28,8 +28,7 @@ import jdz.statsTracker.stats.defaults.DefaultStats;
 import lombok.Getter;
 
 public class StatsManager implements Listener {
-	@Getter
-	private static final StatsManager instance = new StatsManager();
+	@Getter private static final StatsManager instance = new StatsManager();
 
 	private final Set<StatType> enabledStats = new HashSet<StatType>();
 	private final List<StatType> enabledStatsList = new ArrayList<StatType>();
@@ -73,7 +72,8 @@ public class StatsManager implements Listener {
 		es.shutdown();
 		try {
 			es.awaitTermination(1, TimeUnit.MINUTES);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) {
 			new FileLogger(plugin).createErrorLog(e);
 		}
 
@@ -122,7 +122,7 @@ public class StatsManager implements Listener {
 
 		addTypes(GCStatsTracker.instance, enabledStats.toArray(new StatType[1]));
 	}
-	
+
 	public void sort(Comparator<StatType> comparator) {
 		Collections.sort(enabledStatsList, comparator);
 	}

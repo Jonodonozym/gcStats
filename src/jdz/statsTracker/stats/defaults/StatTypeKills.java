@@ -8,7 +8,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeKills extends BufferedStatType {
+public class StatTypeKills extends BufferedStatType {
 	@Getter private static final StatTypeKills instance = new StatTypeKills();
 
 	@Override
@@ -18,16 +18,16 @@ class StatTypeKills extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
 	@EventHandler
-	public void onPlayerDeath(PlayerDeathEvent e){
+	public void onPlayerDeath(PlayerDeathEvent e) {
 		Player killer = e.getEntity().getKiller();
-		
+
 		if (killer == null)
 			return;
-		
-		set(killer, get(killer)+1);
+
+		set(killer, get(killer) + 1);
 	}
 }

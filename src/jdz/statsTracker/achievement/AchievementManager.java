@@ -164,7 +164,7 @@ public class AchievementManager implements Listener {
 				List<Double> required = achConfig.getDoubleList("achievements." + achievement + ".required");
 				List<Integer> points = achConfig.getIntegerList("achievements." + achievement + ".points");
 				List<String> rewardText = achConfig.getStringList("achievements." + achievement + ".rewardText");
-				
+
 				if (required == null || required.isEmpty()) {
 					required = new ArrayList<Double>();
 					required.add(achConfig.getDouble("achievements." + achievement + ".required"));
@@ -192,8 +192,8 @@ public class AchievementManager implements Listener {
 
 					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i + 1));
 					Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
-							description.replaceAll("%required%", type.valueToString(required.get(i)) + ""), points.get(i),
-							rewardText.get(i), hidden);
+							description.replaceAll("%required%", type.valueToString(required.get(i)) + ""),
+							points.get(i), rewardText.get(i), hidden);
 
 					if (commands != null)
 						ach.setRewardCommands(commands);

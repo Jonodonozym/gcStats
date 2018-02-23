@@ -34,7 +34,8 @@ public class AchievementCommandExecutor extends CommandExecutor {
 
 	@Override
 	public final void execute(SubCommand command, CommandSender sender, Set<String> flags, String... args) {
-		if (!(command instanceof HelpCommand || command instanceof AboutPluginCommand) && !AchievementDatabase.getInstance().isConnected())
+		if (!(command instanceof HelpCommand || command instanceof AboutPluginCommand)
+				&& !AchievementDatabase.getInstance().isConnected())
 			sender.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
 		else
 			super.execute(command, sender, flags, args);

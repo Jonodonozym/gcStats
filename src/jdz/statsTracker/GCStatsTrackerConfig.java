@@ -32,7 +32,7 @@ public class GCStatsTrackerConfig {
 	public static boolean achievementPointsGlobal = false;
 
 	private static TimedTask broadcastTask = null;
-	
+
 	public static List<String> servers = new ArrayList<String>();
 
 	public static void reloadConfig() {
@@ -44,14 +44,14 @@ public class GCStatsTrackerConfig {
 		broadcastMinTime = config.getInt("broadcastInfo.intervalMinutesMin");
 		broadcastMaxTime = config.getInt("broadcastInfo.intervalMinutesMax");
 		broadcastMessage = config.getStringList("broadcastInfo.message").toArray(broadcastMessage);
-		for (int i=0; i<broadcastMessage.length; i++)
+		for (int i = 0; i < broadcastMessage.length; i++)
 			broadcastMessage[i] = broadcastMessage[i].replaceAll("&([0-9a-f])", "\u00A7$1");
-		
-		if (broadcastEnabled){
+
+		if (broadcastEnabled) {
 			if (broadcastTask != null)
 				broadcastTask.stop();
-			broadcastTask = new TimedTask(GCStatsTracker.instance, broadcastMaxTime*1200, ()->{
-				for(Player p: GCStatsTracker.instance.getServer().getOnlinePlayers())
+			broadcastTask = new TimedTask(GCStatsTracker.instance, broadcastMaxTime * 1200, () -> {
+				for (Player p : GCStatsTracker.instance.getServer().getOnlinePlayers())
 					p.sendMessage(broadcastMessage);
 			});
 			broadcastTask.start();
@@ -65,9 +65,9 @@ public class GCStatsTrackerConfig {
 		Material m = Material.GRASS;
 		try {
 			m = Material.valueOf(config.getString("server.icon"));
-		} catch (Exception e) {
 		}
-		serverIconData = (short)config.getInt("server.iconDamage");
+		catch (Exception e) {}
+		serverIconData = (short) config.getInt("server.iconDamage");
 		serverIcon = m;
 	}
 }

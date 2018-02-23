@@ -34,8 +34,7 @@ class CommandAchievementDefault extends SubCommand {
 			AchievementInventories.openServerSelect(player, player);
 
 		else {
-			@SuppressWarnings("deprecation")
-			OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
+			@SuppressWarnings("deprecation") OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
 			if (otherPlayer.hasPlayedBefore())
 				AchievementInventories.openServerSelect(player, otherPlayer);
 			else

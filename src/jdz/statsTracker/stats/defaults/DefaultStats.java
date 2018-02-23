@@ -11,11 +11,9 @@ import jdz.statsTracker.stats.StatType;
 import lombok.Getter;
 
 public class DefaultStats {
-	@Getter
-	private static final DefaultStats instance = new DefaultStats();
+	@Getter private static final DefaultStats instance = new DefaultStats();
 
-	@Getter
-	private final Set<StatType> all = new HashSet<StatType>(Arrays.asList(StatTypeBlocksMined.getInstance(),
+	@Getter private final Set<StatType> all = new HashSet<StatType>(Arrays.asList(StatTypeBlocksMined.getInstance(),
 			StatTypeBlocksPlaced.getInstance(), StatTypeDeaths.getInstance(), StatTypeDistanceWalked.getInstance(),
 			StatTypeExpGained.getInstance(), StatTypeKDR.getInstance(), StatTypeKills.getInstance(),
 			StatTypeMobKills.getInstance(), StatTypePlayTime.getInstance()));
@@ -24,14 +22,14 @@ public class DefaultStats {
 		try {
 			if (Bukkit.getPluginManager().getPlugin("KOTH") != null)
 				all.add(StatTypeKothWins.getInstance());
-		} catch (Exception e) {
 		}
+		catch (Exception e) {}
 
 		try {
 			if (Bukkit.getPluginManager().getPlugin("BountyHunter") != null)
 				all.add(StatTypeHeadDrop.getInstance());
-		} catch (Exception e) {
 		}
+		catch (Exception e) {}
 
 		try {
 			if (Bukkit.getPluginManager().getPlugin("EventOrganizer") != null) {
@@ -39,7 +37,7 @@ public class DefaultStats {
 				all.add(StatTypeKeyDrops.getInstance());
 				all.add(StatTypeSupplyDrops.getInstance());
 			}
-		} catch (Exception e) {
 		}
+		catch (Exception e) {}
 	}
 }

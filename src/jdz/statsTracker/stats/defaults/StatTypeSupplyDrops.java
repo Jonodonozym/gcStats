@@ -8,7 +8,7 @@ import org.guildcraft.EventOrganizer.events.EventDropPickupEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeSupplyDrops extends BufferedStatType{
+public class StatTypeSupplyDrops extends BufferedStatType {
 	@Getter private static final StatTypeSupplyDrops instance = new StatTypeSupplyDrops();
 
 	@Override
@@ -18,16 +18,16 @@ class StatTypeSupplyDrops extends BufferedStatType{
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
-	
+
 	@EventHandler
-	public void onEventDropPickup(EventDropPickupEvent e){
+	public void onEventDropPickup(EventDropPickupEvent e) {
 		Player p = e.getPlayer();
-		
+
 		if (!e.getType().equals("supplydrop") && !e.getType().equals("supplydrops"))
 			return;
-		
-		set(p, get(p)+1);
+
+		set(p, get(p) + 1);
 	}
 }

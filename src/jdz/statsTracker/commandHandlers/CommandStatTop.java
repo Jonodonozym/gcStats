@@ -33,11 +33,9 @@ import net.md_5.bungee.api.ChatColor;
 @CommandShortDescription("Displays the top scores for a specific stat")
 @CommandUsage("top <statNoSpaces> [pageNumber]")
 class CommandStatTop extends SubCommand {
-	@Getter
-	private static final CommandStatTop instance = new CommandStatTop();
+	@Getter private static final CommandStatTop instance = new CommandStatTop();
 
-	private CommandStatTop() {
-	}
+	private CommandStatTop() {}
 
 	private final Map<StatType, Long> lastUpdates = new HashMap<StatType, Long>();
 
@@ -61,8 +59,8 @@ class CommandStatTop extends SubCommand {
 		if (args.length == 2)
 			try {
 				pageNumber = Integer.parseInt(args[1]) - 1;
-			} catch (NumberFormatException e) {
 			}
+			catch (NumberFormatException e) {}
 
 		// update
 		if (!lastUpdates.containsKey(type) || lastUpdates.get(type) > System.currentTimeMillis() + timeBetweenUpdates) {
@@ -75,7 +73,8 @@ class CommandStatTop extends SubCommand {
 				updateStat(type);
 				showStat(sender, type, pageNumberFinal);
 			});
-		} else
+		}
+		else
 			showStat(sender, type, pageNumber);
 	}
 
@@ -91,7 +90,8 @@ class CommandStatTop extends SubCommand {
 		es.shutdown();
 		try {
 			es.awaitTermination(15, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
@@ -138,8 +138,8 @@ class CommandStatTop extends SubCommand {
 			String playerName = player.getName();
 			if (player.isOnline())
 				playerName = player.getPlayer().getDisplayName();
-			messages[i - min + 1] = ChatColor.GOLD + "" + (i+1) + ") " + ChatColor.GREEN + playerName + ChatColor.WHITE
-					+ ", " + type.valueToString(playerToStat.get(type).get(player));
+			messages[i - min + 1] = ChatColor.GOLD + "" + (i + 1) + ") " + ChatColor.GREEN + playerName
+					+ ChatColor.WHITE + ", " + type.valueToString(playerToStat.get(type).get(player));
 		}
 
 		sender.sendMessage(messages);

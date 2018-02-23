@@ -47,7 +47,8 @@ public class AchievementShop implements Listener {
 				try {
 					ShopItem item = ShopItem.fromConfig(shopConfig, "shop." + s);
 					items.put(item.slot, item);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					GCStatsTracker.instance.getLogger().info(s + " in achievements shop has invalid configuration, ("
 							+ e.getMessage() + ") skipping...");
 					e.printStackTrace();
@@ -91,14 +92,16 @@ public class AchievementShop implements Listener {
 						if (currentPoints >= item.cost) {
 							giveItems(item.items, p);
 							for (String s : item.commands)
-								GCStatsTracker.instance.getServer().dispatchCommand(GCStatsTracker.instance.getServer().getConsoleSender(),
+								GCStatsTracker.instance.getServer().dispatchCommand(
+										GCStatsTracker.instance.getServer().getConsoleSender(),
 										s.replaceAll("\\{player\\}", p.getName()));
 							if (item.messages.length > 0)
 								p.sendMessage(item.messages);
 							p.closeInventory();
 							AchievementManager.getInstance().addAchievementPoints(p, -item.cost);
 							GCStatsTracker.instance.getServer().dispatchCommand(p, "gca bal");
-						} else {
+						}
+						else {
 							p.closeInventory();
 							p.sendMessage(ChatColor.RED + "You need " + (item.cost - currentPoints)
 									+ " more points for that");
@@ -157,9 +160,11 @@ public class AchievementShop implements Listener {
 					Integer id = Integer.parseInt(args[0].trim());
 					Integer level = Integer.parseInt(args[1].trim());
 					this.displayItem.addUnsafeEnchantment(Enchantment.getById(id), level);
-				} catch (Exception e) {
-					GCStatsTracker.instance.getLogger().info("Invalid enchantment '" + s + "' on achievement shop item '"
-							+ displayItem.getItemMeta().getDisplayName() + "', skipping enchant...");
+				}
+				catch (Exception e) {
+					GCStatsTracker.instance.getLogger()
+							.info("Invalid enchantment '" + s + "' on achievement shop item '"
+									+ displayItem.getItemMeta().getDisplayName() + "', skipping enchant...");
 				}
 			}
 

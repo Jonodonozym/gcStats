@@ -29,10 +29,11 @@ public class StatsCommandExecutor extends CommandExecutor {
 	protected List<SubCommand> getSubCommands() {
 		return subCommands;
 	}
-	
+
 	@Override
 	public final void execute(SubCommand command, CommandSender sender, Set<String> flags, String... args) {
-		if (!(command instanceof HelpCommand || command instanceof AboutPluginCommand) && !StatsDatabase.getInstance().isConnected())
+		if (!(command instanceof HelpCommand || command instanceof AboutPluginCommand)
+				&& !StatsDatabase.getInstance().isConnected())
 			sender.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
 		else
 			super.execute(command, sender, flags, args);

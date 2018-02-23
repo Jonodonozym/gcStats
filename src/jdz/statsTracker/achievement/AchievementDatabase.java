@@ -34,9 +34,7 @@ public class AchievementDatabase extends Database implements Listener {
 
 	private final String achievementPointsTable = "gcs_Achievement_Points";
 	private final SqlColumn[] achievementPointsTablColumns = new SqlColumn[] {
-			new SqlColumn("UUID", SqlColumnType.STRING_64, true),
-			new SqlColumn("Global", SqlColumnType.INT)
-	};
+			new SqlColumn("UUID", SqlColumnType.STRING_64, true), new SqlColumn("Global", SqlColumnType.INT) };
 	private final String achievementMetaTable = "gcs_Achievement_MetaData";
 	private final SqlColumn[] achievementMetaColumns = new SqlColumn[] { new SqlColumn("server", STRING_64, true),
 			new SqlColumn("name", STRING_128, true), new SqlColumn("statType", STRING_64),
@@ -176,7 +174,7 @@ public class AchievementDatabase extends Database implements Listener {
 				achievements.add(
 						new RemoteAchievement(server, name, points, m, iconDamage, description, rewardText, hidden));
 			else
-				achievements.add(new RemoteStatAchievement(server, name, points, m, iconDamage, description, rewardText, 
+				achievements.add(new RemoteStatAchievement(server, name, points, m, iconDamage, description, rewardText,
 						hidden, statType, required));
 		}
 		return achievements;

@@ -226,7 +226,8 @@ public class AchievementInventories implements Listener {
 							+ achievement.getRewardText());
 				lore.add("");
 				if (achievement instanceof RemoteStatAchievement) {
-					StatType type = StatsManager.getInstance().getType(((RemoteStatAchievement) achievement).getStatTypeName());
+					StatType type = StatsManager.getInstance()
+							.getType(((RemoteStatAchievement) achievement).getStatTypeName());
 					double progress;
 					if (achievement.getServer().replaceAll("_", " ").equalsIgnoreCase(GCStatsTrackerConfig.serverName)
 							&& offlinePlayer.isOnline())

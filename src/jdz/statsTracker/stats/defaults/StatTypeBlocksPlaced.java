@@ -7,7 +7,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeBlocksPlaced extends BufferedStatType {
+public class StatTypeBlocksPlaced extends BufferedStatType {
 	@Getter private static final StatTypeBlocksPlaced instance = new StatTypeBlocksPlaced();
 
 	@Override
@@ -17,11 +17,11 @@ class StatTypeBlocksPlaced extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
 	@EventHandler
-	public void onPlace(BlockPlaceEvent e){
-		set(e.getPlayer(), get(e.getPlayer())+1);
+	public void onPlace(BlockPlaceEvent e) {
+		set(e.getPlayer(), get(e.getPlayer()) + 1);
 	}
 }

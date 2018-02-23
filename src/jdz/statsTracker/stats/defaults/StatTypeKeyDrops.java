@@ -8,9 +8,9 @@ import org.guildcraft.EventOrganizer.events.EventDropPickupEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeKeyDrops extends BufferedStatType {
+public class StatTypeKeyDrops extends BufferedStatType {
 	@Getter private static final StatTypeKeyDrops instance = new StatTypeKeyDrops();
-	
+
 	@Override
 	public String getName() {
 		return "Key drops won";
@@ -18,15 +18,15 @@ class StatTypeKeyDrops extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
 	@EventHandler
-	public void onEventDropPickup(EventDropPickupEvent e){
+	public void onEventDropPickup(EventDropPickupEvent e) {
 		Player p = e.getPlayer();
 		if (!e.getType().equals("keydrop"))
-				return;
+			return;
 
-		set(p, get(p)+1);
+		set(p, get(p) + 1);
 	}
 }

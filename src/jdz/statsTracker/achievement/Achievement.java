@@ -45,7 +45,7 @@ public abstract class Achievement {
 	public Achievement(String name, Material m, short iconDamage, String description) {
 		this(name, m, iconDamage, description, 0, null, false);
 	}
-	
+
 	public Achievement(String name, Material m, short iconDamage, String description, int points, String rewardText,
 			boolean hidden) {
 		this.name = name;
@@ -92,12 +92,12 @@ public abstract class Achievement {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player\\}", p.getName()));
 	}
 
-	
+
 	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
 		return AchievementManager.getInstance().isAchieved(player, achievement);
 	}
-	
-	public List<Achievement> getPreRequisites(){
+
+	public List<Achievement> getPreRequisites() {
 		return new ArrayList<Achievement>();
 	}
 }

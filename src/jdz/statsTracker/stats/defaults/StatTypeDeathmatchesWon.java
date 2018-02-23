@@ -8,7 +8,7 @@ import org.guildcraft.EventOrganizer.events.deathmatch.DeathmatchWonEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeDeathmatchesWon extends BufferedStatType {
+public class StatTypeDeathmatchesWon extends BufferedStatType {
 	@Getter private static final StatTypeDeathmatchesWon instance = new StatTypeDeathmatchesWon();
 
 	@Override
@@ -23,6 +23,6 @@ class StatTypeDeathmatchesWon extends BufferedStatType {
 
 	@EventHandler
 	public void onMatchEnd(DeathmatchWonEvent e) {
-		set(e.players[0], get(e.players[0])+1);
+		set(e.players[0], get(e.players[0]) + 1);
 	}
 }

@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AchievementUnlockEvent extends Event{
+public class AchievementUnlockEvent extends Event {
 	private final Achievement achievement;
 	private final Player player;
 }

@@ -9,7 +9,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeMobKills extends BufferedStatType {
+public class StatTypeMobKills extends BufferedStatType {
 	@Getter private static final StatTypeMobKills instance = new StatTypeMobKills();
 
 	@Override
@@ -27,7 +27,7 @@ class StatTypeMobKills extends BufferedStatType {
 		Player player = event.getEntity().getKiller();
 		if (player == null)
 			return;
-		
-		set(player, get(player)+1);
+
+		set(player, get(player) + 1);
 	}
 }

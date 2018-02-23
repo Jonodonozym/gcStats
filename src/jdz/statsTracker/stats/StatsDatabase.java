@@ -25,8 +25,7 @@ import lombok.Getter;
  * @author Jonodonozym
  */
 public class StatsDatabase extends Database implements Listener {
-	@Getter
-	private static final StatsDatabase instance = new StatsDatabase(GCStatsTracker.instance);
+	@Getter private static final StatsDatabase instance = new StatsDatabase(GCStatsTracker.instance);
 
 	private StatsDatabase(JavaPlugin plugin) {
 		super(plugin);
@@ -61,8 +60,10 @@ public class StatsDatabase extends Database implements Listener {
 
 	private void ensureCorrectStatMetaTable() {
 		String newTable = "CREATE TABLE IF NOT EXISTS " + statsMetaTable + " (server varchar(127));";
-		String deleteOldRow = "DELETE FROM "+statsMetaTable + " WHERE server = '"+GCStatsTrackerConfig.serverName.replaceAll(" ", "_")+"';";
-		String newRow = "INSERT INTO " + statsMetaTable + " (server) " + " VALUES('"+GCStatsTrackerConfig.serverName.replaceAll(" ", "_")+"');";
+		String deleteOldRow = "DELETE FROM " + statsMetaTable + " WHERE server = '"
+				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "';";
+		String newRow = "INSERT INTO " + statsMetaTable + " (server) " + " VALUES('"
+				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "');";
 		api.executeUpdate(newTable);
 		api.executeUpdate(deleteOldRow);
 		api.executeUpdate(newRow);
@@ -77,15 +78,18 @@ public class StatsDatabase extends Database implements Listener {
 		// Stat Meta-data
 		String setValue = "UPDATE " + statsMetaTable + " SET {column} = {value} WHERE server = '"
 				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "';";
-		
-		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores()+"_enabled", SqlColumnType.BOOLEAN));
-		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores()+"_visible", SqlColumnType.BOOLEAN));
-		
-		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores()+"_enabled").replaceAll("\\{value\\}", isEnabled+""));
-		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores()+"_visible").replaceAll("\\{value\\}", type.isVisible()+""));
+
+		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores() + "_enabled", SqlColumnType.BOOLEAN));
+		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores() + "_visible", SqlColumnType.BOOLEAN));
+
+		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores() + "_enabled")
+				.replaceAll("\\{value\\}", isEnabled + ""));
+		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores() + "_visible")
+				.replaceAll("\\{value\\}", type.isVisible() + ""));
 
 		// stat table
-		api.addColumn(getStatTableName(), new SqlColumn(type.getNameUnderscores(), SqlColumnType.DOUBLE, type.getDefault()+""));
+		api.addColumn(getStatTableName(),
+				new SqlColumn(type.getNameUnderscores(), SqlColumnType.DOUBLE, type.getDefault() + ""));
 	}
 
 	private String getStatTableName() {
@@ -110,8 +114,8 @@ public class StatsDatabase extends Database implements Listener {
 				if (Integer.parseInt(row[i++]) == 1)
 					if (s.endsWith("_enabled"))
 						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_enabled", "").replaceAll("_", " ")));
-			} catch (NumberFormatException e) {
 			}
+			catch (NumberFormatException e) {}
 		}
 
 		Collections.sort(enabledStats);
@@ -132,8 +136,8 @@ public class StatsDatabase extends Database implements Listener {
 				if (Integer.parseInt(row[i++]) == 1)
 					if (s.endsWith("_visible"))
 						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_visible", "").replaceAll("_", " ")));
-			} catch (NumberFormatException e) {
 			}
+			catch (NumberFormatException e) {}
 		}
 
 		Collections.sort(enabledStats);
@@ -145,10 +149,10 @@ public class StatsDatabase extends Database implements Listener {
 				+ " WHERE UUID = '" + player.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
-	
+
 	public void addStat(OfflinePlayer player, StatType statType, double change) {
-		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " +statType.getNameUnderscores() + " + "+ change
-				+ " WHERE UUID = '" + player.getName() + "';";
+		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = "
+				+ statType.getNameUnderscores() + " + " + change + " WHERE UUID = '" + player.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
 
@@ -180,20 +184,20 @@ public class StatsDatabase extends Database implements Listener {
 
 		if (values.isEmpty())
 			return 0;
-		
+
 		return Double.parseDouble(values.get(0)[0]);
 	}
-	
+
 	public int getNumRows() {
 		if (!api.isConnected())
 			return 0;
-		
-		String query = "Select COUNT(*) FROM "+getStatTableName()+";";
+
+		String query = "Select COUNT(*) FROM " + getStatTableName() + ";";
 		return Integer.parseInt(api.getRows(query).get(0)[0]);
 	}
 
 	public List<String[]> getAllSorted(StatType type) {
-		String query = "Select UUID, "+type.getNameUnderscores() +" FROM " + getStatTableName() + " ORDER BY "
+		String query = "Select UUID, " + type.getNameUnderscores() + " FROM " + getStatTableName() + " ORDER BY "
 				+ type.getNameUnderscores() + " DESC;";
 		return api.getRows(query);
 	}

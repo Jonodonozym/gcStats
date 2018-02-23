@@ -9,7 +9,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
-class StatTypeKDR extends BufferedStatType {
+public class StatTypeKDR extends BufferedStatType {
 	@Getter private static final StatTypeKDR instance = new StatTypeKDR();
 
 	@Override
@@ -19,17 +19,17 @@ class StatTypeKDR extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return value+"";
+		return value + "";
 	}
 
 	@EventHandler(priority = EventPriority.HIGH)
-	public void onPlayerDeath(PlayerDeathEvent e){
+	public void onPlayerDeath(PlayerDeathEvent e) {
 		Player killed = e.getEntity();
-	
+
 		double kills = StatTypeKills.getInstance().get(killed);
 		double deaths = StatTypeDeaths.getInstance().get(killed);
 		if (deaths > 0)
-			set(killed, Math.round(kills/deaths*100)/100.0);
+			set(killed, Math.round(kills / deaths * 100) / 100.0);
 
 		Player killer = e.getEntity().getKiller();
 		if (killer == null)
@@ -38,7 +38,7 @@ class StatTypeKDR extends BufferedStatType {
 		kills = StatTypeKills.getInstance().get(killed);
 		deaths = StatTypeDeaths.getInstance().get(killed);
 		if (deaths > 0)
-			set(killed, Math.round(kills/deaths*100)/100.0);
+			set(killed, Math.round(kills / deaths * 100) / 100.0);
 		else
 			set(killer, kills);
 	}

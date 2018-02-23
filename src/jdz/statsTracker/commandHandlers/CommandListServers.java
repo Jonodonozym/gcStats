@@ -13,7 +13,7 @@ import jdz.statsTracker.GCStatsTrackerConfig;
 
 @CommandShortDescription("lists avaliable servers")
 @CommandLabel("servers")
-class CommandListServers extends SubCommand{
+class CommandListServers extends SubCommand {
 
 	@Override
 	public void execute(CommandSender sender, Set<String> flags, String... args) {

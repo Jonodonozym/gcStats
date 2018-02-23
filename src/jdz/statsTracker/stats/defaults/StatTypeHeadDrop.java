@@ -8,7 +8,7 @@ import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 import me.Indyuce.bh.ressource.HeadDropEvent;
 
-class StatTypeHeadDrop extends BufferedStatType{
+public class StatTypeHeadDrop extends BufferedStatType {
 	@Getter private static final StatTypeHeadDrop instance = new StatTypeHeadDrop();
 
 	@Override
@@ -18,11 +18,11 @@ class StatTypeHeadDrop extends BufferedStatType{
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHeadDrop(HeadDropEvent e) {
-		set(e.getReciever(), get(e.getReciever())+1);
+		set(e.getReciever(), get(e.getReciever()) + 1);
 	}
 }

@@ -11,7 +11,7 @@ import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 import subside.plugins.koth.events.KothEndEvent;
 
-class StatTypeKothWins extends BufferedStatType {
+public class StatTypeKothWins extends BufferedStatType {
 	@Getter private static final StatTypeKothWins instance = new StatTypeKothWins();
 
 	@Override
@@ -21,13 +21,13 @@ class StatTypeKothWins extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return ((int)value)+"";
+		return ((int) value) + "";
 	}
 
-	@EventHandler(priority=EventPriority.LOWEST)
-	public void onKothEvent(KothEndEvent e){
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onKothEvent(KothEndEvent e) {
 		Collection<Player> players = e.getWinner().getAvailablePlayers(e.getKoth());
-		for (Player p: players)
-			set(p, get(p)+1);
+		for (Player p : players)
+			set(p, get(p) + 1);
 	}
 }
