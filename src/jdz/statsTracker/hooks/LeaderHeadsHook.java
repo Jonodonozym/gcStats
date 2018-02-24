@@ -19,7 +19,7 @@ public class LeaderHeadsHook {
 
 	public void addType(StatType type) {
 		if (type instanceof StatTypePlayTime)
-			new OnlineDataCollector(type.getNameUnderscores(), "gcStats", BoardType.TIME, "",
+			new OnlineDataCollector("GCS_"+type.getNameUnderscores(), "gcStats", BoardType.TIME, "",
 					"gcs rank " + type.getNameNoSpaces(),
 					Arrays.asList(RED + "" + STRIKETHROUGH + "--------------",
 							GREEN + "" + BOLD + "{name}", YELLOW + "{amount}",
@@ -30,7 +30,7 @@ public class LeaderHeadsHook {
 				}
 			};
 		else
-			new OnlineDataCollector(type.getNameUnderscores(), "gcStats", BoardType.DEFAULT, "",
+			new OnlineDataCollector("GCS_"+type.getNameUnderscores(), "gcStats", BoardType.DEFAULT, "",
 					"gcs rank " + type.getNameNoSpaces(),
 					Arrays.asList(RED + "" + STRIKETHROUGH + "--------------",
 							GREEN + "" + BOLD + "{name}", YELLOW + "{amount}",

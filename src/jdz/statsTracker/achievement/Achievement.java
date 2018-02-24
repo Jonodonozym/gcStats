@@ -55,7 +55,7 @@ public abstract class Achievement {
 		this.points = points;
 		this.rewardText = (rewardText == null || rewardText.equals("")
 				? (points > 0 ? points + " Achievement point" + (points > 1 ? "s" : "") : "")
-				: rewardText).replaceAll("%points%", this.points + "");
+				: rewardText).replaceAll("%points%", this.points + "").replaceAll("\\{points\\}", this.points + "");
 		this.hidden = hidden;
 	}
 

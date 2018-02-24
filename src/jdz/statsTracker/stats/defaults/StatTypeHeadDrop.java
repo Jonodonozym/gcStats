@@ -6,7 +6,7 @@ import org.bukkit.event.EventPriority;
 
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
-import me.Indyuce.bh.ressource.HeadDropEvent;
+import me.Indyuce.bh.api.HeadDropEvent;
 
 public class StatTypeHeadDrop extends BufferedStatType {
 	@Getter private static final StatTypeHeadDrop instance = new StatTypeHeadDrop();

@@ -26,7 +26,7 @@ public class DefaultStats {
 		catch (Exception e) {}
 
 		try {
-			if (Bukkit.getPluginManager().getPlugin("BountyHunter") != null)
+			if (Bukkit.getPluginManager().getPlugin("BountyHunters") != null)
 				all.add(StatTypeHeadDrop.getInstance());
 		}
 		catch (Exception e) {}
