@@ -4,9 +4,10 @@ package jdz.statsTracker.stats;
 import org.bukkit.event.EventHandler;
 
 import jdz.statsTracker.event.StatChangeEvent;
+import lombok.NonNull;
 
 public abstract class MaxStatType extends BufferedStatType {
-	private final StatType child;
+	@NonNull private final StatType child;
 
 	protected MaxStatType(StatType child) {
 		this.child = child;
