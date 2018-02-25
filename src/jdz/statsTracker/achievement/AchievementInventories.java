@@ -44,7 +44,7 @@ public class AchievementInventories implements Listener {
 		targets.clear();
 
 		List<String> servers = AchievementDatabase.getInstance().getServers();
-		
+
 		if (servers.size() > 0) {
 			ExecutorService es = Executors.newFixedThreadPool(servers.size());
 			for (String server : servers) {
@@ -57,7 +57,7 @@ public class AchievementInventories implements Listener {
 					allAchievements.put(server, removeAchievements);
 				});
 			}
-	
+
 			es.shutdown();
 			try {
 				es.awaitTermination(1, TimeUnit.MINUTES);

@@ -112,7 +112,7 @@ public class AchievementDatabase extends Database implements Listener {
 	void addAchievements(Achievement[] achievements) {
 		if (achievements.length == 0)
 			return;
-		
+
 		ExecutorService es = Executors.newFixedThreadPool(achievements.length);
 		for (Achievement a : achievements) {
 			if (a == null)

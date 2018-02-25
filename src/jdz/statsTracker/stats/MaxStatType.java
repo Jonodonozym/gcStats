@@ -5,9 +5,9 @@ import org.bukkit.event.EventHandler;
 
 import jdz.statsTracker.event.StatChangeEvent;
 
-public abstract class MaxStatType extends BufferedStatType{
+public abstract class MaxStatType extends BufferedStatType {
 	private final StatType child;
-	
+
 	protected MaxStatType(StatType child) {
 		this.child = child;
 	}

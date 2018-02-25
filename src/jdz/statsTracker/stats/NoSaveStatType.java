@@ -4,7 +4,7 @@ package jdz.statsTracker.stats;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-public abstract class NoSaveStatType extends BufferedStatType{
+public abstract class NoSaveStatType extends BufferedStatType {
 
 	@Override
 	public void add(OfflinePlayer player, double amount) {
@@ -27,6 +27,6 @@ public abstract class NoSaveStatType extends BufferedStatType{
 
 	@Override
 	public void updateDatabase(Player player) {
-		
+
 	}
 }

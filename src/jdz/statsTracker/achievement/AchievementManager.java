@@ -192,7 +192,8 @@ public class AchievementManager implements Listener {
 
 					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i + 1));
 					Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
-							description.replaceAll("%required%", type.valueToString(required.get(i))).replaceAll("\\{required\\}", type.valueToString(required.get(i))),
+							description.replaceAll("%required%", type.valueToString(required.get(i)))
+									.replaceAll("\\{required\\}", type.valueToString(required.get(i))),
 							points.get(i), rewardText.get(i), hidden);
 
 					if (commands != null)
