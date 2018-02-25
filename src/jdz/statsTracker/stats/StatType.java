@@ -23,7 +23,7 @@ public interface StatType {
 	}
 
 	public default Integer getID() {
-		return this.getClass().hashCode();
+		return getName().hashCode();
 	}
 
 	public default boolean isVisible() {
