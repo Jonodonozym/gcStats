@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import jdz.bukkitUtils.fileIO.FileLogger;
+import jdz.bukkitUtils.misc.StringUtils;
 import jdz.bukkitUtils.sql.Database;
 import jdz.bukkitUtils.sql.SqlColumn;
 import jdz.bukkitUtils.sql.SqlColumnType;
@@ -123,8 +124,8 @@ public class AchievementDatabase extends Database implements Listener {
 					+ a.getName().replaceAll(" ", "_") + "','"
 					+ (a instanceof StatAchievement ? ((StatAchievement) a).getStatType().getNameUnderscores() : "null")
 					+ "'," + (a instanceof StatAchievement ? ((StatAchievement) a).getRequired() : "0") + ","
-					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + ",'" + a.getDescription() + "','"
-					+ a.getRewardText() + "'," + a.isHidden() + ");";
+					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + ",'" + StringUtils.arrayToString(a.getDescription(), 0, "\n") + "','"
+					+ StringUtils.arrayToString(a.getRewardText(), 0, "\n") + "'," + a.isHidden() + ");";
 
 			es.execute(() -> {
 				api.executeUpdate(update);
@@ -169,8 +170,8 @@ public class AchievementDatabase extends Database implements Listener {
 			int points = Integer.parseInt(s[4]);
 			Material m = Material.valueOf(s[5]);
 			short iconDamage = Short.parseShort(s[6]);
-			String description = s[7];
-			String rewardText = s[8];
+			String[] description = s[7].split("\n");
+			String[] rewardText = s[8].split("\n");
 			boolean hidden = Integer.parseInt(s[9]) != 0;
 
 			if (statType.equalsIgnoreCase("null") || statType.equals(""))

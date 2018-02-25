@@ -16,8 +16,10 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 
+import jdz.bukkitUtils.misc.StringUtils;
 import jdz.statsTracker.GCStatsTrackerConfig;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 public abstract class Achievement {
@@ -29,18 +31,18 @@ public abstract class Achievement {
 		fwe = FireworkEffect.builder().flicker(true).withColor(c).withFade(c).with(Type.BALL_LARGE).trail(true).build();
 	}
 
-	@Getter private final String name;
-	@Getter private final Material icon;
+	@NonNull @Getter private final String name;
+	@NonNull @Getter private final Material icon;
 	@Getter private final short iconDamage;
-	@Getter private final String description;
+	@NonNull @Getter private final String[] description;
 	@Getter private final int points;
-	@Getter private final String rewardText;
+	@NonNull @Getter private final String[] rewardText;
 	@Getter private final boolean hidden;
 
 	@Getter @Setter private boolean doFirework = true;
 
-	@Getter @Setter private List<String> rewardCommands = new ArrayList<String>();
-	@Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
+	@NonNull @Getter @Setter private List<String> rewardCommands = new ArrayList<String>();
+	@NonNull @Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
 
 	public Achievement(String name, Material m, short iconDamage, String description) {
 		this(name, m, iconDamage, description, 0, null, false);
@@ -48,14 +50,23 @@ public abstract class Achievement {
 
 	public Achievement(String name, Material m, short iconDamage, String description, int points, String rewardText,
 			boolean hidden) {
+		this(name, m, iconDamage, StringUtils.splitIntoLines(description, 40), points,
+				StringUtils.splitIntoLines(rewardText, 40), hidden);
+	}
+
+	public Achievement(String name, Material m, short iconDamage, String[] description, int points, String[] rewardText,
+			boolean hidden) {
 		this.name = name;
 		this.icon = m;
 		this.iconDamage = iconDamage;
 		this.description = description;
 		this.points = points;
-		this.rewardText = (rewardText == null || rewardText.equals("")
-				? (points > 0 ? points + " Achievement point" + (points > 1 ? "s" : "") : "")
-				: rewardText).replaceAll("%points%", this.points + "").replaceAll("\\{points\\}", this.points + "");
+		this.rewardText = new String[rewardText.length];
+		for (int i = 0; i < rewardText.length; i++)
+			this.rewardText[i] = (rewardText[i] == null || rewardText[i].equals("")
+					? (points > 0 ? points + " Achievement point" + (points > 1 ? "s" : "") : "")
+					: rewardText[i]).replaceAll("%points%", this.points + "").replaceAll("\\{points\\}",
+							this.points + "");
 		this.hidden = hidden;
 	}
 

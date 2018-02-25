@@ -5,9 +5,10 @@ import org.bukkit.Material;
 
 import jdz.statsTracker.stats.StatType;
 import lombok.Getter;
+import lombok.NonNull;
 
 public class StatAchievement extends Achievement {
-	@Getter private final StatType statType;
+	@NonNull @Getter private final StatType statType;
 	@Getter private final double required;
 
 	public StatAchievement(String name, StatType type, double required, Material m, short iconDamage,

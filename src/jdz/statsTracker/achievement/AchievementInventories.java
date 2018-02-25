@@ -202,7 +202,8 @@ public class AchievementInventories implements Listener {
 
 		List<String> lore = new ArrayList<String>();
 
-		lore.add(ChatColor.YELLOW + achievement.getDescription());
+		for (String s : achievement.getDescription())
+			lore.add(ChatColor.YELLOW + s);
 
 		if (isAchieved) {
 			if (!achievement.getRewardText().equals(""))
@@ -217,16 +218,25 @@ public class AchievementInventories implements Listener {
 			itemMeta.setDisplayName(ChatColor.RED + achievement.getName().replace('_', ' '));
 			if (achievement.isHidden()) {
 				lore.clear();
-				lore.add(ChatColor.GRAY + achievement.getDescription().replaceAll("[^\\s]", "?"));
-				if (!achievement.getRewardText().equals(""))
+
+				for (String s : achievement.getDescription())
+					lore.add(ChatColor.GRAY + s.replaceAll("[^\\s]", "?"));
+
+				if (!achievement.getRewardText()[0].equals(""))
 					lore.add(ChatColor.GREEN + "Reward: " + ChatColor.GRAY + ChatColor.ITALIC
-							+ achievement.getRewardText().replaceAll("[^\\s]", "?"));
+							+ achievement.getRewardText()[0].replaceAll("[^\\s]", "?"));
+				for (int i = 1; i < achievement.getRewardText().length; i++)
+					lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + achievement.getRewardText()[i].replaceAll("[^\\s]", "?"));
+
 				newStack.setType(Material.BEDROCK);
 			}
 			else {
-				if (!achievement.getRewardText().equals(""))
+				if (!achievement.getRewardText()[0].equals(""))
 					lore.add(ChatColor.GREEN + "Reward: " + ChatColor.GRAY + ChatColor.ITALIC
-							+ achievement.getRewardText());
+							+ achievement.getRewardText()[0]);
+				for (int i = 1; i < achievement.getRewardText().length; i++)
+					lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + achievement.getRewardText()[i]);
+
 				lore.add("");
 				if (achievement instanceof RemoteStatAchievement) {
 					StatType type = StatsManager.getInstance()
