@@ -20,7 +20,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsDatabase;
@@ -70,10 +69,25 @@ public class AchievementInventories implements Listener {
 		achievementToStack = createDefaultItemStacks();
 		serverSelect = createServerSelectInv();
 	}
+	
+	public static void openServerAchievements(Player p, OfflinePlayer target) {
+		targets.put(p, target);
+		openPage(p, GCStatsTrackerConfig.serverName, 0);
+	}
+	
+	public static void openServerAchievements(Player p, OfflinePlayer target, String server) {
+		targets.put(p, target);
+		openPage(p, server, 0);
+	}
 
 	public static void openServerSelect(Player player, OfflinePlayer otherPlayer) {
 		player.openInventory(serverSelect);
 		targets.put(player, otherPlayer);
+	}
+
+	private static void openPage(Player p, String server, int number) {
+		p.openInventory(getPageInventory(targets.get(p), server, number));
+		page.put(p, number);
 	}
 
 	@EventHandler
@@ -160,11 +174,6 @@ public class AchievementInventories implements Listener {
 		return achToItem;
 	}
 
-	private static void openPage(Player p, String server, int number) {
-		p.openInventory(getPageInventory(targets.get(p), server, number));
-		page.put(p, number);
-	}
-
 	private static Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
 		List<RemoteAchievement> achievements = allAchievements.get(server);
 		Inventory pageInventory = Bukkit.createInventory(null, 54,
@@ -174,15 +183,10 @@ public class AchievementInventories implements Listener {
 		for (int achIndex = page * 36; achIndex < Math.min((page + 1) * 36, achievements.size()); achIndex++) {
 			RemoteAchievement achievement = achievements.get(achIndex);
 			final int f = i;
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					ItemStack itemStack = getPlayerStack(offlinePlayer, achievement);
-
-					pageInventory.setItem(f, itemStack);
-				}
-			}.runTaskAsynchronously(GCStatsTracker.instance);
-			i++;
+			Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+				ItemStack itemStack = getPlayerStack(offlinePlayer, achievement);
+				pageInventory.setItem(f, itemStack);
+			});
 		}
 
 		if ((page + 1) * 36 < achievements.size())
@@ -226,7 +230,8 @@ public class AchievementInventories implements Listener {
 					lore.add(ChatColor.GREEN + "Reward: " + ChatColor.GRAY + ChatColor.ITALIC
 							+ achievement.getRewardText()[0].replaceAll("[^\\s]", "?"));
 				for (int i = 1; i < achievement.getRewardText().length; i++)
-					lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + achievement.getRewardText()[i].replaceAll("[^\\s]", "?"));
+					lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC
+							+ achievement.getRewardText()[i].replaceAll("[^\\s]", "?"));
 
 				newStack.setType(Material.BEDROCK);
 			}
@@ -265,13 +270,12 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static class ChangePageArrow extends ItemStack {
-
 		public ChangePageArrow(ArrowType type) {
 			super(Material.ARROW);
 			ItemMeta im = getItemMeta();
 			im.setDisplayName(type.toString());
 			setItemMeta(im);
-			setType(Material.ARROW);
+			setType(type == ArrowType.SELECT_SERVER?Material.IRON_DOOR:Material.ARROW);
 		}
 	}
 
