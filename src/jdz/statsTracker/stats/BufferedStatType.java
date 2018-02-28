@@ -59,8 +59,10 @@ public abstract class BufferedStatType implements StatType, Listener {
 	public void set(Player player, double value) {
 		double oldValue = onlinePlayerStats.get(player);
 		if (oldValue != value) {
-			new StatChangeEvent(player, this, oldValue, value).call();
-			onlinePlayerStats.put(player, value);
+			StatChangeEvent event = new StatChangeEvent(player, this, oldValue, value);
+			event.call();
+			if (!event.isCancelled())
+				onlinePlayerStats.put(player, value);
 		}
 	}
 
