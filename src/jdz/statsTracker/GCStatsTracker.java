@@ -12,6 +12,7 @@ import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
+import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementManager;
@@ -37,7 +38,7 @@ public class GCStatsTracker extends JavaPlugin {
 			AchievementDatabase.getInstance().setServerIcon(GCStatsTrackerConfig.serverName,
 					GCStatsTrackerConfig.serverIcon, GCStatsTrackerConfig.serverIconData);
 
-			AchievementManager.getInstance().reloadData();
+			AchievementManager.getInstance().addFromConfig(Config.getConfig(GCStatsTracker.instance, "Achievements.yml"));
 			AchievementInventories.reload();
 			AchievementShop.reload();
 		});

@@ -199,8 +199,7 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, RemoteAchievement achievement) {
-		boolean isAchieved = AchievementDatabase.getInstance().isAchieved(offlinePlayer, achievement,
-				achievement.getServer());
+		boolean isAchieved = AchievementManager.getInstance().isAchieved(offlinePlayer, achievement);
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
 

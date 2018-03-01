@@ -22,7 +22,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import jdz.statsTracker.stats.StatsManager;
 import lombok.Getter;
-import jdz.bukkitUtils.misc.Config;
 import jdz.bukkitUtils.misc.RomanNumber;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
@@ -36,11 +35,23 @@ public class AchievementManager implements Listener {
 	private Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<Player, Set<Achievement>>();
 	private Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<StatType, Set<StatAchievement>>();
 	private Set<Achievement> achievements = new HashSet<Achievement>();
+	private Map<String, Achievement> nameToAchievement = new HashMap<String, Achievement>();
 	private Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
 
 	public void addAchievements(Achievement... achievements) {
-		this.achievements.addAll(Arrays.asList(achievements));
+		List<Achievement> added = new ArrayList<Achievement>();
+
 		for (Achievement achievement : achievements) {
+			if (nameToAchievement.containsKey(achievement.getName())) {
+				GCStatsTracker.instance.getLogger().warning("Achievement '" + achievement.getName()
+						+ "' has a conflicting name with an existing achievement, skipping");
+				continue;
+			}
+
+			nameToAchievement.put(achievement.getName(), achievement);
+			this.achievements.add(achievement);
+			added.add(achievement);
+
 			if (achievement instanceof StatAchievement) {
 				StatType type = ((StatAchievement) achievement).getStatType();
 				if (!achievementsByType.containsKey(type))
@@ -48,7 +59,8 @@ public class AchievementManager implements Listener {
 				this.achievementsByType.get(type).add((StatAchievement) achievement);
 			}
 		}
-		AchievementDatabase.getInstance().addAchievements(achievements);
+
+		AchievementDatabase.getInstance().addAchievements(added.toArray(new Achievement[added.size()]));
 	}
 
 	public void removeAchievements(Achievement... achievements) {
@@ -65,9 +77,15 @@ public class AchievementManager implements Listener {
 	}
 
 	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
-		if (player.isOnline())
-			return localEarntAchievements.get(player.getPlayer()).contains(achievement);
-		return AchievementDatabase.getInstance().isAchieved(player, achievement);
+		String server = achievement instanceof RemoteAchievement ? ((RemoteAchievement) achievement).getServer()
+				: GCStatsTrackerConfig.serverName;
+
+		if (player.isOnline() && server.equals(GCStatsTrackerConfig.serverName)) {
+			Achievement localAchievement = nameToAchievement.get(achievement.getName());
+			if (localAchievement != null)
+				return localEarntAchievements.get(player.getPlayer()).contains(localAchievement);
+		}
+		return AchievementDatabase.getInstance().isAchieved(player, achievement, server);
 	}
 
 	public void setAchieved(Player player, Achievement achievement) {
@@ -135,11 +153,13 @@ public class AchievementManager implements Listener {
 				if (!isAchieved(e.getPlayer(), a) && e.getNewValue() >= a.getRequired())
 					setAchieved(e.getPlayer(), a);
 	}
+	
+	public void addFromConfig(FileConfiguration achConfig) {
+		addAchievements(getFromConfig(achConfig).toArray(new Achievement[1]));
+	}
 
-	public void reloadData() {
-		FileConfiguration achConfig = Config.getConfig(GCStatsTracker.instance, "Achievements.yml");
-
-		List<Achievement> localAchievements = new ArrayList<Achievement>();
+	public List<Achievement> getFromConfig(FileConfiguration achConfig) {
+		List<Achievement> addedAchievements = new ArrayList<Achievement>();
 
 		for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false)) {
 			try {
@@ -202,7 +222,7 @@ public class AchievementManager implements Listener {
 					if (messages != null)
 						ach.setRewardMessages(messages);
 
-					localAchievements.add(ach);
+					addedAchievements.add(ach);
 				}
 
 			}
@@ -212,9 +232,6 @@ public class AchievementManager implements Listener {
 			}
 		}
 
-		if (localAchievements.isEmpty())
-			return;
-
-		addAchievements(localAchievements.toArray(new Achievement[1]));
+		return addedAchievements;
 	}
 }
