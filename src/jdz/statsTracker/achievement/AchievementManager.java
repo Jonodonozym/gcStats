@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import jdz.statsTracker.stats.StatsManager;
 import lombok.Getter;
+import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.RomanNumber;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
@@ -233,7 +234,8 @@ public class AchievementManager implements Listener {
 			}
 			catch (Exception e) {
 				GCStatsTracker.instance.getLogger()
-						.info("achievement " + achievement + " has invalid configuration, skipping...");
+						.info("achievement " + achievement + " has invalid configuration, check the error log for details");
+				new FileLogger(GCStatsTracker.instance).createErrorLog(e);
 			}
 		}
 

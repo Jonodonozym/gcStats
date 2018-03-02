@@ -19,8 +19,8 @@ import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.hooks.PlaceholderHook;
-import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
+import jdz.statsTracker.stats.database.StatsDatabase;
 
 public class GCStatsTracker extends JavaPlugin {
 	public static GCStatsTracker instance;
@@ -50,7 +50,7 @@ public class GCStatsTracker extends JavaPlugin {
 		}
 
 		pm.registerEvents(StatsManager.getInstance(), this);
-		pm.registerEvents(StatsDatabase.getInstance(), this);
+		pm.registerEvents(StatsDatabaseSQL.getInstance(), this);
 		pm.registerEvents(AchievementManager.getInstance(), this);
 		pm.registerEvents(AchievementDatabase.getInstance(), this);
 

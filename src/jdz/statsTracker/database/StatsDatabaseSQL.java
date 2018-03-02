@@ -1,4 +1,4 @@
-package jdz.statsTracker.stats;
+package jdz.statsTracker.database;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +17,7 @@ import jdz.bukkitUtils.sql.SqlColumn;
 import jdz.bukkitUtils.sql.SqlColumnType;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.stats.StatType;
 import lombok.Getter;
 
 /**
@@ -24,10 +25,10 @@ import lombok.Getter;
  * 
  * @author Jonodonozym
  */
-public class StatsDatabase extends Database implements Listener {
-	@Getter private static final StatsDatabase instance = new StatsDatabase(GCStatsTracker.instance);
+public class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
+	@Getter private static final StatsDatabaseSQL instance = new StatsDatabaseSQL(GCStatsTracker.instance);
 
-	private StatsDatabase(JavaPlugin plugin) {
+	private StatsDatabaseSQL(JavaPlugin plugin) {
 		super(plugin);
 		api.runOnConnect(() -> {
 			ensureCorrectTables();
@@ -74,7 +75,7 @@ public class StatsDatabase extends Database implements Listener {
 		api.executeUpdate(update);
 	}
 
-	void addStatType(StatType type, boolean isEnabled) {
+	public void addStatType(StatType type, boolean isEnabled) {
 		// Stat Meta-data
 		String setValue = "UPDATE " + statsMetaTable + " SET {column} = {value} WHERE server = '"
 				+ GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "';";
@@ -162,7 +163,7 @@ public class StatsDatabase extends Database implements Listener {
 		api.executeUpdate(update);
 	}
 
-	double getStat(OfflinePlayer player, StatType statType) {
+	public double getStat(OfflinePlayer player, StatType statType) {
 		return getStat(player, statType.getNameUnderscores(), GCStatsTrackerConfig.serverName.replaceAll(" ", "_"));
 	}
 

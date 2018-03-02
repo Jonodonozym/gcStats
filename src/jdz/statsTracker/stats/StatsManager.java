@@ -25,6 +25,7 @@ import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.hooks.LeaderHeadsHook;
+import jdz.statsTracker.stats.database.StatsDatabase;
 import jdz.statsTracker.stats.defaults.DefaultStats;
 import lombok.Getter;
 

@@ -14,7 +14,7 @@ import jdz.bukkitUtils.commands.CommandExecutor;
 import jdz.bukkitUtils.commands.HelpCommand;
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.statsTracker.GCStatsTracker;
-import jdz.statsTracker.stats.StatsDatabase;
+import jdz.statsTracker.stats.database.StatsDatabase;
 
 public class StatsCommandExecutor extends CommandExecutor {
 	private final List<SubCommand> subCommands = Arrays.asList(new AboutPluginCommand(GCStatsTracker.instance),
@@ -33,7 +33,7 @@ public class StatsCommandExecutor extends CommandExecutor {
 	@Override
 	public final void execute(SubCommand command, CommandSender sender, Set<String> flags, String... args) {
 		if (!(command instanceof HelpCommand || command instanceof AboutPluginCommand)
-				&& !StatsDatabase.getInstance().isConnected())
+				&& !StatsDatabaseSQL.getInstance().isConnected())
 			sender.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
 		else
 			super.execute(command, sender, flags, args);

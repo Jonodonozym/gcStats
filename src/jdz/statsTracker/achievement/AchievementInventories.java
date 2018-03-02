@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.StatsDatabase;
+import jdz.statsTracker.database.StatsDatabase;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;

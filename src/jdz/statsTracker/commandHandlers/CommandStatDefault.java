@@ -17,8 +17,8 @@ import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.GCStatsTrackerConfig;
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
+import jdz.statsTracker.stats.database.StatsDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
@@ -87,10 +87,10 @@ class CommandStatDefault extends SubCommand {
 			return;
 		}
 
-		List<String> types = StatsDatabase.getInstance().getVisibleStats(server);
+		List<String> types = StatsDatabaseSQL.getInstance().getVisibleStats(server);
 		List<Double> stats = new ArrayList<Double>(types.size());
 		for (String type : types)
-			stats.add(StatsDatabase.getInstance().getStat(offlinePlayer, type.toString(), server));
+			stats.add(StatsDatabaseSQL.getInstance().getStat(offlinePlayer, type.toString(), server));
 
 		showStats(sender, offlinePlayer.getName(), server, types, stats);
 	}

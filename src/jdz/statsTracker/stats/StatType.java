@@ -4,6 +4,8 @@ package jdz.statsTracker.stats;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+import jdz.statsTracker.stats.database.StatsDatabase;
+
 public interface StatType {
 	public void addPlayer(Player player, double value);
 

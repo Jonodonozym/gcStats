@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import jdz.statsTracker.event.StatChangeEvent;
+import jdz.statsTracker.stats.database.StatsDatabase;
 
 public abstract class BufferedStatType implements StatType, Listener {
 	private final Map<Player, Double> onlinePlayerStats = new HashMap<Player, Double>();
