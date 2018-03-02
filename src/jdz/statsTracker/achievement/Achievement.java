@@ -104,8 +104,8 @@ public abstract class Achievement {
 	}
 
 
-	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
-		return AchievementManager.getInstance().isAchieved(player, achievement);
+	public boolean isAchieved(OfflinePlayer player) {
+		return AchievementManager.getInstance().isAchieved(player, this);
 	}
 
 	public List<Achievement> getPreRequisites() {

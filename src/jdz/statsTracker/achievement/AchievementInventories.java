@@ -23,7 +23,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsDatabase;
-import jdz.statsTracker.stats.StatsManager;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.statsTracker.GCStatsTracker;
 import jdz.statsTracker.GCStatsTrackerConfig;
@@ -69,12 +68,12 @@ public class AchievementInventories implements Listener {
 		achievementToStack = createDefaultItemStacks();
 		serverSelect = createServerSelectInv();
 	}
-	
+
 	public static void openServerAchievements(Player p, OfflinePlayer target) {
 		targets.put(p, target);
 		openPage(p, GCStatsTrackerConfig.serverName, 0);
 	}
-	
+
 	public static void openServerAchievements(Player p, OfflinePlayer target, String server) {
 		targets.put(p, target);
 		openPage(p, server, 0);
@@ -205,12 +204,24 @@ public class AchievementInventories implements Listener {
 
 		List<String> lore = new ArrayList<String>();
 
-		for (String s : achievement.getDescription())
-			lore.add(ChatColor.YELLOW + s);
+		if (!achievement.isHidden() || isAchieved)
+			for (String s : achievement.getDescription())
+				lore.add(ChatColor.YELLOW + s);
+		else
+			for (String s : achievement.getDescription())
+				lore.add(ChatColor.GRAY + s.replaceAll("[^\\s]", "?"));
+
+		for (Achievement requirement : achievement.getPreRequisites())
+			if (!requirement.isAchieved(offlinePlayer))
+				lore.add(ChatColor.RED + "Requires: " + requirement.getName());
 
 		if (isAchieved) {
-			if (!achievement.getRewardText().equals(""))
-				lore.add(ChatColor.GREEN + "Reward: " + ChatColor.WHITE + achievement.getRewardText());
+			if (!achievement.getRewardText()[0].equals(""))
+				lore.add(ChatColor.GREEN + "Reward: " + ChatColor.WHITE + ChatColor.ITALIC
+						+ achievement.getRewardText()[0]);
+			for (int i = 1; i < achievement.getRewardText().length; i++)
+				lore.add(ChatColor.WHITE + "" + ChatColor.ITALIC
+						+ achievement.getRewardText()[i]);
 			lore.add("");
 
 			itemMeta.setDisplayName(ChatColor.GREEN + achievement.getName().replace('_', ' '));
@@ -220,11 +231,6 @@ public class AchievementInventories implements Listener {
 		else {
 			itemMeta.setDisplayName(ChatColor.RED + achievement.getName().replace('_', ' '));
 			if (achievement.isHidden()) {
-				lore.clear();
-
-				for (String s : achievement.getDescription())
-					lore.add(ChatColor.GRAY + s.replaceAll("[^\\s]", "?"));
-
 				if (!achievement.getRewardText()[0].equals(""))
 					lore.add(ChatColor.GREEN + "Reward: " + ChatColor.GRAY + ChatColor.ITALIC
 							+ achievement.getRewardText()[0].replaceAll("[^\\s]", "?"));
@@ -240,26 +246,25 @@ public class AchievementInventories implements Listener {
 							+ achievement.getRewardText()[0]);
 				for (int i = 1; i < achievement.getRewardText().length; i++)
 					lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + achievement.getRewardText()[i]);
-
+			}
+			if (achievement instanceof RemoteStatAchievement) {
 				lore.add("");
-				if (achievement instanceof RemoteStatAchievement) {
-					StatType type = StatsManager.getInstance()
-							.getType(((RemoteStatAchievement) achievement).getStatTypeName());
-					double progress;
-					if (achievement.getServer().replaceAll("_", " ").equalsIgnoreCase(GCStatsTrackerConfig.serverName)
-							&& offlinePlayer.isOnline())
-						progress = type.get(offlinePlayer.getPlayer());
-					else
-						progress = StatsDatabase.getInstance().getStat(offlinePlayer,
-								((RemoteStatAchievement) achievement).getStatTypeName(), achievement.getServer());
-					double required = ((RemoteStatAchievement) achievement).getRequirement();
-					if (type == null)
-						lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progress + " / " + required);
-					else {
-						String progressStr = type.valueToString(progress);
-						String requiredStr = type.valueToString(required);
-						lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progressStr + " / " + requiredStr);
-					}
+				StatType type = ((RemoteStatAchievement) achievement).getStatType();
+				
+				double progress;
+				if (achievement.getServer().replaceAll("_", " ").equalsIgnoreCase(GCStatsTrackerConfig.serverName)
+						&& offlinePlayer.isOnline())
+					progress = type.get(offlinePlayer.getPlayer());
+				else
+					progress = StatsDatabase.getInstance().getStat(offlinePlayer,
+							((RemoteStatAchievement) achievement).getStatTypeName(), achievement.getServer());
+				double required = ((RemoteStatAchievement) achievement).getRequirement();
+				if (type == null)
+					lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progress + " / " + required);
+				else {
+					String progressStr = type.valueToString(progress);
+					String requiredStr = type.valueToString(required);
+					lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progressStr + " / " + requiredStr);
 				}
 			}
 		}
@@ -274,7 +279,7 @@ public class AchievementInventories implements Listener {
 			ItemMeta im = getItemMeta();
 			im.setDisplayName(type.toString());
 			setItemMeta(im);
-			setType(type == ArrowType.SELECT_SERVER?Material.IRON_DOOR:Material.ARROW);
+			setType(type == ArrowType.SELECT_SERVER ? Material.IRON_DOOR : Material.ARROW);
 		}
 	}
 
