@@ -31,8 +31,8 @@ public class AchievementInventories implements Listener {
 	public static final String SERVER_SELECT_INV_NAME = ChatColor.DARK_GREEN + "Achievements: server select";
 	public static Inventory serverSelect;
 
-	private static Map<String, List<RemoteAchievement>> allAchievements = new HashMap<String, List<RemoteAchievement>>();
-	public static Map<RemoteAchievement, ItemStack> achievementToStack = new HashMap<RemoteAchievement, ItemStack>();
+	private static Map<String, List<? extends Achievement>> allAchievements = new HashMap<String, List<? extends Achievement>>();
+	public static Map<Achievement, ItemStack> achievementToStack = new HashMap<Achievement, ItemStack>();
 
 	public static Map<Player, OfflinePlayer> targets = new HashMap<Player, OfflinePlayer>();
 	public static Map<Player, Integer> page = new HashMap<Player, Integer>();
@@ -46,13 +46,15 @@ public class AchievementInventories implements Listener {
 		if (servers.size() > 0) {
 			ExecutorService es = Executors.newFixedThreadPool(servers.size());
 			for (String server : servers) {
+				if (server.equals(GCStatsTrackerConfig.serverName))
+					continue;
 				es.execute(() -> {
-					List<RemoteAchievement> removeAchievements = AchievementDatabase.getInstance()
+					List<RemoteAchievement> remoteAchievements = AchievementDatabase.getInstance()
 							.getServerAchievements(server);
-					removeAchievements.sort((a, b) -> {
+					remoteAchievements.sort((a, b) -> {
 						return a.getName().compareTo(b.getName());
 					});
-					allAchievements.put(server, removeAchievements);
+					allAchievements.put(server, remoteAchievements);
 				});
 			}
 
@@ -65,8 +67,21 @@ public class AchievementInventories implements Listener {
 			}
 		}
 
+		updateLocalAchievements();
 		achievementToStack = createDefaultItemStacks();
 		serverSelect = createServerSelectInv();
+	}
+	
+	public static void updateLocalAchievements() {
+		List<Achievement> achievements = new ArrayList<Achievement>(AchievementManager.getInstance().getAchievements());
+		achievements.sort((a, b) -> {
+			return a.getName().compareTo(b.getName());
+		});
+		allAchievements.put(GCStatsTrackerConfig.serverName, achievements);
+		for (Achievement a: achievements) {
+			ItemStack itemStack = new ItemStack(a.getIcon(), 1, a.getIconDamage());
+			achievementToStack.put(a, itemStack);
+		}
 	}
 
 	public static void openServerAchievements(Player p, OfflinePlayer target) {
@@ -163,10 +178,10 @@ public class AchievementInventories implements Listener {
 		return inv;
 	}
 
-	private static Map<RemoteAchievement, ItemStack> createDefaultItemStacks() {
-		Map<RemoteAchievement, ItemStack> achToItem = new HashMap<RemoteAchievement, ItemStack>();
-		for (List<RemoteAchievement> list : allAchievements.values())
-			for (RemoteAchievement a : list) {
+	private static Map<Achievement, ItemStack> createDefaultItemStacks() {
+		Map<Achievement, ItemStack> achToItem = new HashMap<Achievement, ItemStack>();
+		for (List<? extends Achievement> list : allAchievements.values())
+			for (Achievement a : list) {
 				ItemStack itemStack = new ItemStack(a.getIcon(), 1, a.getIconDamage());
 				achToItem.put(a, itemStack);
 			}
@@ -174,14 +189,14 @@ public class AchievementInventories implements Listener {
 	}
 
 	private static Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
-		List<RemoteAchievement> achievements = allAchievements.get(server);
+		List<? extends Achievement> achievements = allAchievements.get(server);
 		Inventory pageInventory = Bukkit.createInventory(null, 54,
 				ChatColor.DARK_GREEN + offlinePlayer.getName() + ChatColor.DARK_GREEN + "'s Achievements");
 
 		int i = 0;
 		for (int achIndex = page * 36; achIndex < Math.min((page + 1) * 36, achievements.size()); achIndex++) {
-			RemoteAchievement achievement = achievements.get(achIndex);
-			final int f = i;
+			Achievement achievement = achievements.get(achIndex);
+			final int f = i++;
 			Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
 				ItemStack itemStack = getPlayerStack(offlinePlayer, achievement);
 				pageInventory.setItem(f, itemStack);
@@ -197,7 +212,7 @@ public class AchievementInventories implements Listener {
 		return pageInventory;
 	}
 
-	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, RemoteAchievement achievement) {
+	private static ItemStack getPlayerStack(OfflinePlayer offlinePlayer, Achievement achievement) {
 		boolean isAchieved = AchievementManager.getInstance().isAchieved(offlinePlayer, achievement);
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
@@ -248,17 +263,18 @@ public class AchievementInventories implements Listener {
 					lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + achievement.getRewardText()[i]);
 			}
 			if (achievement instanceof RemoteStatAchievement) {
+				RemoteStatAchievement rsa = (RemoteStatAchievement)achievement;
 				lore.add("");
-				StatType type = ((RemoteStatAchievement) achievement).getStatType();
+				StatType type = rsa.getStatType();
 				
 				double progress;
-				if (achievement.getServer().replaceAll("_", " ").equalsIgnoreCase(GCStatsTrackerConfig.serverName)
+				if (rsa.getServer().replaceAll("_", " ").equalsIgnoreCase(GCStatsTrackerConfig.serverName)
 						&& offlinePlayer.isOnline())
 					progress = type.get(offlinePlayer.getPlayer());
 				else
 					progress = StatsDatabase.getInstance().getStat(offlinePlayer,
-							((RemoteStatAchievement) achievement).getStatTypeName(), achievement.getServer());
-				double required = ((RemoteStatAchievement) achievement).getRequirement();
+							rsa.getStatTypeName(), rsa.getServer());
+				double required = rsa.getRequirement();
 				if (type == null)
 					lore.add("" + ChatColor.GRAY + ChatColor.ITALIC + progress + " / " + required);
 				else {

@@ -34,7 +34,7 @@ public class AchievementManager implements Listener {
 
 	private Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<Player, Set<Achievement>>();
 	private Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<StatType, Set<StatAchievement>>();
-	private Set<Achievement> achievements = new HashSet<Achievement>();
+	@Getter private Set<Achievement> achievements = new HashSet<Achievement>();
 	private Map<String, Achievement> nameToAchievement = new HashMap<String, Achievement>();
 	private Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
 
@@ -60,7 +60,11 @@ public class AchievementManager implements Listener {
 			}
 		}
 
+		if (added.isEmpty())
+			return;
+		
 		AchievementDatabase.getInstance().addAchievements(added.toArray(new Achievement[added.size()]));
+		AchievementInventories.updateLocalAchievements();
 	}
 
 	public void removeAchievements(Achievement... achievements) {
@@ -74,6 +78,7 @@ public class AchievementManager implements Listener {
 
 		for (Player player : localEarntAchievements.keySet())
 			localEarntAchievements.get(player).removeAll(Arrays.asList(achievements));
+		AchievementInventories.updateLocalAchievements();
 	}
 
 	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
