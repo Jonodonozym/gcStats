@@ -16,7 +16,7 @@ public class TriggeredAchievement extends Achievement {
 	}
 
 	protected void setAchieved(Player player) {
-		if (!AchievementManager.getInstance().isAchieved(player, this))
+		if (!isAchieved(player))
 			AchievementManager.getInstance().setAchieved(player, this);
 	}
 }
