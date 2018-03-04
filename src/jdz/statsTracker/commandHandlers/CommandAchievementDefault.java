@@ -13,8 +13,7 @@ import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.statsTracker.GCStatsTrackerConfig;
-import jdz.statsTracker.achievement.AchievementDatabase;
+import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
 
 @CommandLabel("DEFAULT")
@@ -26,16 +25,11 @@ class CommandAchievementDefault extends SubCommand {
 	public void execute(CommandSender sender, Set<String> flags, String... args) {
 		Player player = (Player) sender;
 
-		if (!AchievementDatabase.getInstance().isConnected()) {
-			player.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
-			return;
-		}
-
 		if (args.length == 0)
 			AchievementInventories.openServerAchievements(player, player);
 
 		else if (args.length == 1) {
-			if (GCStatsTrackerConfig.servers.contains(args[0]))
+			if (GCStatsConfig.servers.contains(args[0]))
 				AchievementInventories.openServerAchievements(player, player, args[0]);
 			else {
 				@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
@@ -45,10 +39,10 @@ class CommandAchievementDefault extends SubCommand {
 					sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid server or player");
 			}
 		}
-		
+
 		else if (args.length == 2) {
-			if (!GCStatsTrackerConfig.servers.contains(args[0])) {
-				player.sendMessage(ChatColor.RED+"'"+args[0]+"' is not a valid server");
+			if (!GCStatsConfig.servers.contains(args[0])) {
+				player.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid server");
 				return;
 			}
 
@@ -57,7 +51,7 @@ class CommandAchievementDefault extends SubCommand {
 				AchievementInventories.openServerAchievements(player, target, args[0]);
 			else
 				sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid player");
-			
+
 		}
 	}
 

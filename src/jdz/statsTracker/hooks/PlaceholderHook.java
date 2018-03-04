@@ -5,13 +5,13 @@ import org.bukkit.entity.Player;
 
 import jdz.statsTracker.stats.StatsManager;
 import me.clip.placeholderapi.external.EZPlaceholderHook;
-import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
 
 public class PlaceholderHook extends EZPlaceholderHook {
 
 	public PlaceholderHook() {
-		super(GCStatsTracker.instance, "gcStats");
+		super(GCStats.instance, "gcStats");
 	}
 
 	@Override

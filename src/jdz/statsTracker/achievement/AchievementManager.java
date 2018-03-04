@@ -19,13 +19,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.plugin.Plugin;
 
 import jdz.statsTracker.stats.StatsManager;
 import lombok.Getter;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.RomanNumber;
-import jdz.statsTracker.GCStatsTracker;
-import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.GCStats;
+import jdz.statsTracker.GCStatsConfig;
+import jdz.statsTracker.database.AchievementDatabase;
 import jdz.statsTracker.event.AchievementUnlockEvent;
 import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.stats.StatType;
@@ -33,18 +36,26 @@ import jdz.statsTracker.stats.StatType;
 public class AchievementManager implements Listener {
 	@Getter public static final AchievementManager instance = new AchievementManager();
 
-	private Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<Player, Set<Achievement>>();
-	private Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<StatType, Set<StatAchievement>>();
-	@Getter private Set<Achievement> achievements = new HashSet<Achievement>();
-	private Map<String, Achievement> nameToAchievement = new HashMap<String, Achievement>();
-	private Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
+	private final Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<Player, Set<Achievement>>();
+	private final Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<StatType, Set<StatAchievement>>();
+	@Getter private final Set<Achievement> achievements = new HashSet<Achievement>();
+	private final Map<String, Achievement> nameToAchievement = new HashMap<String, Achievement>();
+	private final Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
 
-	public void addAchievements(Achievement... achievements) {
+	private final Map<Plugin, List<Achievement>> pluginToAchievement = new HashMap<Plugin, List<Achievement>>();
+
+	public void addAchievements(Plugin plugin, Achievement... achievements) {
+		if (achievements == null || achievements.length == 0)
+			return;
+		
 		List<Achievement> added = new ArrayList<Achievement>();
+		
+		if (!pluginToAchievement.containsKey(plugin))
+			pluginToAchievement.put(plugin, new ArrayList<Achievement>());
 
 		for (Achievement achievement : achievements) {
 			if (nameToAchievement.containsKey(achievement.getName())) {
-				GCStatsTracker.instance.getLogger().warning("Achievement '" + achievement.getName()
+				GCStats.instance.getLogger().warning("Achievement '" + achievement.getName()
 						+ "' has a conflicting name with an existing achievement, skipping");
 				continue;
 			}
@@ -59,16 +70,20 @@ public class AchievementManager implements Listener {
 					achievementsByType.put(type, new HashSet<StatAchievement>());
 				this.achievementsByType.get(type).add((StatAchievement) achievement);
 			}
+			pluginToAchievement.get(plugin).add(achievement);
 		}
 
 		if (added.isEmpty())
 			return;
-		
+
 		AchievementDatabase.getInstance().addAchievements(added.toArray(new Achievement[added.size()]));
 		AchievementInventories.updateLocalAchievements();
 	}
 
 	public void removeAchievements(Achievement... achievements) {
+		if (achievements == null || achievements.length == 0)
+			return;
+		
 		this.achievements.removeAll(Arrays.asList(achievements));
 		for (Achievement achievement : achievements) {
 			if (achievement instanceof StatAchievement) {
@@ -84,9 +99,9 @@ public class AchievementManager implements Listener {
 
 	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
 		String server = achievement instanceof RemoteAchievement ? ((RemoteAchievement) achievement).getServer()
-				: GCStatsTrackerConfig.serverName;
+				: GCStatsConfig.serverName;
 
-		if (player.isOnline() && server.equals(GCStatsTrackerConfig.serverName)) {
+		if (player.isOnline() && server.equals(GCStatsConfig.serverName)) {
 			Achievement localAchievement = nameToAchievement.get(achievement.getName());
 			if (localAchievement != null)
 				return localEarntAchievements.get(player.getPlayer()).contains(localAchievement);
@@ -101,14 +116,14 @@ public class AchievementManager implements Listener {
 
 		localEarntAchievements.get(player).add(achievement);
 
-		if (GCStatsTrackerConfig.achievementFireworkEnabled)
+		if (GCStatsConfig.achievementFireworkEnabled)
 			achievement.doFirework(player);
-		if (GCStatsTrackerConfig.achievementMessageEnabled)
+		if (GCStatsConfig.achievementMessageEnabled)
 			achievement.doMessages(player);
-		if (GCStatsTrackerConfig.achievementGiveRewards)
+		if (GCStatsConfig.achievementGiveRewards)
 			achievement.giveRewards(player);
 
-		Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 			AchievementDatabase.getInstance().setAchieved(player, achievement);
 		});
 
@@ -132,17 +147,26 @@ public class AchievementManager implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onUnload(PluginDisableEvent event) {
+		if (!pluginToAchievement.containsKey(event.getPlugin()))
+			return;
+		List<Achievement> achievements = pluginToAchievement.remove(event.getPlugin());
+		removeAchievements(achievements.toArray(new Achievement[achievements.size()]));
+		GCStats.getInstance().getLogger().info(achievements.size()+" Achievements unregistered");
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
 		localEarntAchievements.put(player, new HashSet<Achievement>());
 
 		for (Achievement a : achievements)
-			Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+			Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 				if (AchievementDatabase.getInstance().isAchieved(player, a))
 					localEarntAchievements.get(player).add(a);
 			});
 
-		Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 			achievementPoints.put(player, AchievementDatabase.getInstance().getAchievementPoints(player));
 		});
 	}
@@ -159,9 +183,9 @@ public class AchievementManager implements Listener {
 				if (!isAchieved(e.getPlayer(), a) && e.getNewValue() >= a.getRequired())
 					setAchieved(e.getPlayer(), a);
 	}
-	
-	public void addFromConfig(FileConfiguration achConfig) {
-		addAchievements(getFromConfig(achConfig).toArray(new Achievement[1]));
+
+	public void addFromConfig(Plugin plugin, FileConfiguration achConfig) {
+		addAchievements(plugin, getFromConfig(achConfig).toArray(new Achievement[1]));
 	}
 
 	public List<Achievement> getFromConfig(FileConfiguration achConfig) {
@@ -173,7 +197,7 @@ public class AchievementManager implements Listener {
 				StatType type = StatsManager.getInstance().getType(typeName);
 
 				if (!StatsManager.getInstance().enabledStats().contains(type)) {
-					GCStatsTracker.instance.getLogger().info("achievement " + achievement + " stat type '" + typeName
+					GCStats.instance.getLogger().info("achievement " + achievement + " stat type '" + typeName
 							+ "' is disabled in config.yml, skipping...");
 					continue;
 				}
@@ -233,9 +257,9 @@ public class AchievementManager implements Listener {
 
 			}
 			catch (Exception e) {
-				GCStatsTracker.instance.getLogger()
-						.info("achievement " + achievement + " has invalid configuration, check the error log for details");
-				new FileLogger(GCStatsTracker.instance).createErrorLog(e);
+				GCStats.instance.getLogger().info(
+						"achievement " + achievement + " has invalid configuration, check the error log for details");
+				new FileLogger(GCStats.instance).createErrorLog(e);
 			}
 		}
 

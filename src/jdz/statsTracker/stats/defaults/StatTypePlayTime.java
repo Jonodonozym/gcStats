@@ -9,7 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.misc.TimedTask;
-import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.BufferedStatType;
 import lombok.Getter;
 
@@ -18,7 +18,7 @@ public class StatTypePlayTime extends BufferedStatType {
 
 	public StatTypePlayTime() {
 		super();
-		new TimedTask(GCStatsTracker.instance, 600, () -> {
+		new TimedTask(GCStats.instance, 600, () -> {
 			for (Player player : Bukkit.getOnlinePlayers())
 				updateTime(player);
 		}).start();

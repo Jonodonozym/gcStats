@@ -8,7 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.misc.TimedTask;
-import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.event.StatChangeEvent;
 
 public abstract class HookedStatType implements StatType {
@@ -20,11 +20,11 @@ public abstract class HookedStatType implements StatType {
 	}
 
 	protected HookedStatType(int refreshRate) {
-		task = new TimedTask(GCStatsTracker.instance, refreshRate, () -> {
+		task = new TimedTask(GCStats.instance, refreshRate, () -> {
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				double newValue = get(player);
-				double oldValue = lastValues.containsKey(player)?0:lastValues.get(player);
-				
+				double oldValue = lastValues.containsKey(player) ? 0 : lastValues.get(player);
+
 				StatChangeEvent event = new StatChangeEvent(player, this, oldValue, newValue);
 				event.call();
 				if (!event.isCancelled())

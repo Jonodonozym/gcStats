@@ -1,13 +1,14 @@
 
 package jdz.statsTracker.database;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.OfflinePlayer;
 
-import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsManager;
 import lombok.Getter;
 
 class StatsDatabaseMulti implements StatsDatabase {
@@ -23,52 +24,62 @@ class StatsDatabaseMulti implements StatsDatabase {
 	public List<String> getEnabledStats(String server) {
 		if (StatsDatabaseSQL.getInstance().isConnected())
 			return StatsDatabaseSQL.getInstance().getEnabledStats(server);
-		else if (server.equals(GCStatsTrackerConfig.serverName)) {
-			for (StatType type: StatType.)
-		}
-		else return new ArrayList<String>();
+		return StatsDatabaseYML.getInstance().getEnabledStats(server);
 	}
 
 	@Override
 	public List<String> getVisibleStats(String server) {
-		// TODO Auto-generated method stub
-		return null;
+		if (StatsDatabaseSQL.getInstance().isConnected())
+			return StatsDatabaseSQL.getInstance().getVisibleStats(server);
+		return StatsDatabaseYML.getInstance().getVisibleStats(server);
 	}
 
 	@Override
 	public void setStat(OfflinePlayer player, StatType statType, double newValue) {
-		// TODO Auto-generated method stub
-		
+		StatsDatabaseSQL.getInstance().setStat(player, statType, newValue);
+		StatsDatabaseYML.getInstance().setStat(player, statType, newValue);
 	}
 
 	@Override
 	public void addStat(OfflinePlayer player, StatType statType, double change) {
-		// TODO Auto-generated method stub
-		
+		StatsDatabaseSQL.getInstance().addStat(player, statType, change);
+		StatsDatabaseYML.getInstance().addStat(player, statType, change);
 	}
 
 	@Override
 	public void setStatSync(OfflinePlayer player, StatType statType, double newValue) {
-		// TODO Auto-generated method stub
-		
+		StatsDatabaseSQL.getInstance().setStatSync(player, statType, newValue);
+		StatsDatabaseYML.getInstance().setStatSync(player, statType, newValue);
 	}
 
 	@Override
 	public double getStat(OfflinePlayer player, StatType statType) {
-		// TODO Auto-generated method stub
-		return 0;
+		return StatsDatabaseYML.getInstance().getStat(player, statType);
 	}
 
 	@Override
 	public double getStat(OfflinePlayer player, String statType, String server) {
-		// TODO Auto-generated method stub
+		if (server.equals(GCStatsConfig.serverName)) {
+			StatType type = StatsManager.getInstance().getType(statType);
+			if (type != null)
+				return getStat(player, type);
+		}
+		if (StatsDatabaseSQL.getInstance().isConnected())
+			return StatsDatabaseSQL.getInstance().getStat(player, statType, server);
 		return 0;
 	}
 
 	@Override
-	public List<String[]> getAllSorted(StatType type) {
-		// TODO Auto-generated method stub
-		return null;
+	public Map<String, Double> getAllSorted(StatType type) {
+		if (StatsDatabaseSQL.getInstance().isConnected())
+			return StatsDatabaseSQL.getInstance().getAllSorted(type);
+		return StatsDatabaseYML.getInstance().getAllSorted(type);
+	}
+
+	@Override
+	public void onShutDown() {
+		StatsDatabaseYML.getInstance().onShutDown();
+		StatsDatabaseSQL.getInstance().onShutDown();
 	}
 
 }

@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import jdz.bukkitUtils.misc.Config;
 import jdz.bukkitUtils.misc.TimedTask;
 
-public class GCStatsTrackerConfig {
+public class GCStatsConfig {
 	public static String serverName = "";
 	public static Material serverIcon = Material.INK_SACK;
 	public static short serverIconData = 2;
@@ -36,7 +36,7 @@ public class GCStatsTrackerConfig {
 	public static List<String> servers = new ArrayList<String>();
 
 	public static void reloadConfig() {
-		FileConfiguration config = Config.getConfig(GCStatsTracker.instance);
+		FileConfiguration config = Config.getConfig(GCStats.instance);
 
 		serverName = config.getString("server.name");
 
@@ -50,8 +50,8 @@ public class GCStatsTrackerConfig {
 		if (broadcastEnabled) {
 			if (broadcastTask != null)
 				broadcastTask.stop();
-			broadcastTask = new TimedTask(GCStatsTracker.instance, broadcastMaxTime * 1200, () -> {
-				for (Player p : GCStatsTracker.instance.getServer().getOnlinePlayers())
+			broadcastTask = new TimedTask(GCStats.instance, broadcastMaxTime * 1200, () -> {
+				for (Player p : GCStats.instance.getServer().getOnlinePlayers())
 					p.sendMessage(broadcastMessage);
 			});
 			broadcastTask.start();

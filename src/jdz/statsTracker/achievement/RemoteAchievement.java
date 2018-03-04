@@ -5,7 +5,7 @@ import org.bukkit.Material;
 
 import lombok.Getter;
 
-class RemoteAchievement extends Achievement {
+public class RemoteAchievement extends Achievement {
 	@Getter private final String server;
 
 	public RemoteAchievement(String server, String name, int points, Material m, short iconDamage, String[] description,

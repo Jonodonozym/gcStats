@@ -17,7 +17,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 
 import jdz.bukkitUtils.misc.StringUtils;
-import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.GCStatsConfig;
+import jdz.statsTracker.database.AchievementDatabase;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -87,7 +88,7 @@ public abstract class Achievement {
 
 	public void doMessages(Player p) {
 		p.sendMessage(ChatColor.GREEN + "Achievement '" + name.replace('_', ' ') + "' Unlocked!");
-		if (GCStatsTrackerConfig.achievementGiveRewards) {
+		if (GCStatsConfig.achievementGiveRewards) {
 			if (points > 0)
 				p.sendMessage(ChatColor.GREEN + "Reward: " + points + " points");
 			for (String s : rewardMessages)

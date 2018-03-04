@@ -4,8 +4,10 @@ package jdz.statsTracker.stats;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,12 +22,14 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
-import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.hooks.LeaderHeadsHook;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.database.StatsDatabase;
 import jdz.statsTracker.stats.defaults.DefaultStats;
 import lombok.Getter;
 
@@ -34,6 +38,8 @@ public class StatsManager implements Listener {
 
 	private final Set<StatType> enabledStats = new HashSet<StatType>();
 	private final List<StatType> enabledStatsList = new ArrayList<StatType>();
+
+	private final Map<Plugin, List<StatType>> pluginToStat = new HashMap<Plugin, List<StatType>>();
 
 	@Getter private Comparator<StatType> comparator = (a, b) -> {
 		return a.getName().compareTo(b.getName());
@@ -55,9 +61,12 @@ public class StatsManager implements Listener {
 		return null;
 	}
 
-	public void addTypes(JavaPlugin plugin, StatType... statTypes) {
-		if (statTypes.length == 0)
+	public void addTypes(Plugin plugin, StatType... statTypes) {
+		if (statTypes == null || statTypes.length == 0)
 			return;
+		
+		if (!pluginToStat.containsKey(plugin))
+			pluginToStat.put(plugin, new ArrayList<StatType>());
 
 		ExecutorService es = Executors.newFixedThreadPool(statTypes.length);
 
@@ -69,9 +78,10 @@ public class StatsManager implements Listener {
 
 			enabledStats.add(statType);
 			enabledStatsList.add(statType);
+			pluginToStat.get(plugin).add(statType);
 
 			if (statType instanceof Listener)
-				Bukkit.getPluginManager().registerEvents((Listener) statType, GCStatsTracker.instance);
+				Bukkit.getPluginManager().registerEvents((Listener) statType, GCStats.instance);
 
 			if (!(statType instanceof NoSaveStatType))
 				es.execute(() -> {
@@ -89,17 +99,20 @@ public class StatsManager implements Listener {
 			es.awaitTermination(1, TimeUnit.MINUTES);
 		}
 		catch (InterruptedException e) {
-			new FileLogger(plugin).createErrorLog(e);
+			new FileLogger((JavaPlugin)plugin).createErrorLog(e);
 		}
 
 		Collections.sort(enabledStatsList, comparator);
 	}
 
 	public void removeTypes(StatType... statTypes) {
+		if (statTypes == null || statTypes.length == 0)
+			return;
+		
 		for (StatType statType : statTypes) {
 
 			for (Player player : Bukkit.getOnlinePlayers()) {
-				Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+				Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 					StatsDatabase.getInstance().setStat(player, statType, statType.removePlayer(player));
 				});
 			}
@@ -115,10 +128,19 @@ public class StatsManager implements Listener {
 		}
 	}
 
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onUnload(PluginDisableEvent event) {
+		if (!pluginToStat.containsKey(event.getPlugin()))
+			return;
+		List<StatType> types = pluginToStat.remove(event.getPlugin());
+		removeTypes(types.toArray(new StatType[types.size()]));
+		GCStats.getInstance().getLogger().info(types.size()+" Stat Types unregistered");
+	}
+
 	public void loadDefaultStats() {
 		Set<StatType> enabledStats = new HashSet<StatType>();
 
-		FileConfiguration config = Config.getConfig(GCStatsTracker.instance, "enabledStats.yml");
+		FileConfiguration config = Config.getConfig(GCStats.instance, "enabledStats.yml");
 		for (String key : config.getConfigurationSection("enabledStats").getKeys(false)) {
 			if (!config.getBoolean("enabledStats." + key))
 				continue;
@@ -133,7 +155,7 @@ public class StatsManager implements Listener {
 		if (enabledStats.isEmpty())
 			return;
 
-		addTypes(GCStatsTracker.instance, enabledStats.toArray(new StatType[1]));
+		addTypes(GCStats.instance, enabledStats.toArray(new StatType[1]));
 	}
 
 	public void setComparator(Comparator<StatType> comparator) {
@@ -146,7 +168,7 @@ public class StatsManager implements Listener {
 		Player player = e.getPlayer();
 		for (StatType statType : StatsManager.getInstance().enabledStats())
 			if (!(statType instanceof NoSaveStatType))
-				Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+				Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 					statType.addPlayer(player, StatsDatabase.getInstance().getStat(player, statType));
 				});
 	}

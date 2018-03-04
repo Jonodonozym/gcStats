@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
-import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.GCStatsConfig;
 
 @CommandShortDescription("lists avaliable servers")
 @CommandLabel("servers")
@@ -18,7 +18,7 @@ class CommandListServers extends SubCommand {
 	@Override
 	public void execute(CommandSender sender, Set<String> flags, String... args) {
 		String list = "";
-		for (String server : GCStatsTrackerConfig.servers)
+		for (String server : GCStatsConfig.servers)
 			list = list + ", " + server.replaceAll(" ", "_");
 		list = ChatColor.WHITE + list.substring(2);
 		sender.sendMessage(

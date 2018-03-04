@@ -15,10 +15,10 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandPermission;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.database.StatsDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
@@ -39,7 +39,7 @@ class CommandStatDefault extends SubCommand {
 
 		// for player OR server
 		if (args.length == 1) {
-			if (GCStatsTrackerConfig.servers.contains(args[0].replaceAll("_", " "))) {
+			if (GCStatsConfig.servers.contains(args[0].replaceAll("_", " "))) {
 				if (sender instanceof Player)
 					showStats(sender, args[0].replaceAll("_", " "), (OfflinePlayer) sender);
 				else
@@ -48,7 +48,7 @@ class CommandStatDefault extends SubCommand {
 			else {
 				OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
 				if (target.hasPlayedBefore() || target.isOnline())
-					showStats(sender, GCStatsTrackerConfig.serverName, target);
+					showStats(sender, GCStatsConfig.serverName, target);
 				else
 					sender.sendMessage(ChatColor.RED + "'" + args[0]
 							+ "' is not a valid server or that player has never played on this server.");
@@ -56,7 +56,7 @@ class CommandStatDefault extends SubCommand {
 		}
 
 		// for player AND server
-		else if (GCStatsTrackerConfig.servers.contains(args[1].replaceAll("_", " "))) {
+		else if (GCStatsConfig.servers.contains(args[1].replaceAll("_", " "))) {
 			OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
 			if (target.hasPlayedBefore() || target.isOnline())
 				showStats(sender, args[1].replaceAll("_", " "), target);
@@ -82,15 +82,15 @@ class CommandStatDefault extends SubCommand {
 	}
 
 	private void showStats(CommandSender sender, String server, OfflinePlayer offlinePlayer) {
-		if (offlinePlayer.isOnline() && server.equals(GCStatsTrackerConfig.serverName)) {
+		if (offlinePlayer.isOnline() && server.equals(GCStatsConfig.serverName)) {
 			showStats(sender, offlinePlayer.getPlayer());
 			return;
 		}
 
-		List<String> types = StatsDatabaseSQL.getInstance().getVisibleStats(server);
+		List<String> types = StatsDatabase.getInstance().getVisibleStats(server);
 		List<Double> stats = new ArrayList<Double>(types.size());
 		for (String type : types)
-			stats.add(StatsDatabaseSQL.getInstance().getStat(offlinePlayer, type.toString(), server));
+			stats.add(StatsDatabase.getInstance().getStat(offlinePlayer, type.toString(), server));
 
 		showStats(sender, offlinePlayer.getName(), server, types, stats);
 	}

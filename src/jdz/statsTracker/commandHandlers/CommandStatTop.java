@@ -21,10 +21,10 @@ import jdz.bukkitUtils.commands.annotations.CommandRequiredArgs;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.bukkitUtils.misc.StringUtils;
-import jdz.statsTracker.GCStatsTracker;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.database.StatsDatabase;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
@@ -65,11 +65,8 @@ class CommandStatTop extends SubCommand {
 		// update
 		if (!lastUpdates.containsKey(type) || lastUpdates.get(type) > System.currentTimeMillis() + timeBetweenUpdates) {
 			final int pageNumberFinal = pageNumber;
-			Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
-				int numEntries = StatsDatabaseSQL.getInstance().getNumRows();
-				if (numEntries > 5000)
-					sender.sendMessage(ChatColor.GOLD + "Sorting " + ChatColor.RED + numEntries + ChatColor.GOLD
-							+ " entries, please wait...");
+			Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
+				sender.sendMessage(ChatColor.GOLD + "Sorting player stats, please wait...");
 				updateStat(type);
 				showStat(sender, type, pageNumberFinal);
 			});
@@ -84,7 +81,7 @@ class CommandStatTop extends SubCommand {
 
 		for (Player player : Bukkit.getOnlinePlayers())
 			es.execute(() -> {
-				StatsDatabaseSQL.getInstance().setStatSync(player, type, type.get(player));
+				StatsDatabase.getInstance().setStatSync(player, type, type.get(player));
 			});
 
 		es.shutdown();
@@ -95,18 +92,18 @@ class CommandStatTop extends SubCommand {
 			e.printStackTrace();
 		}
 
-		List<String[]> rows = StatsDatabaseSQL.getInstance().getAllSorted(type);
+		Map<String, Double> rows = StatsDatabase.getInstance().getAllSorted(type);
 
 		List<OfflinePlayer> players = new ArrayList<OfflinePlayer>();
 		Map<OfflinePlayer, Integer> ranks = new HashMap<OfflinePlayer, Integer>();
 		Map<OfflinePlayer, Double> stats = new HashMap<OfflinePlayer, Double>();
 
 		int i = 0;
-		for (String[] row : rows) {
-			OfflinePlayer player = Bukkit.getOfflinePlayer(row[0]);
+		for (Map.Entry<String, Double> row : rows.entrySet()) {
+			OfflinePlayer player = Bukkit.getOfflinePlayer(row.getKey());
 			players.add(player);
 			ranks.put(player, i++);
-			stats.put(player, Double.parseDouble(row[1]));
+			stats.put(player, row.getValue());
 		}
 
 		playersSorted.put(type, players);

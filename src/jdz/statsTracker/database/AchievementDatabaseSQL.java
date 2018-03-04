@@ -1,5 +1,5 @@
 
-package jdz.statsTracker.achievement;
+package jdz.statsTracker.database;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,14 +24,21 @@ import jdz.bukkitUtils.misc.StringUtils;
 import jdz.bukkitUtils.sql.Database;
 import jdz.bukkitUtils.sql.SqlColumn;
 import jdz.bukkitUtils.sql.SqlColumnType;
-import jdz.statsTracker.GCStatsTracker;
-import jdz.statsTracker.GCStatsTrackerConfig;
+import jdz.statsTracker.GCStats;
+import jdz.statsTracker.GCStatsConfig;
+import jdz.statsTracker.achievement.Achievement;
+import jdz.statsTracker.achievement.AchievementInventories;
+import jdz.statsTracker.achievement.AchievementShop;
+import jdz.statsTracker.achievement.RemoteAchievement;
+import jdz.statsTracker.achievement.RemoteStatAchievement;
+import jdz.statsTracker.achievement.StatAchievement;
+
 import static jdz.bukkitUtils.sql.SqlColumnType.*;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
-public class AchievementDatabase extends Database implements Listener {
-	@Getter private static final AchievementDatabase instance = new AchievementDatabase(GCStatsTracker.instance);
+class AchievementDatabaseSQL extends Database implements AchievementDatabase, Listener {
+	@Getter private static final AchievementDatabaseSQL instance = new AchievementDatabaseSQL(GCStats.instance);
 
 	private final String achievementPointsTable = "gcs_Achievement_Points";
 	private final SqlColumn[] achievementPointsTablColumns = new SqlColumn[] {
@@ -46,18 +53,26 @@ public class AchievementDatabase extends Database implements Listener {
 	private final SqlColumn[] serverIconTableColumns = new SqlColumn[] { new SqlColumn("server", STRING_64, true),
 			new SqlColumn("iconMaterial", STRING_64), new SqlColumn("iconDamage", INT_1_BYTE) };
 
-	private AchievementDatabase(JavaPlugin plugin) {
+	private AchievementDatabaseSQL(JavaPlugin plugin) {
 		super(plugin);
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 
-		api.addTable(serverIconTable, serverIconTableColumns);
-		api.addTable(achievementMetaTable, achievementMetaColumns);
-		api.addTable(getAchTableName(), new SqlColumn("UUID", SqlColumnType.STRING_64, true));
-		api.addTable(achievementPointsTable, achievementPointsTablColumns);
+		api.runOnConnect(() -> {
+			GCStatsConfig.servers = AchievementDatabaseSQL.getInstance().getServers();
+			AchievementDatabaseSQL.getInstance().setServerIcon(GCStatsConfig.serverName, GCStatsConfig.serverIcon,
+					GCStatsConfig.serverIconData);
 
-		api.addColumn(achievementPointsTable,
-				new SqlColumn(GCStatsTrackerConfig.serverName.replaceAll(" ", "_"), SqlColumnType.INT));
+			api.addTable(serverIconTable, serverIconTableColumns);
+			api.addTable(achievementMetaTable, achievementMetaColumns);
+			api.addTable(getAchTableName(), new SqlColumn("UUID", SqlColumnType.STRING_64, true));
+			api.addTable(achievementPointsTable, achievementPointsTablColumns);
 
+			api.addColumn(achievementPointsTable,
+					new SqlColumn(GCStatsConfig.serverName.replaceAll(" ", "_"), SqlColumnType.INT));
+
+			AchievementInventories.reload();
+			AchievementShop.reload();
+		});
 	}
 
 	public boolean isConnected() {
@@ -70,38 +85,43 @@ public class AchievementDatabase extends Database implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
-		Player p = e.getPlayer();
-		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + p.getName() + "' FROM dual "
-				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + p.getName() + "' ) LIMIT 1;";
+		Player player = e.getPlayer();
+		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + player.getName() + "' FROM dual "
+				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + player.getName() + "' ) LIMIT 1;";
 		api.executeUpdateAsync(update.replaceAll("\\{table\\}", achievementPointsTable));
 		api.executeUpdateAsync(update.replaceAll("\\{table\\}", getAchTableName()));
 	}
 
-	void setAchievementPoints(Player p, int points) {
-		String column = GCStatsTrackerConfig.achievementPointsGlobal ? "Global"
-				: GCStatsTrackerConfig.serverName.replaceAll(" ", "_");
+	@Override
+	public void setAchievementPoints(Player player, int points) {
+		String column = GCStatsConfig.achievementPointsGlobal ? "Global"
+				: GCStatsConfig.serverName.replaceAll(" ", "_");
 		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + points + " WHERE UUID = '"
-				+ p.getName() + "';";
+				+ player.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
 
-	public void addAchievementPoints(Player p, int points) {
-		String column = GCStatsTrackerConfig.achievementPointsGlobal ? "Global"
-				: GCStatsTrackerConfig.serverName.replaceAll(" ", "_");
+	@Override
+	public void addAchievementPoints(Player player, int points) {
+		String column = GCStatsConfig.achievementPointsGlobal ? "Global"
+				: GCStatsConfig.serverName.replaceAll(" ", "_");
 		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + column + " + " + points
-				+ " WHERE UUID = '" + p.getName() + "';";
+				+ " WHERE UUID = '" + player.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
 
-	public int getAchievementPoints(OfflinePlayer p) {
-		return (getAchievementPoints(p, GCStatsTrackerConfig.serverName.replaceAll(" ", "_")));
+	@Override
+	public int getAchievementPoints(OfflinePlayer player) {
+		return (getAchievementPoints(player, GCStatsConfig.serverName.replaceAll(" ", "_")));
 	}
 
-	public int getAchievementPoints(OfflinePlayer p, String server) {
+	@Override
+	public int getAchievementPoints(OfflinePlayer player, String server) {
 		if (!api.isConnected())
 			return 0;
 
-		String query = "SELECT " + server + " FROM " + achievementPointsTable + " WHERE UUID = '" + p.getName() + "';";
+		String query = "SELECT " + server + " FROM " + achievementPointsTable + " WHERE UUID = '" + player.getName()
+				+ "';";
 		List<String[]> values = api.getRows(query);
 
 		if (values.isEmpty())
@@ -110,7 +130,8 @@ public class AchievementDatabase extends Database implements Listener {
 		return (Integer.parseInt(values.get(0)[0]));
 	}
 
-	void addAchievements(Achievement[] achievements) {
+	@Override
+	public void addAchievements(Achievement[] achievements) {
 		if (achievements.length == 0)
 			return;
 
@@ -120,11 +141,12 @@ public class AchievementDatabase extends Database implements Listener {
 				continue;
 			String update = "REPLACE INTO " + achievementMetaTable
 					+ " (server,name,statType,required,points,icon,iconDamage,description,rewardText,hidden) VALUES"
-					+ "('" + GCStatsTrackerConfig.serverName.replaceAll(" ", "_") + "','"
-					+ a.getName().replaceAll(" ", "_") + "','"
+					+ "('" + GCStatsConfig.serverName.replaceAll(" ", "_") + "','" + a.getName().replaceAll(" ", "_")
+					+ "','"
 					+ (a instanceof StatAchievement ? ((StatAchievement) a).getStatType().getNameUnderscores() : "null")
 					+ "'," + (a instanceof StatAchievement ? ((StatAchievement) a).getRequired() : "0") + ","
-					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + ",'" + StringUtils.arrayToString(a.getDescription(), 0, "\n") + "','"
+					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + ",'"
+					+ StringUtils.arrayToString(a.getDescription(), 0, "\n") + "','"
 					+ StringUtils.arrayToString(a.getRewardText(), 0, "\n") + "'," + a.isHidden() + ");";
 
 			es.execute(() -> {
@@ -150,12 +172,13 @@ public class AchievementDatabase extends Database implements Listener {
 			es.awaitTermination(1, TimeUnit.MINUTES);
 		}
 		catch (InterruptedException e) {
-			new FileLogger(GCStatsTracker.instance).createErrorLog(e);
+			new FileLogger(GCStats.instance).createErrorLog(e);
 		}
 	}
 
-	List<RemoteAchievement> getServerAchievements(String server) {
-		List<RemoteAchievement> achievements = new ArrayList<RemoteAchievement>();
+	@Override
+	public List<Achievement> getServerAchievements(String server) {
+		List<Achievement> achievements = new ArrayList<Achievement>();
 
 		if (!api.isConnected())
 			return achievements;
@@ -184,11 +207,13 @@ public class AchievementDatabase extends Database implements Listener {
 		return achievements;
 	}
 
-	boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
-		return isAchieved(offlinePlayer, a, GCStatsTrackerConfig.serverName);
+	@Override
+	public boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
+		return isAchieved(offlinePlayer, a, GCStatsConfig.serverName);
 	}
 
-	boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a, String server) {
+	@Override
+	public boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a, String server) {
 		if (!api.isConnected())
 			return true;
 		String query = "SELECT " + a.getName().replace(' ', '_') + " FROM " + getAchTableName(server)
@@ -201,12 +226,14 @@ public class AchievementDatabase extends Database implements Listener {
 		}
 	}
 
-	void setAchieved(Player p, Achievement a) {
+	@Override
+	public void setAchieved(Player player, Achievement a) {
 		String update = "UPDATE " + getAchTableName() + " SET " + a.getName().replace(' ', '_')
-				+ " = true WHERE UUID = '" + p.getName() + "';";
+				+ " = true WHERE UUID = '" + player.getName() + "';";
 		api.executeUpdateAsync(update);
 	}
 
+	@Override
 	public List<String> getServers() {
 		if (!api.isConnected())
 			return new ArrayList<String>();
@@ -219,10 +246,12 @@ public class AchievementDatabase extends Database implements Listener {
 		return servers;
 	}
 
+	@Override
 	public boolean hasServer(String server) {
 		return (getServers().contains(server));
 	}
 
+	@Override
 	public void setServerIcon(String server, Material m, short damage) {
 		if (!api.isConnected())
 			return;
@@ -231,7 +260,8 @@ public class AchievementDatabase extends Database implements Listener {
 		api.executeUpdate(update);
 	}
 
-	ItemStack getServerIcon(String server) {
+	@Override
+	public ItemStack getServerIcon(String server) {
 		if (!api.isConnected())
 			return new ItemStack(Material.STONE);
 		String query = "SELECT iconMaterial, iconDamage FROM " + serverIconTable + " WHERE server = '"
@@ -247,7 +277,7 @@ public class AchievementDatabase extends Database implements Listener {
 	}
 
 	private String getAchTableName() {
-		return getAchTableName(GCStatsTrackerConfig.serverName);
+		return getAchTableName(GCStatsConfig.serverName);
 	}
 
 	private String getAchTableName(String server) {

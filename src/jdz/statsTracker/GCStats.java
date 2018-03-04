@@ -13,35 +13,25 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
-import jdz.statsTracker.achievement.AchievementDatabase;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.hooks.PlaceholderHook;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import lombok.Getter;
+import jdz.statsTracker.database.StatsDatabase;
 
-public class GCStatsTracker extends JavaPlugin {
-	public static GCStatsTracker instance;
+public class GCStats extends JavaPlugin {
+	@Getter public static GCStats instance;
 
 	@Override
 	public void onEnable() {
 		instance = this;
 
-		GCStatsTrackerConfig.reloadConfig();
+		GCStatsConfig.reloadConfig();
 
 		StatsManager.getInstance().loadDefaultStats();
-
-		AchievementDatabase.getInstance().runOnConnect(() -> {
-			GCStatsTrackerConfig.servers = AchievementDatabase.getInstance().getServers();
-			AchievementDatabase.getInstance().setServerIcon(GCStatsTrackerConfig.serverName,
-					GCStatsTrackerConfig.serverIcon, GCStatsTrackerConfig.serverIconData);
-
-			AchievementManager.getInstance().addFromConfig(Config.getConfig(GCStatsTracker.instance, "Achievements.yml"));
-			AchievementInventories.reload();
-			AchievementShop.reload();
-		});
 
 		PluginManager pm = Bukkit.getPluginManager();
 
@@ -50,12 +40,15 @@ public class GCStatsTracker extends JavaPlugin {
 		}
 
 		pm.registerEvents(StatsManager.getInstance(), this);
-		pm.registerEvents(StatsDatabaseSQL.getInstance(), this);
 		pm.registerEvents(AchievementManager.getInstance(), this);
-		pm.registerEvents(AchievementDatabase.getInstance(), this);
 
 		pm.registerEvents(new AchievementInventories(), this);
 		pm.registerEvents(new AchievementShop(), this);
+
+		AchievementManager.getInstance().addFromConfig(GCStats.instance,
+				Config.getConfig(GCStats.instance, "Achievements.yml"));
+		AchievementInventories.reload();
+		AchievementShop.reload();
 
 		new StatsCommandExecutor(this).register();
 		new AchievementCommandExecutor(this).register();
@@ -72,6 +65,7 @@ public class GCStatsTracker extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
+		StatsDatabase.getInstance().onShutDown();
 		for (RegisteredListener l : HandlerList.getRegisteredListeners(this))
 			try {
 				for (Player p : Bukkit.getOnlinePlayers())

@@ -12,10 +12,10 @@ import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.statsTracker.GCStatsTracker;
-import jdz.statsTracker.GCStatsTrackerConfig;
-import jdz.statsTracker.achievement.AchievementDatabase;
+import jdz.statsTracker.GCStats;
+import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.AchievementManager;
+import jdz.statsTracker.database.AchievementDatabase;
 
 @CommandLabel("bal")
 @CommandLabel("balance")
@@ -26,19 +26,13 @@ class CommandAchievementPoints extends SubCommand {
 
 	@Override
 	public void execute(CommandSender sender, Set<String> flags, String... args) {
-
-		if (!AchievementDatabase.getInstance().isConnected()) {
-			sender.sendMessage(ChatColor.RED + "Couldn't connect to the stats and achievements database D:");
-			return;
-		}
-
 		Player player = (Player) sender;
 
-		Bukkit.getScheduler().runTaskAsynchronously(GCStatsTracker.instance, () -> {
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 			if (args.length == 0)
 				sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
 						+ AchievementManager.getInstance().getAchievementPoints(player));
-			else if (GCStatsTrackerConfig.servers.contains(args[0].replaceAll("_", " ")))
+			else if (GCStatsConfig.servers.contains(args[0].replaceAll("_", " ")))
 				sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
 						+ AchievementDatabase.getInstance().getAchievementPoints(player, args[1]));
 			else
