@@ -42,12 +42,11 @@ public class GCStats extends JavaPlugin {
 		pm.registerEvents(StatsManager.getInstance(), this);
 		pm.registerEvents(AchievementManager.getInstance(), this);
 
-		pm.registerEvents(new AchievementInventories(), this);
+		pm.registerEvents(AchievementInventories.getInstance(), this);
 		pm.registerEvents(new AchievementShop(), this);
 
 		AchievementManager.getInstance().addFromConfig(GCStats.instance,
 				Config.getConfig(GCStats.instance, "Achievements.yml"));
-		AchievementInventories.reload();
 		AchievementShop.reload();
 
 		new StatsCommandExecutor(this).register();

@@ -38,7 +38,7 @@ public class AchievementManager implements Listener {
 
 	private final Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<Player, Set<Achievement>>();
 	private final Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<StatType, Set<StatAchievement>>();
-	@Getter private final Set<Achievement> achievements = new HashSet<Achievement>();
+	@Getter private final List<Achievement> achievements = new ArrayList<Achievement>();
 	private final Map<String, Achievement> nameToAchievement = new HashMap<String, Achievement>();
 	private final Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
 
@@ -54,6 +54,9 @@ public class AchievementManager implements Listener {
 			pluginToAchievement.put(plugin, new ArrayList<Achievement>());
 
 		for (Achievement achievement : achievements) {
+			if (achievement == null)
+				continue;
+			
 			if (nameToAchievement.containsKey(achievement.getName())) {
 				GCStats.instance.getLogger().warning("Achievement '" + achievement.getName()
 						+ "' has a conflicting name with an existing achievement, skipping");
@@ -77,7 +80,7 @@ public class AchievementManager implements Listener {
 			return;
 
 		AchievementDatabase.getInstance().addAchievements(added.toArray(new Achievement[added.size()]));
-		AchievementInventories.updateLocalAchievements();
+		AchievementInventories.getInstance().updateLocalAchievements();
 	}
 
 	public void removeAchievements(Achievement... achievements) {
@@ -86,6 +89,9 @@ public class AchievementManager implements Listener {
 		
 		this.achievements.removeAll(Arrays.asList(achievements));
 		for (Achievement achievement : achievements) {
+			if (achievement == null)
+				continue;
+			nameToAchievement.remove(achievement.getName());
 			if (achievement instanceof StatAchievement) {
 				StatType type = ((StatAchievement) achievement).getStatType();
 				this.achievementsByType.get(type).remove(achievement);
@@ -94,7 +100,7 @@ public class AchievementManager implements Listener {
 
 		for (Player player : localEarntAchievements.keySet())
 			localEarntAchievements.get(player).removeAll(Arrays.asList(achievements));
-		AchievementInventories.updateLocalAchievements();
+		AchievementInventories.getInstance().updateLocalAchievements();
 	}
 
 	public boolean isAchieved(OfflinePlayer player, Achievement achievement) {
@@ -233,24 +239,37 @@ public class AchievementManager implements Listener {
 					rewardText.add("");
 
 				boolean hidden = achConfig.getBoolean("achievements." + achievement + ".hidden", false);
-
+				boolean newLineBefore = achConfig.getBoolean("achievements."+achievement+".newLineBefore", false);
+				boolean newLineAfter = achConfig.getBoolean("achievements."+achievement+".newLineAfter", false);
+				
+				boolean isTieredQuantity = achConfig.getBoolean("achievements."+achievement+".iconQuantity", false);
+				
 				for (int i = 0; i < required.size(); i++) {
 					List<String> commands = achConfig
-							.getStringList("achievements." + achievement + ".rewardCommands." + i);
+							.getStringList("achievements." + achievement + ".rewardCommands." + (i+1));
 					List<String> messages = achConfig
-							.getStringList("achievements." + achievement + ".rewardMessages." + i);
+							.getStringList("achievements." + achievement + ".rewardMessages." + (i+1));
 
 					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i + 1));
 					Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
 							description.replaceAll("%required%", type.valueToString(required.get(i)))
 									.replaceAll("\\{required\\}", type.valueToString(required.get(i))),
 							points.get(i), rewardText.get(i), hidden);
+					
+					if (i == 0)
+						ach.setNewLineBefore(newLineBefore);
+					
+					if (i == required.size()-1)
+						ach.setNewLineAfter(newLineAfter);
 
 					if (commands != null)
 						ach.setRewardCommands(commands);
 
 					if (messages != null)
 						ach.setRewardMessages(messages);
+					
+					if (isTieredQuantity)
+						ach.setIconQuantity(i+1);
 
 					addedAchievements.add(ach);
 				}

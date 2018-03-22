@@ -34,11 +34,16 @@ public abstract class Achievement {
 
 	@NonNull @Getter private final String name;
 	@NonNull @Getter private final Material icon;
+	@Getter @Setter private int iconQuantity = 1;
+	
 	@Getter private final short iconDamage;
 	@NonNull @Getter private final String[] description;
 	@Getter private final int points;
 	@NonNull @Getter private final String[] rewardText;
 	@Getter private final boolean hidden;
+	
+	@Getter @Setter private boolean newLineBefore = false;
+	@Getter @Setter private boolean newLineAfter = false;
 
 	@Getter @Setter private boolean doFirework = true;
 
@@ -46,7 +51,7 @@ public abstract class Achievement {
 	@NonNull @Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
 
 	public Achievement(String name, Material m, short iconDamage, String description) {
-		this(name, m, iconDamage, description, 0, null, false);
+		this(name, m, iconDamage, description, 0, "", false);
 	}
 
 	public Achievement(String name, Material m, short iconDamage, String description, int points, String rewardText,

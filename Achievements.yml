@@ -10,9 +10,12 @@ achievements:
   Butcher: 
     type: Monsters killed
     icon: DIAMOND_SWORD
-    iconDamage: # can remove this if not used
+    iconDamage: 0 # can remove this if not used
+    iconQuantityTiered: true # can remove this if not used
     description: Kill %required% mobs
-    hidden: false
+    hidden: false # can remove this if not used
+    newLineBefore: false # can remove this if not used
+    newLineAfter: false # can remove this if not used
     required:
       - 10
       - 100

@@ -26,15 +26,15 @@ class CommandAchievementDefault extends SubCommand {
 		Player player = (Player) sender;
 
 		if (args.length == 0)
-			AchievementInventories.openServerAchievements(player, player);
+			AchievementInventories.getInstance().openServerAchievements(player, player);
 
 		else if (args.length == 1) {
 			if (GCStatsConfig.servers.contains(args[0]))
-				AchievementInventories.openServerAchievements(player, player, args[0]);
+				AchievementInventories.getInstance().openServerAchievements(player, player, args[0]);
 			else {
 				@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
 				if (target.hasPlayedBefore() || target.isOnline())
-					AchievementInventories.openServerAchievements(player, target);
+					AchievementInventories.getInstance().openServerAchievements(player, target);
 				else
 					sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid server or player");
 			}
@@ -48,7 +48,7 @@ class CommandAchievementDefault extends SubCommand {
 
 			@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
 			if (target.hasPlayedBefore() || target.isOnline())
-				AchievementInventories.openServerAchievements(player, target, args[0]);
+				AchievementInventories.getInstance().openServerAchievements(player, target, args[0]);
 			else
 				sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid player");
 
