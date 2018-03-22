@@ -15,6 +15,11 @@ import lombok.Getter;
 class AchievementDatabaseMulti implements AchievementDatabase {
 	@Getter private static final AchievementDatabaseMulti instance = new AchievementDatabaseMulti();
 
+	private AchievementDatabaseMulti() {
+		AchievementDatabaseYML.getInstance();
+		AchievementDatabaseSQL.getInstance();
+	}
+
 	@Override
 	public void setAchievementPoints(Player player, int points) {
 		AchievementDatabaseSQL.getInstance().setAchievementPoints(player, points);
@@ -29,12 +34,14 @@ class AchievementDatabaseMulti implements AchievementDatabase {
 
 	@Override
 	public int getAchievementPoints(OfflinePlayer player) {
+		if (AchievementDatabaseSQL.getInstance().isConnected())
+			return AchievementDatabaseSQL.getInstance().getAchievementPoints(player);
 		return AchievementDatabaseYML.getInstance().getAchievementPoints(player);
 	}
 
 	@Override
 	public int getAchievementPoints(OfflinePlayer player, String server) {
-		if (!server.equals(GCStatsConfig.serverName) && AchievementDatabaseSQL.getInstance().isConnected())
+		if (AchievementDatabaseSQL.getInstance().isConnected())
 			return AchievementDatabaseSQL.getInstance().getAchievementPoints(player, server);
 		return AchievementDatabaseYML.getInstance().getAchievementPoints(player, server);
 	}
@@ -54,6 +61,8 @@ class AchievementDatabaseMulti implements AchievementDatabase {
 
 	@Override
 	public boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
+		if (AchievementDatabaseSQL.getInstance().isConnected())
+			return AchievementDatabaseSQL.getInstance().isAchieved(offlinePlayer, a);
 		return AchievementDatabaseYML.getInstance().isAchieved(offlinePlayer, a);
 	}
 

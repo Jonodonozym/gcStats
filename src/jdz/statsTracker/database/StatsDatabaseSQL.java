@@ -15,11 +15,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.misc.StringUtils;
-import jdz.bukkitUtils.sql.Database;
 import jdz.bukkitUtils.sql.SqlColumn;
 import jdz.bukkitUtils.sql.SqlColumnType;
+import jdz.bukkitUtils.sql.SqlDatabase;
+import jdz.bukkitUtils.sql.SqlRow;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
+import jdz.statsTracker.stats.NoSaveStatType;
 import jdz.statsTracker.stats.StatType;
 import lombok.Getter;
 
@@ -28,26 +30,16 @@ import lombok.Getter;
  * 
  * @author Jonodonozym
  */
-class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
+class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsDatabase {
 	@Getter private static final StatsDatabaseSQL instance = new StatsDatabaseSQL(GCStats.instance);
 
 	private StatsDatabaseSQL(JavaPlugin plugin) {
 		super(plugin);
-		Bukkit.getPluginManager().registerEvents(StatsDatabaseSQL.getInstance(), plugin);
-		api.runOnConnect(() -> {
-			ensureCorrectTables();
-		});
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+		ensureCorrectTables();
 	}
 
 	private final String statsMetaTable = "gcs_Stat_MetaData";
-
-	public void runOnConnect(Runnable r) {
-		api.runOnConnect(r);
-	}
-
-	public boolean isConnected() {
-		return api.isConnected();
-	}
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
@@ -55,7 +47,7 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 		String update = "INSERT INTO {table} (UUID) " + "SELECT '" + player.getName() + "' FROM dual "
 				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + player.getName() + "' ) LIMIT 1;";
 		for (String server : GCStatsConfig.servers)
-			api.executeUpdateAsync(update.replaceAll("\\{table\\}", getStatTableName(server)));
+			updateAsync(update.replaceAll("\\{table\\}", getStatTableName(server)));
 	}
 
 	public void ensureCorrectTables() {
@@ -69,14 +61,14 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 				+ GCStatsConfig.serverName.replaceAll(" ", "_") + "';";
 		String newRow = "INSERT INTO " + statsMetaTable + " (server) " + " VALUES('"
 				+ GCStatsConfig.serverName.replaceAll(" ", "_") + "');";
-		api.executeUpdate(newTable);
-		api.executeUpdate(deleteOldRow);
-		api.executeUpdate(newRow);
+		update(newTable);
+		update(deleteOldRow);
+		update(newRow);
 	}
 
 	private void ensureCorrectStatTable() {
 		String update = "CREATE TABLE IF NOT EXISTS " + getStatTableName() + " (UUID varchar(127));";
-		api.executeUpdate(update);
+		update(update);
 	}
 
 	@Override
@@ -85,16 +77,16 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 		String setValue = "UPDATE " + statsMetaTable + " SET {column} = {value} WHERE server = '"
 				+ GCStatsConfig.serverName.replaceAll(" ", "_") + "';";
 
-		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores() + "_enabled", SqlColumnType.BOOLEAN));
-		api.addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores() + "_visible", SqlColumnType.BOOLEAN));
+		addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores() + "_enabled", SqlColumnType.BOOLEAN));
+		addColumn(statsMetaTable, new SqlColumn(type.getNameUnderscores() + "_visible", SqlColumnType.BOOLEAN));
 
-		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores() + "_enabled")
+		updateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores() + "_enabled")
 				.replaceAll("\\{value\\}", isEnabled + ""));
-		api.executeUpdateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores() + "_visible")
+		updateAsync(setValue.replaceAll("\\{column\\}", type.getNameUnderscores() + "_visible")
 				.replaceAll("\\{value\\}", type.isVisible() + ""));
 
 		// stat table
-		api.addColumn(getStatTableName(),
+		addColumn(getStatTableName(),
 				new SqlColumn(type.getNameUnderscores(), SqlColumnType.DOUBLE, type.getDefault() + ""));
 	}
 
@@ -109,16 +101,16 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 	@Override
 	public List<String> getEnabledStats(String server) {
 		List<String> enabledStats = new ArrayList<String>();
-		if (!api.isConnected())
+		if (!isConnected())
 			return enabledStats;
-		List<String> columns = api.getColumns(statsMetaTable);
+		List<String> columns = getColumns(statsMetaTable);
 
 		String query = "SELECT * FROM " + statsMetaTable + " WHERE server = '" + server.replaceAll(" ", "_") + "';";
-		String[] row = api.getRows(query).get(0);
+		SqlRow row = query(query).get(0);
 		int i = 0;
 		for (String s : columns) {
 			try {
-				if (Integer.parseInt(row[i++]) == 1)
+				if (Integer.parseInt(row.get(i++)) == 1)
 					if (s.endsWith("_enabled"))
 						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_enabled", "").replaceAll("_", " ")));
 			}
@@ -132,16 +124,16 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 	@Override
 	public List<String> getVisibleStats(String server) {
 		List<String> enabledStats = new ArrayList<String>();
-		if (!api.isConnected())
+		if (!isConnected())
 			return enabledStats;
-		List<String> columns = api.getColumns(statsMetaTable);
+		List<String> columns = getColumns(statsMetaTable);
 
 		String query = "SELECT * FROM " + statsMetaTable + " WHERE server = '" + server.replaceAll(" ", "_") + "';";
-		String[] row = api.getRows(query).get(0);
+		SqlRow row = query(query).get(0);
 		int i = 0;
 		for (String s : columns) {
 			try {
-				if (Integer.parseInt(row[i++]) == 1)
+				if (Integer.parseInt(row.get(i++)) == 1)
 					if (s.endsWith("_visible"))
 						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_visible", "").replaceAll("_", " ")));
 			}
@@ -154,27 +146,35 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 
 	@Override
 	public void setStat(OfflinePlayer player, StatType statType, double newValue) {
+		if (statType instanceof NoSaveStatType)
+			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " + newValue
 				+ " WHERE UUID = '" + player.getName() + "';";
-		api.executeUpdateAsync(update);
+		updateAsync(update);
 	}
 
 	@Override
 	public void addStat(OfflinePlayer player, StatType statType, double change) {
+		if (statType instanceof NoSaveStatType)
+			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = "
 				+ statType.getNameUnderscores() + " + " + change + " WHERE UUID = '" + player.getName() + "';";
-		api.executeUpdateAsync(update);
+		updateAsync(update);
 	}
 
 	@Override
 	public void setStatSync(OfflinePlayer player, StatType statType, double newValue) {
+		if (statType instanceof NoSaveStatType)
+			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " + newValue
 				+ " WHERE UUID = '" + player.getName() + "';";
-		api.executeUpdate(update);
+		update(update);
 	}
 
 	@Override
 	public double getStat(OfflinePlayer player, StatType statType) {
+		if (statType instanceof NoSaveStatType)
+			return statType.getDefault();
 		return getStat(player, statType.getNameUnderscores(), GCStatsConfig.serverName.replaceAll(" ", "_"));
 	}
 
@@ -188,25 +188,25 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 	 */
 	@Override
 	public double getStat(OfflinePlayer player, String statType, String server) {
-		if (!api.isConnected())
+		if (!isConnected())
 			return 0;
 
 		String query = "SELECT " + statType + " FROM " + getStatTableName(server) + " WHERE UUID = '" + player.getName()
 				+ "';";
-		List<String[]> values = api.getRows(query);
+		List<SqlRow> rows = query(query);
 
-		if (values.isEmpty())
+		if (rows.isEmpty())
 			return 0;
 
-		return Double.parseDouble(values.get(0)[0]);
+		return Double.parseDouble(rows.get(0).get(0));
 	}
 
 	public int getNumRows() {
-		if (!api.isConnected())
+		if (!isConnected())
 			return 0;
 
 		String query = "Select COUNT(*) FROM " + getStatTableName() + ";";
-		return Integer.parseInt(api.getRows(query).get(0)[0]);
+		return Integer.parseInt(query(query).get(0).get(0));
 	}
 
 	@Override
@@ -214,8 +214,8 @@ class StatsDatabaseSQL extends Database implements Listener, StatsDatabase {
 		String query = "Select UUID, " + type.getNameUnderscores() + " FROM " + getStatTableName() + " ORDER BY "
 				+ type.getNameUnderscores() + " DESC;";
 		LinkedHashMap<String, Double> result = new LinkedHashMap<String, Double>();
-		for (String[] row : api.getRows(query))
-			result.put(row[0], Double.parseDouble(row[1]));
+		for (SqlRow row : query(query))
+			result.put(row.get(0), Double.parseDouble(row.get(1)));
 		return result;
 	}
 

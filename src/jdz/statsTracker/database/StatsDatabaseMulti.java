@@ -14,6 +14,11 @@ import lombok.Getter;
 class StatsDatabaseMulti implements StatsDatabase {
 	@Getter private static final StatsDatabaseMulti instance = new StatsDatabaseMulti();
 
+	private StatsDatabaseMulti() {
+		StatsDatabaseYML.getInstance();
+		StatsDatabaseSQL.getInstance();
+	}
+
 	@Override
 	public void addStatType(StatType type, boolean isEnabled) {
 		StatsDatabaseYML.getInstance().addStatType(type, isEnabled);
@@ -22,14 +27,14 @@ class StatsDatabaseMulti implements StatsDatabase {
 
 	@Override
 	public List<String> getEnabledStats(String server) {
-		if (StatsDatabaseSQL.getInstance().isConnected())
+		if (!server.equals(GCStatsConfig.serverName) && StatsDatabaseSQL.getInstance().isConnected())
 			return StatsDatabaseSQL.getInstance().getEnabledStats(server);
 		return StatsDatabaseYML.getInstance().getEnabledStats(server);
 	}
 
 	@Override
 	public List<String> getVisibleStats(String server) {
-		if (StatsDatabaseSQL.getInstance().isConnected())
+		if (!server.equals(GCStatsConfig.serverName) && StatsDatabaseSQL.getInstance().isConnected())
 			return StatsDatabaseSQL.getInstance().getVisibleStats(server);
 		return StatsDatabaseYML.getInstance().getVisibleStats(server);
 	}
@@ -54,6 +59,8 @@ class StatsDatabaseMulti implements StatsDatabase {
 
 	@Override
 	public double getStat(OfflinePlayer player, StatType statType) {
+		if (StatsDatabaseSQL.getInstance().isConnected())
+			return StatsDatabaseSQL.getInstance().getStat(player, statType);
 		return StatsDatabaseYML.getInstance().getStat(player, statType);
 	}
 

@@ -18,6 +18,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
+import jdz.statsTracker.stats.NoSaveStatType;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
 import lombok.Getter;
@@ -70,16 +71,22 @@ class StatsDatabaseYML implements StatsDatabase {
 
 	@Override
 	public void setStat(OfflinePlayer player, StatType statType, double newValue) {
+		if (statType instanceof NoSaveStatType)
+			return;
 		config.set(player.getName() + "." + statType.getNameUnderscores(), newValue);
 	}
 
 	@Override
 	public void addStat(OfflinePlayer player, StatType statType, double change) {
+		if (statType instanceof NoSaveStatType)
+			return;
 		config.set(player.getName() + "." + statType.getNameUnderscores(), getStat(player, statType) + change);
 	}
 
 	@Override
 	public void setStatSync(OfflinePlayer player, StatType statType, double newValue) {
+		if (statType instanceof NoSaveStatType)
+			return;
 		setStat(player, statType, newValue);
 	}
 
@@ -98,6 +105,10 @@ class StatsDatabaseYML implements StatsDatabase {
 	@Override
 	public Map<String, Double> getAllSorted(StatType type) {
 		Map<String, Double> all = new HashMap<String, Double>();
+
+		if (type instanceof NoSaveStatType)
+			return all;
+		
 		for (String player : config.getKeys(false))
 			all.put(player, config.getDouble(player + "." + type.getNameUnderscores()));
 
