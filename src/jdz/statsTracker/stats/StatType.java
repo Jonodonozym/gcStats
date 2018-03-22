@@ -4,8 +4,6 @@ package jdz.statsTracker.stats;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.database.StatsDatabase;
-
 public interface StatType {
 	public void addPlayer(Player player, double value);
 
@@ -17,34 +15,15 @@ public interface StatType {
 
 	public String valueToString(double value);
 
-	public default String getNameUnderscores() {
-		return getName().replaceAll(" ", "_");
-	}
+	public String getNameUnderscores();
 
-	public default String getNameNoSpaces() {
-		return getName().replaceAll(" ", "");
-	}
+	public String getNameNoSpaces();
 
-	public default Integer getID() {
-		return getName().hashCode();
-	}
+	public boolean isVisible();
 
-	public default boolean isVisible() {
-		return true;
-	}
+	public double get(OfflinePlayer player);
 
-	public default double get(OfflinePlayer player) {
-		if (player.isOnline())
-			return get(player.getPlayer());
-		else
-			return StatsDatabase.getInstance().getStat(player, this);
-	}
+	public void updateDatabase(Player player);
 
-	public default void updateDatabase(Player player) {
-		StatsDatabase.getInstance().setStat(player, this, get(player));
-	}
-
-	public default double getDefault() {
-		return 0;
-	}
+	public double getDefault();
 }

@@ -11,7 +11,7 @@ import jdz.bukkitUtils.misc.TimedTask;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.event.StatChangeEvent;
 
-public abstract class HookedStatType implements StatType {
+public abstract class HookedStatType extends AbstractStatType {
 	private final Map<Player, Double> lastValues = new HashMap<Player, Double>();
 	private final TimedTask task;
 
@@ -23,7 +23,7 @@ public abstract class HookedStatType implements StatType {
 		task = new TimedTask(GCStats.instance, refreshRate, () -> {
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				double newValue = get(player);
-				double oldValue = lastValues.containsKey(player) ? 0 : lastValues.get(player);
+				double oldValue = lastValues.containsKey(player) ? lastValues.get(player) : 0;
 
 				StatChangeEvent event = new StatChangeEvent(player, this, oldValue, newValue);
 				event.call();
@@ -47,17 +47,5 @@ public abstract class HookedStatType implements StatType {
 	public double removePlayer(Player player) {
 		lastValues.remove(player);
 		return get(player);
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if (!(other instanceof StatType))
-			return false;
-		return ((StatType) other).getID() == getID();
-	}
-
-	@Override
-	public int hashCode() {
-		return getID();
 	}
 }

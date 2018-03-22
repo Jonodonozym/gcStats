@@ -71,6 +71,9 @@ public class StatsManager implements Listener {
 		ExecutorService es = Executors.newFixedThreadPool(statTypes.length);
 
 		for (StatType statType : statTypes) {
+			if (statType == null)
+				continue;
+			
 			if (enabledStats.contains(statType)) {
 				Bukkit.getLogger().warning("Stat type " + statType.getName() + " already registered!");
 				continue;
@@ -110,6 +113,8 @@ public class StatsManager implements Listener {
 			return;
 		
 		for (StatType statType : statTypes) {
+			if (statType == null)
+				continue;
 
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {

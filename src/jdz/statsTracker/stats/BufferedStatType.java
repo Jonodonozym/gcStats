@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.database.StatsDatabase;
 
-public abstract class BufferedStatType implements StatType, Listener {
+public abstract class BufferedStatType extends AbstractStatType implements Listener {
 	private final Map<Player, Double> onlinePlayerStats = new HashMap<Player, Double>();
 
 	@Override
@@ -33,12 +33,6 @@ public abstract class BufferedStatType implements StatType, Listener {
 		return onlinePlayerStats.get(player);
 	}
 
-	@Override
-	public abstract String getName();
-
-	@Override
-	public abstract String valueToString(double value);
-
 	public void add(OfflinePlayer player, double amount) {
 		if (player.isOnline())
 			add(player.getPlayer(), amount);
@@ -58,29 +52,12 @@ public abstract class BufferedStatType implements StatType, Listener {
 	}
 
 	public void set(Player player, double value) {
-		double oldValue = onlinePlayerStats.get(player);
+		double oldValue = onlinePlayerStats.containsKey(player)?onlinePlayerStats.get(player):value;
 		if (oldValue != value) {
 			StatChangeEvent event = new StatChangeEvent(player, this, oldValue, value);
 			event.call();
 			if (!event.isCancelled())
 				onlinePlayerStats.put(player, value);
 		}
-	}
-
-	@Override
-	public String getNameUnderscores() {
-		return getName().replaceAll(" ", "_");
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if (!(other instanceof StatType))
-			return false;
-		return ((StatType) other).getID() == getID();
-	}
-
-	@Override
-	public int hashCode() {
-		return getID();
 	}
 }
