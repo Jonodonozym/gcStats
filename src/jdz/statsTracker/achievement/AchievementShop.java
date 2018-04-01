@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.bukkitUtils.fileIO.FileExporter;
+import jdz.bukkitUtils.misc.utils.ColorUtils;
 import jdz.statsTracker.GCStats;
 
 public class AchievementShop implements Listener {
@@ -200,7 +201,7 @@ public class AchievementShop implements Listener {
 			if (shopConfig.contains(key + ".ItemData"))
 				data = shopConfig.getInt(key + ".ItemData");
 			if (shopConfig.contains(key + ".CustomName"))
-				customName = shopConfig.getString(key + ".CustomName").replaceAll("&", "§");
+				customName = ColorUtils.translate(shopConfig.getString(key + ".CustomName"));
 			if (shopConfig.contains(key + ".ItemLore"))
 				lore = shopConfig.getStringList(key + ".ItemLore");
 
@@ -245,7 +246,7 @@ public class AchievementShop implements Listener {
 				messages = shopConfig.getStringList(key + ".PlayerMessages");
 
 			for (int i = 0; i < messages.size(); i++)
-				messages.set(0, messages.get(i).replaceAll("&([0-9a-f])", "\u00A7$1"));
+				messages.set(0, ColorUtils.translate(messages.get(i)));
 
 			List<ItemStack> extraItems = new ArrayList<ItemStack>();
 			if (shopConfig.contains(key + ".ExtraItems")) {

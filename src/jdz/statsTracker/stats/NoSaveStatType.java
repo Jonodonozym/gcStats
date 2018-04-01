@@ -13,6 +13,11 @@ public abstract class NoSaveStatType extends BufferedStatType {
 	}
 
 	@Override
+	public double removePlayer(Player player) {
+		return get(player);
+	}
+
+	@Override
 	public void set(OfflinePlayer player, double amount) {
 		if (player.isOnline())
 			set(player.getPlayer(), amount);

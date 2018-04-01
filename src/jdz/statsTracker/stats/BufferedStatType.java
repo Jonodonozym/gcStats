@@ -3,6 +3,7 @@ package jdz.statsTracker.stats;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -12,25 +13,25 @@ import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.database.StatsDatabase;
 
 public abstract class BufferedStatType extends AbstractStatType implements Listener {
-	private final Map<Player, Double> onlinePlayerStats = new HashMap<Player, Double>();
+	private final Map<UUID, Double> onlinePlayerStats = new HashMap<UUID, Double>();
 
 	@Override
 	public void addPlayer(Player player, double value) {
-		onlinePlayerStats.put(player, value);
+		onlinePlayerStats.put(player.getUniqueId(), value);
 	}
 
 	@Override
 	public double removePlayer(Player player) {
 		double value = get(player);
-		onlinePlayerStats.remove(player);
+		onlinePlayerStats.remove(player.getUniqueId());
 		return value;
 	}
 
 	@Override
 	public double get(Player player) {
-		if (!onlinePlayerStats.containsKey(player))
+		if (!onlinePlayerStats.containsKey(player.getUniqueId()))
 			return 0;
-		return onlinePlayerStats.get(player);
+		return onlinePlayerStats.get(player.getUniqueId());
 	}
 
 	public void add(OfflinePlayer player, double amount) {
@@ -52,12 +53,12 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 	}
 
 	public void set(Player player, double value) {
-		double oldValue = onlinePlayerStats.containsKey(player)?onlinePlayerStats.get(player):value;
+		double oldValue = onlinePlayerStats.containsKey(player.getUniqueId())?onlinePlayerStats.get(player.getUniqueId()):value;
 		if (oldValue != value) {
 			StatChangeEvent event = new StatChangeEvent(player, this, oldValue, value);
 			event.call();
 			if (!event.isCancelled())
-				onlinePlayerStats.put(player, value);
+				onlinePlayerStats.put(player.getUniqueId(), value);
 		}
 	}
 }

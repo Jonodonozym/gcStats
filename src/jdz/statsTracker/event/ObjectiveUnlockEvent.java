@@ -5,17 +5,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 import jdz.bukkitUtils.events.Event;
-import jdz.statsTracker.achievement.Achievement;
+import jdz.statsTracker.objective.Objective;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AchievementUnlockEvent extends Event {
-	private final Achievement achievement;
+public class ObjectiveUnlockEvent extends Event{
+	private final Objective objective;
 	private final Player player;
 
 	public static HandlerList getHandlerList() {
-		return getHandlers(AchievementUnlockEvent.class);
+		return getHandlers(ObjectiveUnlockEvent.class);
 	}
 }

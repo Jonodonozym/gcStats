@@ -35,13 +35,13 @@ public abstract class Achievement {
 	@NonNull @Getter private final String name;
 	@NonNull @Getter private final Material icon;
 	@Getter @Setter private int iconQuantity = 1;
-	
+
 	@Getter private final short iconDamage;
 	@NonNull @Getter private final String[] description;
 	@Getter private final int points;
 	@NonNull @Getter private final String[] rewardText;
 	@Getter private final boolean hidden;
-	
+
 	@Getter @Setter private boolean newLineBefore = false;
 	@Getter @Setter private boolean newLineAfter = false;
 
@@ -99,7 +99,10 @@ public abstract class Achievement {
 			for (String s : rewardMessages)
 				p.sendMessage(ChatColor.GREEN + s);
 		}
-		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
+		try {
+			p.playSound(p.getLocation(), Sound.NOTE_PLING, 10, 1);
+		}
+		catch (NoSuchFieldError e) {}
 	}
 
 	public void giveRewards(Player p) {

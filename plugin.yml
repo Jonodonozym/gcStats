@@ -23,6 +23,9 @@ commands:
       /gcs (player) - shows stats for another player
       /gcs (player) (server) - shows stats for another player on another server
       /gcs about - info about the plugin
+  gco:
+    description: Displays your current objectives
+    aliases: [objectives, objective, obj]
       
 permissions:
   gcs.top:
