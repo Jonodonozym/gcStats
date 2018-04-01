@@ -60,6 +60,10 @@ public class StatsManager implements Listener {
 				return statType;
 		return null;
 	}
+	
+	public List<StatType> getTypes(Plugin plugin) {
+		return pluginToStat.get(plugin);
+	}
 
 	public void addTypes(Plugin plugin, StatType... statTypes) {
 		if (statTypes == null || statTypes.length == 0)

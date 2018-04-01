@@ -44,7 +44,11 @@ public class ObjectivesCommand extends Command {
 		int completed = objectives.size() - lockedObjectives.size();
 
 		player.sendMessage(GREEN + "You have completed " + completed + " / " + objectives.size() + " objectives: ");
-		for (Objective objective : Objective.getObjectives(player)) {
+		displayObjectives(player, unlockedObjectivesShown?objectives:lockedObjectives);
+	}
+	
+	public static void displayObjectives(Player player, Set<Objective> objectives) {
+		for (Objective objective : objectives) {
 			String message = "\t- " + (objective.isUnlocked(player) ? GREEN : RED);
 			if (!objective.getName().equals(""))
 				message += objective.getName() + ": ";

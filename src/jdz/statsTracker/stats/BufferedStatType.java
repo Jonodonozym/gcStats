@@ -13,7 +13,7 @@ import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.database.StatsDatabase;
 
 public abstract class BufferedStatType extends AbstractStatType implements Listener {
-	private final Map<UUID, Double> onlinePlayerStats = new HashMap<UUID, Double>();
+	protected final Map<UUID, Double> onlinePlayerStats = new HashMap<UUID, Double>();
 
 	@Override
 	public void addPlayer(Player player, double value) {
@@ -30,7 +30,7 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 	@Override
 	public double get(Player player) {
 		if (!onlinePlayerStats.containsKey(player.getUniqueId()))
-			return 0;
+			return getDefault();
 		return onlinePlayerStats.get(player.getUniqueId());
 	}
 
