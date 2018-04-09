@@ -42,6 +42,7 @@ public class ObjectiveManager implements Listener {
 	private static final Map<Plugin, Set<Objective>> pluginToObjectives = new HashMap<Plugin, Set<Objective>>();
 
 	@Setter private static boolean unlockedObjectivesShown = true;
+	@Setter private static boolean objectiveNamesShown = true;
 
 	static Objective registerObjective(Plugin plugin, Objective objective) {
 		if (!pluginToObjectives.containsKey(plugin))
@@ -67,6 +68,7 @@ public class ObjectiveManager implements Listener {
 
 		for (UUID uuid : objective.getPlayers())
 			objective.removePlayer(Bukkit.getOfflinePlayer(uuid));
+		
 		if (objective instanceof StatObjective)
 			StatObjectiveListener.remove((StatObjective) objective);
 	}
@@ -80,10 +82,9 @@ public class ObjectiveManager implements Listener {
 	public static void reset(Plugin plugin) {
 		if (pluginToObjectives.containsKey(plugin)) {
 			Set<NoSaveStatType> types = new HashSet<NoSaveStatType>();
-			for (Objective o : pluginToObjectives.get(plugin)) {
+			for (Objective o : pluginToObjectives.get(plugin))
 				if (o instanceof StatObjective)
 					types.add(((StatObjective) o).getStatType());
-			}
 			for (NoSaveStatType type : types)
 				type.resetAll();
 		}
@@ -111,7 +112,7 @@ public class ObjectiveManager implements Listener {
 	public static void displayObjectives(Player player, List<Objective> objectives) {
 		for (Objective objective : objectives) {
 			String message = "    - " + (objective.isUnlocked(player) ? GREEN : RED);
-			if (!objective.getName().equals(""))
+			if (objectiveNamesShown)
 				message += objective.getName() + ": ";
 			message += objective.getDescription();
 
