@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ObjectiveUnlockEvent extends Event{
+public class ObjectiveUnlockEvent extends Event {
 	private final Objective objective;
 	private final Player player;
 

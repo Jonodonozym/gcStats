@@ -31,12 +31,12 @@ public abstract class NoSaveStatType extends BufferedStatType {
 			return get(player.getPlayer());
 		return getDefault();
 	}
-	
+
 	public void resetAll() {
-		for (UUID uuid: onlinePlayerStats.keySet())
+		for (UUID uuid : onlinePlayerStats.keySet())
 			onlinePlayerStats.put(uuid, getDefault());
 	}
 
 	@Override
-	public void updateDatabase(Player player) { }
+	public void updateDatabase(Player player) {}
 }

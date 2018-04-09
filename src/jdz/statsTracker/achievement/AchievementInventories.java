@@ -86,14 +86,14 @@ public class AchievementInventories implements Listener {
 	}
 
 	private void addEmptySlots(List<Achievement> achievements) {
-	    for (int index = 0; index < achievements.size(); index++) {
-	    	Achievement a = achievements.get(index);
+		for (int index = 0; index < achievements.size(); index++) {
+			Achievement a = achievements.get(index);
 			if (a.isNewLineBefore())
 				for (int i = index % 9; i < 9; i++)
 					achievements.add(index, emptyAchievement);
 			if (a.isNewLineAfter())
 				for (int i = index % 9 + 1; i < 9; i++)
-					achievements.add(index+1, emptyAchievement);
+					achievements.add(index + 1, emptyAchievement);
 		}
 	}
 

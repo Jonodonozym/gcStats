@@ -108,7 +108,7 @@ class StatsDatabaseYML implements StatsDatabase {
 
 		if (type instanceof NoSaveStatType)
 			return all;
-		
+
 		for (String player : config.getKeys(false))
 			all.put(player, config.getDouble(player + "." + type.getNameUnderscores()));
 

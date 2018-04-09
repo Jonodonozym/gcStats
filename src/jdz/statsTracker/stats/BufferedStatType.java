@@ -53,7 +53,9 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 	}
 
 	public void set(Player player, double value) {
-		double oldValue = onlinePlayerStats.containsKey(player.getUniqueId())?onlinePlayerStats.get(player.getUniqueId()):value;
+		double oldValue = onlinePlayerStats.containsKey(player.getUniqueId())
+				? onlinePlayerStats.get(player.getUniqueId())
+				: value;
 		if (oldValue != value) {
 			StatChangeEvent event = new StatChangeEvent(player, this, oldValue, value);
 			event.call();

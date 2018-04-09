@@ -1,26 +1,30 @@
 
 package jdz.statsTracker.objective;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+import jdz.statsTracker.event.ObjectiveUnlockEvent;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class AbstractObjective implements Objective{
-	protected static final Map<UUID, Set<Objective>> playerToObjective = new HashMap<UUID, Set<Objective>>();
+class AbstractObjective implements Objective {
+	private static final Map<UUID, List<Objective>> playerToObjective = new HashMap<UUID, List<Objective>>();
 
-	public static Set<Objective> getObjectives(Player player) {
+	public static List<Objective> getObjectives(OfflinePlayer player) {
 		if (!playerToObjective.containsKey(player.getUniqueId()))
-			return new HashSet<Objective>();
+			return new ArrayList<Objective>();
 		return playerToObjective.get(player.getUniqueId());
 	}
 
@@ -32,31 +36,50 @@ class AbstractObjective implements Objective{
 
 	private String rewardText = "";
 
-	public void addPlayer(Player player) {
+	@Override
+	public void addPlayer(OfflinePlayer player) {
 		if (!playerToObjective.containsKey(player.getUniqueId()))
-			playerToObjective.put(player.getUniqueId(), new HashSet<Objective>());
+			playerToObjective.put(player.getUniqueId(), new ArrayList<Objective>());
+		playerToObjective.get(player.getUniqueId()).add(this);
 		players.add(player.getUniqueId());
 	}
 
-	public void removePlayer(Player player) {
-		players.remove(player.getUniqueId());
+	@Override
+	public void removePlayer(OfflinePlayer player) {
 		if (playerToObjective.containsKey(player.getUniqueId()))
 			playerToObjective.get(player.getUniqueId()).remove(this);
+		players.remove(player.getUniqueId());
 		unlockedPlayers.remove(player.getUniqueId());
 	}
-	
+
 	void setUnlocked(Player player) {
 		setUnlocked(player, true);
 	}
-	
+
 	void setUnlocked(Player player, boolean unlocked) {
-		if (unlocked)
-			unlockedPlayers.add(player.getUniqueId());
+		if (unlocked) {
+			if (unlockedPlayers.add(player.getUniqueId()))
+				new ObjectiveUnlockEvent(this, player).call();
+		}
 		else
 			unlockedPlayers.remove(player.getUniqueId());
 	}
 
-	public boolean isUnlocked(Player player) {
+	@Override
+	public boolean isUnlocked(OfflinePlayer player) {
 		return unlockedPlayers.contains(player.getUniqueId());
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof AbstractObjective)
+			if (((AbstractObjective) other).getName().equals(name))
+				return true;
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
 	}
 }

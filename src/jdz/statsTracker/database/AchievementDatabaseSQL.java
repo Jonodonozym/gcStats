@@ -138,7 +138,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 					+ "','"
 					+ (a instanceof StatAchievement ? ((StatAchievement) a).getStatType().getNameUnderscores() : "null")
 					+ "'," + (a instanceof StatAchievement ? ((StatAchievement) a).getRequired() : "0") + ","
-					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + ","+a.getIconQuantity()+",'"
+					+ a.getPoints() + ",'" + a.getIcon() + "'," + a.getIconDamage() + "," + a.getIconQuantity() + ",'"
 					+ StringUtils.arrayToString(a.getDescription(), 0, "\n") + "','"
 					+ StringUtils.arrayToString(a.getRewardText(), 0, "\n") + "'," + a.isHidden() + ","
 					+ a.isNewLineAfter() + "," + a.isNewLineBefore() + ");";

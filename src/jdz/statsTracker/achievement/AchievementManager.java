@@ -47,16 +47,16 @@ public class AchievementManager implements Listener {
 	public void addAchievements(Plugin plugin, Achievement... achievements) {
 		if (achievements == null || achievements.length == 0)
 			return;
-		
+
 		List<Achievement> added = new ArrayList<Achievement>();
-		
+
 		if (!pluginToAchievement.containsKey(plugin))
 			pluginToAchievement.put(plugin, new ArrayList<Achievement>());
 
 		for (Achievement achievement : achievements) {
 			if (achievement == null)
 				continue;
-			
+
 			if (nameToAchievement.containsKey(achievement.getName())) {
 				GCStats.instance.getLogger().warning("Achievement '" + achievement.getName()
 						+ "' has a conflicting name with an existing achievement, skipping");
@@ -86,7 +86,7 @@ public class AchievementManager implements Listener {
 	public void removeAchievements(Achievement... achievements) {
 		if (achievements == null || achievements.length == 0)
 			return;
-		
+
 		this.achievements.removeAll(Arrays.asList(achievements));
 		for (Achievement achievement : achievements) {
 			if (achievement == null)
@@ -158,7 +158,7 @@ public class AchievementManager implements Listener {
 			return;
 		List<Achievement> achievements = pluginToAchievement.remove(event.getPlugin());
 		removeAchievements(achievements.toArray(new Achievement[achievements.size()]));
-		GCStats.getInstance().getLogger().info(achievements.size()+" Achievements unregistered");
+		GCStats.getInstance().getLogger().info(achievements.size() + " Achievements unregistered");
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -239,27 +239,27 @@ public class AchievementManager implements Listener {
 					rewardText.add("");
 
 				boolean hidden = achConfig.getBoolean("achievements." + achievement + ".hidden", false);
-				boolean newLineBefore = achConfig.getBoolean("achievements."+achievement+".newLineBefore", false);
-				boolean newLineAfter = achConfig.getBoolean("achievements."+achievement+".newLineAfter", false);
-				
-				boolean isTieredQuantity = achConfig.getBoolean("achievements."+achievement+".iconQuantity", false);
-				
+				boolean newLineBefore = achConfig.getBoolean("achievements." + achievement + ".newLineBefore", false);
+				boolean newLineAfter = achConfig.getBoolean("achievements." + achievement + ".newLineAfter", false);
+
+				boolean isTieredQuantity = achConfig.getBoolean("achievements." + achievement + ".iconQuantity", false);
+
 				for (int i = 0; i < required.size(); i++) {
 					List<String> commands = achConfig
-							.getStringList("achievements." + achievement + ".rewardCommands." + (i+1));
+							.getStringList("achievements." + achievement + ".rewardCommands." + (i + 1));
 					List<String> messages = achConfig
-							.getStringList("achievements." + achievement + ".rewardMessages." + (i+1));
+							.getStringList("achievements." + achievement + ".rewardMessages." + (i + 1));
 
 					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i + 1));
 					Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
 							description.replaceAll("%required%", type.valueToString(required.get(i)))
 									.replaceAll("\\{required\\}", type.valueToString(required.get(i))),
 							points.get(i), rewardText.get(i), hidden);
-					
+
 					if (i == 0)
 						ach.setNewLineBefore(newLineBefore);
-					
-					if (i == required.size()-1)
+
+					if (i == required.size() - 1)
 						ach.setNewLineAfter(newLineAfter);
 
 					if (commands != null)
@@ -267,9 +267,9 @@ public class AchievementManager implements Listener {
 
 					if (messages != null)
 						ach.setRewardMessages(messages);
-					
+
 					if (isTieredQuantity)
-						ach.setIconQuantity(i+1);
+						ach.setIconQuantity(i + 1);
 
 					addedAchievements.add(ach);
 				}

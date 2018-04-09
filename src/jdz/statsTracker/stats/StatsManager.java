@@ -60,7 +60,7 @@ public class StatsManager implements Listener {
 				return statType;
 		return null;
 	}
-	
+
 	public List<StatType> getTypes(Plugin plugin) {
 		return pluginToStat.get(plugin);
 	}
@@ -68,7 +68,7 @@ public class StatsManager implements Listener {
 	public void addTypes(Plugin plugin, StatType... statTypes) {
 		if (statTypes == null || statTypes.length == 0)
 			return;
-		
+
 		if (!pluginToStat.containsKey(plugin))
 			pluginToStat.put(plugin, new ArrayList<StatType>());
 
@@ -77,7 +77,7 @@ public class StatsManager implements Listener {
 		for (StatType statType : statTypes) {
 			if (statType == null)
 				continue;
-			
+
 			if (enabledStats.contains(statType)) {
 				Bukkit.getLogger().warning("Stat type " + statType.getName() + " already registered!");
 				continue;
@@ -106,7 +106,7 @@ public class StatsManager implements Listener {
 			es.awaitTermination(1, TimeUnit.MINUTES);
 		}
 		catch (InterruptedException e) {
-			new FileLogger((JavaPlugin)plugin).createErrorLog(e);
+			new FileLogger((JavaPlugin) plugin).createErrorLog(e);
 		}
 
 		Collections.sort(enabledStatsList, comparator);
@@ -115,16 +115,18 @@ public class StatsManager implements Listener {
 	public void removeTypes(StatType... statTypes) {
 		if (statTypes == null || statTypes.length == 0)
 			return;
-		
+
 		for (StatType statType : statTypes) {
 			if (statType == null)
 				continue;
 
-			for (Player player : Bukkit.getOnlinePlayers()) {
-				Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
-					StatsDatabase.getInstance().setStat(player, statType, statType.removePlayer(player));
-				});
-			}
+
+			if (!(statType instanceof NoSaveStatType))
+				for (Player player : Bukkit.getOnlinePlayers()) {
+					Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
+						StatsDatabase.getInstance().setStat(player, statType, statType.removePlayer(player));
+					});
+				}
 
 			if (statType instanceof Listener)
 				HandlerList.unregisterAll((Listener) statType);
@@ -143,7 +145,7 @@ public class StatsManager implements Listener {
 			return;
 		List<StatType> types = pluginToStat.remove(event.getPlugin());
 		removeTypes(types.toArray(new StatType[types.size()]));
-		GCStats.getInstance().getLogger().info(types.size()+" Stat Types unregistered");
+		GCStats.getInstance().getLogger().info(types.size() + " Stat Types unregistered");
 	}
 
 	public void loadDefaultStats() {
@@ -185,6 +187,8 @@ public class StatsManager implements Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		for (StatType statType : StatsManager.getInstance().enabledStats())
-			StatsDatabase.getInstance().setStat(e.getPlayer(), statType, statType.removePlayer(e.getPlayer()));
+			if (statType.get(e.getPlayer()) != statType.getDefault())
+				if (!(statType instanceof NoSaveStatType))
+					StatsDatabase.getInstance().setStat(e.getPlayer(), statType, statType.removePlayer(e.getPlayer()));
 	}
 }

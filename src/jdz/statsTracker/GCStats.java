@@ -18,6 +18,7 @@ import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.hooks.PlaceholderHook;
+import jdz.statsTracker.objective.ObjectivesCommand;
 import jdz.statsTracker.stats.StatsManager;
 import lombok.Getter;
 import jdz.statsTracker.database.StatsDatabase;
@@ -51,6 +52,7 @@ public class GCStats extends JavaPlugin {
 
 		new StatsCommandExecutor(this).register();
 		new AchievementCommandExecutor(this).register();
+		ObjectivesCommand.getInstance().register(this);
 
 		for (RegisteredListener l : HandlerList.getRegisteredListeners(this))
 			try {
