@@ -13,9 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -66,8 +64,7 @@ public class ObjectiveManager implements Listener {
 		for (Plugin plugin : pluginToObjectives.keySet())
 			pluginToObjectives.get(plugin).remove(objective);
 
-		for (UUID uuid : objective.getPlayers())
-			objective.removePlayer(Bukkit.getOfflinePlayer(uuid));
+		((AbstractObjective)objective).removeAllPlayers();
 		
 		if (objective instanceof StatObjective)
 			StatObjectiveListener.remove((StatObjective) objective);

@@ -12,7 +12,7 @@ import jdz.statsTracker.achievement.Achievement;
 
 public interface AchievementDatabase {
 	public static AchievementDatabase getInstance() {
-		return AchievementDatabaseMulti.getInstance();
+		return AchievementDatabaseSQL.getInstance();
 	}
 
 	public void setAchievementPoints(Player player, int points);

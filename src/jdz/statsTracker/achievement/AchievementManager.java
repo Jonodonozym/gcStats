@@ -79,6 +79,8 @@ public class AchievementManager implements Listener {
 		if (added.isEmpty())
 			return;
 
+		for (Player player: Bukkit.getOnlinePlayers())
+			loadAchievements(player, Arrays.asList(achievements));
 		AchievementDatabase.getInstance().addAchievements(added.toArray(new Achievement[added.size()]));
 		AchievementInventories.getInstance().updateLocalAchievements();
 	}
@@ -164,17 +166,22 @@ public class AchievementManager implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
-		localEarntAchievements.put(player, new HashSet<Achievement>());
+		loadAchievements(e.getPlayer(), achievements);
+
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
+			achievementPoints.put(player, AchievementDatabase.getInstance().getAchievementPoints(player));
+		});
+	}
+	
+	private void loadAchievements(Player player, List<Achievement> achievements) {
+		if (!localEarntAchievements.containsKey(player))
+			localEarntAchievements.put(player, new HashSet<Achievement>());
 
 		for (Achievement a : achievements)
 			Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
 				if (AchievementDatabase.getInstance().isAchieved(player, a))
 					localEarntAchievements.get(player).add(a);
 			});
-
-		Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
-			achievementPoints.put(player, AchievementDatabase.getInstance().getAchievementPoints(player));
-		});
 	}
 
 	@EventHandler
@@ -197,90 +204,93 @@ public class AchievementManager implements Listener {
 	public List<Achievement> getFromConfig(FileConfiguration achConfig) {
 		List<Achievement> addedAchievements = new ArrayList<Achievement>();
 
-		for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false)) {
-			try {
-				String typeName = achConfig.getString("achievements." + achievement + ".type");
-				StatType type = StatsManager.getInstance().getType(typeName);
-
-				if (!StatsManager.getInstance().enabledStats().contains(type)) {
-					GCStats.instance.getLogger().info("achievement " + achievement + " stat type '" + typeName
-							+ "' is disabled in config.yml, skipping...");
-					continue;
-				}
-
-				String description = achConfig.getString("achievements." + achievement + ".description");
-
-				Material m = Material.GRASS;
+		if (achConfig.contains("achievements"))
+			for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false)) {
 				try {
-					m = Material.valueOf(achConfig.getString("achievements." + achievement + ".icon"));
+					String typeName = achConfig.getString("achievements." + achievement + ".type");
+					StatType type = StatsManager.getInstance().getType(typeName);
+
+					if (!StatsManager.getInstance().enabledStats().contains(type)) {
+						GCStats.instance.getLogger().info("achievement " + achievement + " stat type '" + typeName
+								+ "' is disabled in config.yml, skipping...");
+						continue;
+					}
+
+					String description = achConfig.getString("achievements." + achievement + ".description");
+
+					Material m = Material.GRASS;
+					try {
+						m = Material.valueOf(achConfig.getString("achievements." + achievement + ".icon"));
+					}
+					catch (Exception e) {}
+					short iconDamage = (short) achConfig.getInt("achievements." + achievement + ".iconDamage", 0);
+
+					List<Double> required = achConfig.getDoubleList("achievements." + achievement + ".required");
+					List<Integer> points = achConfig.getIntegerList("achievements." + achievement + ".points");
+					List<String> rewardText = achConfig.getStringList("achievements." + achievement + ".rewardText");
+
+					if (required == null || required.isEmpty()) {
+						required = new ArrayList<Double>();
+						required.add(achConfig.getDouble("achievements." + achievement + ".required"));
+					}
+					if (points == null || points.isEmpty()) {
+						points = new ArrayList<Integer>();
+						points.add(achConfig.getInt("achievements." + achievement + ".points"));
+					}
+					if (rewardText == null || rewardText.isEmpty()) {
+						rewardText = new ArrayList<String>();
+						rewardText.add(achConfig.getString("achievements." + achievement + ".rewardText"));
+					}
+					while (points.size() < required.size())
+						points.add(0);
+					while (rewardText.size() < required.size())
+						rewardText.add("");
+
+					boolean hidden = achConfig.getBoolean("achievements." + achievement + ".hidden", false);
+					boolean newLineBefore = achConfig.getBoolean("achievements." + achievement + ".newLineBefore",
+							false);
+					boolean newLineAfter = achConfig.getBoolean("achievements." + achievement + ".newLineAfter", false);
+
+					boolean isTieredQuantity = achConfig.getBoolean("achievements." + achievement + ".iconQuantity",
+							false);
+
+					for (int i = 0; i < required.size(); i++) {
+						List<String> commands = achConfig
+								.getStringList("achievements." + achievement + ".rewardCommands." + (i + 1));
+						List<String> messages = achConfig
+								.getStringList("achievements." + achievement + ".rewardMessages." + (i + 1));
+
+						String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i + 1));
+						Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
+								description.replaceAll("%required%", type.valueToString(required.get(i)))
+										.replaceAll("\\{required\\}", type.valueToString(required.get(i))),
+								points.get(i), rewardText.get(i), hidden);
+
+						if (i == 0)
+							ach.setNewLineBefore(newLineBefore);
+
+						if (i == required.size() - 1)
+							ach.setNewLineAfter(newLineAfter);
+
+						if (commands != null)
+							ach.setRewardCommands(commands);
+
+						if (messages != null)
+							ach.setRewardMessages(messages);
+
+						if (isTieredQuantity)
+							ach.setIconQuantity(i + 1);
+
+						addedAchievements.add(ach);
+					}
+
 				}
-				catch (Exception e) {}
-				short iconDamage = (short) achConfig.getInt("achievements." + achievement + ".iconDamage", 0);
-
-				List<Double> required = achConfig.getDoubleList("achievements." + achievement + ".required");
-				List<Integer> points = achConfig.getIntegerList("achievements." + achievement + ".points");
-				List<String> rewardText = achConfig.getStringList("achievements." + achievement + ".rewardText");
-
-				if (required == null || required.isEmpty()) {
-					required = new ArrayList<Double>();
-					required.add(achConfig.getDouble("achievements." + achievement + ".required"));
+				catch (Exception e) {
+					GCStats.instance.getLogger().info("achievement " + achievement
+							+ " has invalid configuration, check the error log for details");
+					new FileLogger(GCStats.instance).createErrorLog(e);
 				}
-				if (points == null || points.isEmpty()) {
-					points = new ArrayList<Integer>();
-					points.add(achConfig.getInt("achievements." + achievement + ".points"));
-				}
-				if (rewardText == null || rewardText.isEmpty()) {
-					rewardText = new ArrayList<String>();
-					rewardText.add(achConfig.getString("achievements." + achievement + ".rewardText"));
-				}
-				while (points.size() < required.size())
-					points.add(0);
-				while (rewardText.size() < required.size())
-					rewardText.add("");
-
-				boolean hidden = achConfig.getBoolean("achievements." + achievement + ".hidden", false);
-				boolean newLineBefore = achConfig.getBoolean("achievements." + achievement + ".newLineBefore", false);
-				boolean newLineAfter = achConfig.getBoolean("achievements." + achievement + ".newLineAfter", false);
-
-				boolean isTieredQuantity = achConfig.getBoolean("achievements." + achievement + ".iconQuantity", false);
-
-				for (int i = 0; i < required.size(); i++) {
-					List<String> commands = achConfig
-							.getStringList("achievements." + achievement + ".rewardCommands." + (i + 1));
-					List<String> messages = achConfig
-							.getStringList("achievements." + achievement + ".rewardMessages." + (i + 1));
-
-					String name = achievement + (required.size() == 1 ? "" : " " + RomanNumber.of(i + 1));
-					Achievement ach = new StatAchievement(name, type, required.get(i), m, iconDamage,
-							description.replaceAll("%required%", type.valueToString(required.get(i)))
-									.replaceAll("\\{required\\}", type.valueToString(required.get(i))),
-							points.get(i), rewardText.get(i), hidden);
-
-					if (i == 0)
-						ach.setNewLineBefore(newLineBefore);
-
-					if (i == required.size() - 1)
-						ach.setNewLineAfter(newLineAfter);
-
-					if (commands != null)
-						ach.setRewardCommands(commands);
-
-					if (messages != null)
-						ach.setRewardMessages(messages);
-
-					if (isTieredQuantity)
-						ach.setIconQuantity(i + 1);
-
-					addedAchievements.add(ach);
-				}
-
 			}
-			catch (Exception e) {
-				GCStats.instance.getLogger().info(
-						"achievement " + achievement + " has invalid configuration, check the error log for details");
-				new FileLogger(GCStats.instance).createErrorLog(e);
-			}
-		}
 
 		return addedAchievements;
 	}

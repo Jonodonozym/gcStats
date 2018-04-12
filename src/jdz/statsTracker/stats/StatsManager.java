@@ -52,6 +52,12 @@ public class StatsManager implements Listener {
 	public List<StatType> enabledStatsSorted() {
 		return Collections.unmodifiableList(enabledStatsList);
 	}
+	
+	public List<StatType> enabledStats(Plugin plugin){
+		if (!pluginToStat.containsKey(plugin))
+			return Collections.unmodifiableList(new ArrayList<StatType>());
+		return Collections.unmodifiableList(pluginToStat.get(plugin));
+	}
 
 	public StatType getType(String name) {
 		name = name.replaceAll("_", "").replaceAll(" ", "");

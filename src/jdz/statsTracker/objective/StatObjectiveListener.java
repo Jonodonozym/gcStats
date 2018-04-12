@@ -38,7 +38,7 @@ class StatObjectiveListener implements Listener {
 			for (StatObjective objective : typeToObjectives.get(event.getType()))
 				if (objective.getPlayers().contains(event.getPlayer().getUniqueId()))
 					if (!objective.isUnlocked(event.getPlayer())
-							&& objective.getRequired() <= event.getType().get(event.getPlayer()))
+							&& objective.getRequired() <= event.getNewValue())
 						objective.setUnlocked(event.getPlayer());
 	}
 }

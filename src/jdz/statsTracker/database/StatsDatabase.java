@@ -10,7 +10,7 @@ import jdz.statsTracker.stats.StatType;
 
 public interface StatsDatabase {
 	public static StatsDatabase getInstance() {
-		return StatsDatabaseMulti.getInstance();
+		return StatsDatabaseSQL.getInstance();
 	}
 
 	public void addStatType(StatType type, boolean isEnabled);

@@ -43,6 +43,14 @@ class AbstractObjective implements Objective {
 		playerToObjective.get(player.getUniqueId()).add(this);
 		players.add(player.getUniqueId());
 	}
+	
+	void removeAllPlayers() {
+		for (UUID uuid : players)
+			if (playerToObjective.containsKey(uuid))
+				playerToObjective.get(uuid).remove(this);
+		players.clear();
+		unlockedPlayers.clear();
+	}
 
 	@Override
 	public void removePlayer(OfflinePlayer player) {
