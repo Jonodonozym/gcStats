@@ -128,7 +128,7 @@ public class AchievementInventories implements Listener {
 	private void openPage(Player p, String server, int number) {
 		page.put(p, number);
 		this.server.put(p, GCStatsConfig.serverName);
-		p.openInventory(getPageInventory(targets.get(p), server, number));
+		p.openInventory(getPageInventory(p, targets.get(p), server, number));
 	}
 
 	@EventHandler
@@ -215,7 +215,7 @@ public class AchievementInventories implements Listener {
 		return achToItem;
 	}
 
-	private Inventory getPageInventory(OfflinePlayer offlinePlayer, String server, int page) {
+	private Inventory getPageInventory(Player user, OfflinePlayer offlinePlayer, String server, int page) {
 		List<? extends Achievement> achievements = allAchievements.get(server);
 
 		if (sortMode != null) {
@@ -232,7 +232,7 @@ public class AchievementInventories implements Listener {
 			final int f = i++;
 			if (!achievement.equals(emptyAchievement))
 				Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
-					ItemStack itemStack = getPlayerStack(offlinePlayer, achievement);
+					ItemStack itemStack = getPlayerStack(user, offlinePlayer, achievement);
 					pageInventory.setItem(f, itemStack);
 				});
 		}
@@ -246,7 +246,7 @@ public class AchievementInventories implements Listener {
 		return pageInventory;
 	}
 
-	private ItemStack getPlayerStack(OfflinePlayer offlinePlayer, Achievement achievement) {
+	private ItemStack getPlayerStack(Player user, OfflinePlayer offlinePlayer, Achievement achievement) {
 		boolean isAchieved = AchievementManager.getInstance().isAchieved(offlinePlayer, achievement);
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
@@ -264,7 +264,7 @@ public class AchievementInventories implements Listener {
 			if (!requirement.isAchieved(offlinePlayer))
 				lore.add(ChatColor.RED + "Requires: " + requirement.getName());
 
-		if (isAchieved) {
+		if (isAchieved && user.equals(offlinePlayer.getPlayer())) {
 			if (!achievement.getRewardText()[0].equals(""))
 				lore.add(ChatColor.GREEN + "Reward: " + ChatColor.WHITE + ChatColor.ITALIC
 						+ achievement.getRewardText()[0]);

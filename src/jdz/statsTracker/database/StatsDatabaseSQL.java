@@ -72,6 +72,15 @@ class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsDatabase {
 	}
 
 	@Override
+	public int countEntries(String server) {
+		if (!isConnected())
+			return -1;
+		String query = "SELECT COUNT(*) FROM " + getStatTableName(server) + ";";
+		SqlRow row = queryFirst(query);
+		return Integer.parseInt(row.get(0));
+	}
+
+	@Override
 	public void addStatType(StatType type, boolean isEnabled) {
 		// Stat Meta-data
 		String setValue = "UPDATE " + statsMetaTable + " SET {column} = {value} WHERE server = '"
@@ -145,9 +154,15 @@ class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsDatabase {
 	}
 
 	@Override
+	public boolean hasPlayer(OfflinePlayer player, String server) {
+		if (!isConnected())
+			return false;
+		return queryFirst(
+				"SELECT UUID FROM " + getStatTableName(server) + " WHERE UUID = '" + player.getName() + "';") != null;
+	}
+
+	@Override
 	public void setStat(OfflinePlayer player, StatType statType, double newValue) {
-		if (statType instanceof NoSaveStatType)
-			return;
 		String update = "UPDATE " + getStatTableName() + " SET " + statType.getNameUnderscores() + " = " + newValue
 				+ " WHERE UUID = '" + player.getName() + "';";
 		updateAsync(update);
@@ -191,7 +206,7 @@ class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsDatabase {
 		if (!isConnected())
 			return 0;
 
-		String query = "SELECT " + statType + " FROM " + getStatTableName(server) + " WHERE UUID = '" + player.getName()
+		String query = "SELECT " + statType.replaceAll(" ", "_") + " FROM " + getStatTableName(server) + " WHERE UUID = '" + player.getName()
 				+ "';";
 		List<SqlRow> rows = query(query);
 

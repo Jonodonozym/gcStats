@@ -40,6 +40,11 @@ class StatsDatabaseYML implements StatsDatabase {
 			}
 		}, AUTOSAVE_TICKS, AUTOSAVE_TICKS);
 	}
+	
+	@Override
+	public int countEntries(String server) {
+		return -1;
+	}
 
 	@Override
 	public void addStatType(StatType type, boolean isEnabled) {}
@@ -124,5 +129,11 @@ class StatsDatabaseYML implements StatsDatabase {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean hasPlayer(OfflinePlayer player, String server) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

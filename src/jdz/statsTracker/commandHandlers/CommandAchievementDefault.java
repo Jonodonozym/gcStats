@@ -13,8 +13,10 @@ import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
+import jdz.statsTracker.database.AchievementDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("shows your or another player's cross-server achievements")
@@ -32,11 +34,13 @@ class CommandAchievementDefault extends SubCommand {
 			if (GCStatsConfig.servers.contains(args[0]))
 				AchievementInventories.getInstance().openServerAchievements(player, player, args[0]);
 			else {
-				@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-				if (target.hasPlayedBefore() || target.isOnline())
-					AchievementInventories.getInstance().openServerAchievements(player, target);
-				else
-					sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid server or player");
+				Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+					@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+					if (AchievementDatabase.getInstance().hasPlayer(target))
+						AchievementInventories.getInstance().openServerAchievements(player, target);
+					else
+						sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid server or player");
+				});
 			}
 		}
 
@@ -46,11 +50,14 @@ class CommandAchievementDefault extends SubCommand {
 				return;
 			}
 
-			@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-			if (target.hasPlayedBefore() || target.isOnline())
-				AchievementInventories.getInstance().openServerAchievements(player, target, args[0]);
-			else
-				sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid player");
+
+			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+				@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+				if (AchievementDatabase.getInstance().hasPlayer(target))
+					AchievementInventories.getInstance().openServerAchievements(player, target, args[0]);
+				else
+					sender.sendMessage(ChatColor.RED + "'" + args[0] + "' is not a valid player");
+			});
 
 		}
 	}

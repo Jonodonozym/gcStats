@@ -58,22 +58,20 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 		super(plugin);
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 
+		GCStatsConfig.servers = getServers();
+		setServerIcon(GCStatsConfig.serverName, GCStatsConfig.serverIcon, GCStatsConfig.serverIconData);
+
+		addTable(serverIconTable, serverIconTableColumns);
+		addTable(achievementMetaTable, achievementMetaColumns);
+		addTable(getAchTableName(), new SqlColumn("UUID", STRING_64, true));
+		addTable(achievementPointsTable, achievementPointsTablColumns);
+
+		addColumn(achievementPointsTable, new SqlColumn(GCStatsConfig.serverName.replaceAll(" ", "_"), INT));
+
 		Bukkit.getScheduler().runTaskLater(GCStats.getInstance(), () -> {
-			runOnConnect(() -> {
-				GCStatsConfig.servers = getServers();
-				setServerIcon(GCStatsConfig.serverName, GCStatsConfig.serverIcon, GCStatsConfig.serverIconData);
-
-				addTable(serverIconTable, serverIconTableColumns);
-				addTable(achievementMetaTable, achievementMetaColumns);
-				addTable(getAchTableName(), new SqlColumn("UUID", STRING_64, true));
-				addTable(achievementPointsTable, achievementPointsTablColumns);
-
-				addColumn(achievementPointsTable, new SqlColumn(GCStatsConfig.serverName.replaceAll(" ", "_"), INT));
-
-				AchievementInventories.getInstance().reload();
-				AchievementShop.reload();
-			});
-		}, 1L);
+			AchievementInventories.getInstance().reload();
+			AchievementShop.reload();
+		}, 1);
 	}
 
 	@EventHandler
@@ -83,6 +81,13 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 				+ "WHERE NOT EXISTS ( SELECT UUID FROM {table} WHERE UUID = '" + player.getName() + "' ) LIMIT 1;";
 		updateAsync(update.replaceAll("\\{table\\}", achievementPointsTable));
 		updateAsync(update.replaceAll("\\{table\\}", getAchTableName()));
+	}
+	
+	@Override
+	public boolean hasPlayer(OfflinePlayer player, String server) {
+		if (!isConnected())
+			return false;
+		return queryFirst("SELECT UUID FROM "+getAchTableName(server)+" WHERE UUID='"+player.getName()+"';") != null;
 	}
 
 	@Override

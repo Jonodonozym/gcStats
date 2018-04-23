@@ -22,6 +22,7 @@ import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.bukkitUtils.misc.StringUtils;
 import jdz.statsTracker.GCStats;
+import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
 import jdz.statsTracker.database.StatsDatabase;
@@ -29,6 +30,7 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 @CommandLabel("top")
+@CommandLabel("rank")
 @CommandRequiredArgs(1)
 @CommandShortDescription("Displays the top scores for a specific stat")
 @CommandUsage("top <statNoSpaces> [pageNumber]")
@@ -37,12 +39,11 @@ class CommandStatTop extends SubCommand {
 
 	private CommandStatTop() {}
 
-	private final Map<StatType, Long> lastUpdates = new HashMap<StatType, Long>();
-
 	private final Map<StatType, List<OfflinePlayer>> playersSorted = new HashMap<StatType, List<OfflinePlayer>>();
-	final Map<StatType, Map<OfflinePlayer, Integer>> playerToRank = new HashMap<StatType, Map<OfflinePlayer, Integer>>();
+	@Getter private final Map<StatType, Map<OfflinePlayer, Integer>> playerToRank = new HashMap<StatType, Map<OfflinePlayer, Integer>>();
 	private final Map<StatType, Map<OfflinePlayer, Double>> playerToStat = new HashMap<StatType, Map<OfflinePlayer, Double>>();
 
+	private final Map<StatType, Long> lastUpdates = new HashMap<StatType, Long>();
 	private final long timeBetweenUpdates = 120000;
 	final int playersPerPage = 8;
 
@@ -51,7 +52,7 @@ class CommandStatTop extends SubCommand {
 		StatType type = StatsManager.getInstance().getType(args[0]);
 		if (type == null) {
 			sender.sendMessage(
-					ChatColor.RED + "'" + args[0] + "' is not a valid stat name! type /gcs to see a list of stats");
+					ChatColor.RED + "'" + args[0] + "' is not a valid stat name! type /s to see a list of stats");
 			return;
 		}
 
@@ -63,11 +64,10 @@ class CommandStatTop extends SubCommand {
 			catch (NumberFormatException e) {}
 
 		// update
-		if (!lastUpdates.containsKey(type) || lastUpdates.get(type) > System.currentTimeMillis() + timeBetweenUpdates) {
+		if (!lastUpdates.containsKey(type) || lastUpdates.get(type) < System.currentTimeMillis() - timeBetweenUpdates) {
 			final int pageNumberFinal = pageNumber;
 			Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
-				sender.sendMessage(ChatColor.GOLD + "Sorting player stats, please wait...");
-				updateStat(type);
+				updateStat((Player) sender, type);
 				showStat(sender, type, pageNumberFinal);
 			});
 		}
@@ -76,7 +76,14 @@ class CommandStatTop extends SubCommand {
 	}
 
 	@SuppressWarnings("deprecation")
-	private void updateStat(StatType type) {
+	private void updateStat(Player sender, StatType type) {
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+			int entries = StatsDatabase.getInstance().countEntries(GCStatsConfig.serverName);
+			if (entries > 1000)
+				sender.sendMessage(ChatColor.GOLD + "Sorting " + ChatColor.AQUA + entries + ChatColor.GOLD
+						+ " entries, please wait...");
+		});
+
 		ExecutorService es = Executors.newCachedThreadPool();
 
 		for (Player player : Bukkit.getOnlinePlayers())
@@ -86,7 +93,7 @@ class CommandStatTop extends SubCommand {
 
 		es.shutdown();
 		try {
-			es.awaitTermination(15, TimeUnit.SECONDS);
+			es.awaitTermination(5, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -109,6 +116,8 @@ class CommandStatTop extends SubCommand {
 		playersSorted.put(type, players);
 		playerToRank.put(type, ranks);
 		playerToStat.put(type, stats);
+		
+		lastUpdates.put(type, System.currentTimeMillis());
 	}
 
 	void showStat(CommandSender sender, StatType type, int pageNumber) {
@@ -124,19 +133,30 @@ class CommandStatTop extends SubCommand {
 
 		String[] messages = new String[max - min + 3];
 
+		int offset = 1;
+		if (sender instanceof Player) {
+			messages = new String[max - min + 5];
+			offset = 3;
+			Player player = (Player) sender;
+			int rank = CommandStatTop.getInstance().getPlayerToRank().get(type).get(player);
+			String value = type.valueToString(playerToStat.get(type).get(player));
+			String name = player.getName();
+			messages[1] = ChatColor.AQUA + "[" + (rank + 1) + "] " + ChatColor.GREEN + name + ChatColor.WHITE + "  "
+					+ value;
+		}
+
 		messages[0] = ChatColor.GRAY + " ============[ " + ChatColor.DARK_AQUA + "Top " + type.getName()
 				+ (pageNumber == 0 ? "" : ", " + ChatColor.GREEN + "Page " + (pageNumber + 1) + " / " + (maxPage + 1))
 				+ ChatColor.GRAY + " ]============";
 
-		messages[messages.length - 1] = ChatColor.GRAY + StringUtils.repeat("=", messages[0].length() - 8);
+		messages[messages.length - 1] = ChatColor.GRAY + StringUtils.repeat("=", messages[0].length() - 9);
 
 		for (int i = min; i <= max; i++) {
 			OfflinePlayer player = playersSorted.get(type).get(i);
-			String playerName = player.getName();
-			if (player.isOnline())
-				playerName = player.getPlayer().getDisplayName();
-			messages[i - min + 1] = ChatColor.GOLD + "" + (i + 1) + ") " + ChatColor.GREEN + playerName
-					+ ChatColor.WHITE + ", " + type.valueToString(playerToStat.get(type).get(player));
+			String value = type.valueToString(playerToStat.get(type).get(player));
+			String name = player.getName();
+			messages[i - min + offset] = ChatColor.GOLD + "[" + (i + 1) + "] " + ChatColor.GREEN + name
+					+ ChatColor.WHITE + "  " + value;
 		}
 
 		sender.sendMessage(messages);

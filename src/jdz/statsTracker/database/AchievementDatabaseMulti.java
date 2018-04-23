@@ -19,6 +19,13 @@ class AchievementDatabaseMulti implements AchievementDatabase {
 		AchievementDatabaseYML.getInstance();
 		AchievementDatabaseSQL.getInstance();
 	}
+	
+	@Override
+	public boolean hasPlayer(OfflinePlayer player, String server) {
+		if (AchievementDatabaseSQL.getInstance().isConnected())
+			return AchievementDatabaseSQL.getInstance().hasPlayer(player, server);
+		return AchievementDatabaseYML.getInstance().hasPlayer(player, server);
+	}
 
 	@Override
 	public void setAchievementPoints(Player player, int points) {

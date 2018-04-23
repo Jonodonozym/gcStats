@@ -13,7 +13,7 @@ import jdz.statsTracker.GCStats;
 
 public class StatsCommandExecutor extends CommandExecutor {
 	private final List<SubCommand> subCommands = Arrays.asList(new AboutPluginCommand(GCStats.instance),
-			CommandStatTop.getInstance(), new CommandStatRank(), new CommandListServers());
+			CommandStatTop.getInstance(), new CommandListServers());
 
 	public StatsCommandExecutor(JavaPlugin plugin) {
 		super(plugin, "gcs", false);

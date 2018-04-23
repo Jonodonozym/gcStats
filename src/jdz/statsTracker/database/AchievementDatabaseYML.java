@@ -117,4 +117,10 @@ class AchievementDatabaseYML implements AchievementDatabase {
 		return serverIcon;
 	}
 
+	@Override
+	public boolean hasPlayer(OfflinePlayer player, String server) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

@@ -18,6 +18,13 @@ class StatsDatabaseMulti implements StatsDatabase {
 		StatsDatabaseYML.getInstance();
 		StatsDatabaseSQL.getInstance();
 	}
+	
+	@Override
+	public int countEntries(String server) {
+		if (StatsDatabaseSQL.getInstance().isConnected())
+			return StatsDatabaseSQL.getInstance().countEntries(server);
+		return StatsDatabaseYML.getInstance().countEntries(server);
+	}
 
 	@Override
 	public void addStatType(StatType type, boolean isEnabled) {
@@ -37,6 +44,13 @@ class StatsDatabaseMulti implements StatsDatabase {
 		if (!server.equals(GCStatsConfig.serverName) && StatsDatabaseSQL.getInstance().isConnected())
 			return StatsDatabaseSQL.getInstance().getVisibleStats(server);
 		return StatsDatabaseYML.getInstance().getVisibleStats(server);
+	}
+	
+	@Override
+	public boolean hasPlayer(OfflinePlayer player, String server) {
+		if (StatsDatabaseSQL.getInstance().isConnected())
+			return StatsDatabaseSQL.getInstance().hasPlayer(player, server);
+		return StatsDatabaseYML.getInstance().hasPlayer(player, server);
 	}
 
 	@Override

@@ -8,12 +8,21 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.Achievement;
 
 public interface AchievementDatabase {
 	public static AchievementDatabase getInstance() {
 		return AchievementDatabaseSQL.getInstance();
 	}
+
+	public default boolean hasPlayer(OfflinePlayer player) {
+		if (player.isOnline() || player.hasPlayedBefore())
+			return true;
+		return hasPlayer(player, GCStatsConfig.serverName);
+	}
+	
+	public boolean hasPlayer(OfflinePlayer player, String server);
 
 	public void setAchievementPoints(Player player, int points);
 

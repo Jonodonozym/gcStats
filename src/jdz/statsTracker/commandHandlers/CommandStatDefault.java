@@ -15,6 +15,9 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandPermission;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
+import jdz.bukkitUtils.misc.Pair;
+import jdz.bukkitUtils.misc.StringUtils;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
@@ -46,22 +49,27 @@ class CommandStatDefault extends SubCommand {
 					sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
 			}
 			else {
-				OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-				if (target.hasPlayedBefore() || target.isOnline())
-					showStats(sender, GCStatsConfig.serverName, target);
-				else
-					sender.sendMessage(ChatColor.RED + "'" + args[0]
-							+ "' is not a valid server or that player has never played on this server.");
+				Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+					OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+					if (StatsDatabase.getInstance().hasPlayer(target))
+						showStats(sender, GCStatsConfig.serverName, target);
+					else
+						sender.sendMessage(ChatColor.RED + "'" + args[0]
+								+ "' is not a valid server or that player has never played on this server.");
+				});
 			}
 		}
 
 		// for player AND server
 		else if (GCStatsConfig.servers.contains(args[1].replaceAll("_", " "))) {
-			OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-			if (target.hasPlayedBefore() || target.isOnline())
-				showStats(sender, args[1].replaceAll("_", " "), target);
-			else
-				sender.sendMessage(ChatColor.RED + args[0] + " has never played on that server before!");
+
+			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+				OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+				if (StatsDatabase.getInstance().hasPlayer(target))
+					showStats(sender, args[1].replaceAll("_", " "), target);
+				else
+					sender.sendMessage(ChatColor.RED + args[0] + " has never played on that server before!");
+			});
 		}
 		else
 			sender.sendMessage(ChatColor.RED + args[1] + " is not a valid server!");
@@ -69,16 +77,29 @@ class CommandStatDefault extends SubCommand {
 	}
 
 	private void showStats(CommandSender sender, OfflinePlayer target) {
-		List<String> types = new ArrayList<String>(StatsManager.getInstance().enabledStatsSorted().size());
-		List<Double> stats = new ArrayList<Double>(StatsManager.getInstance().enabledStatsSorted().size());
-		for (StatType type : StatsManager.getInstance().enabledStatsSorted()) {
-			if (!type.isVisible())
-				continue;
-			types.add(type.getName());
-			stats.add(type.get(target));
+		Pair<List<String>, List<Double>> stats = getStats(GCStatsConfig.serverName, target);
+
+		showStats(sender, target.getName(), GCStatsConfig.serverName, stats.getKey(), stats.getValue());
+	}
+
+	private Pair<List<String>, List<Double>> getStats(String serverName, OfflinePlayer player) {
+		List<String> types = new ArrayList<String>();
+		List<Double> stats = new ArrayList<Double>();
+
+		if (serverName.equals(GCStatsConfig.serverName))
+			for (StatType type : StatsManager.getInstance().enabledStatsSorted()) {
+				if (!type.isVisible())
+					continue;
+				types.add(type.getNameUnderscores());
+				stats.add(type.get(player));
+			}
+		else {
+			types = StatsDatabase.getInstance().getVisibleStats(serverName);
+			for (String type : types)
+				stats.add(StatsDatabase.getInstance().getStat(player, type, serverName));
 		}
 
-		showStats(sender, target.getName(), "", types, stats);
+		return new Pair<List<String>, List<Double>>(types, stats);
 	}
 
 	private void showStats(CommandSender sender, String server, OfflinePlayer offlinePlayer) {
@@ -86,13 +107,10 @@ class CommandStatDefault extends SubCommand {
 			showStats(sender, offlinePlayer.getPlayer());
 			return;
 		}
+		
+		Pair<List<String>, List<Double>> stats = getStats(server, offlinePlayer);
 
-		List<String> types = StatsDatabase.getInstance().getVisibleStats(server);
-		List<Double> stats = new ArrayList<Double>(types.size());
-		for (String type : types)
-			stats.add(StatsDatabase.getInstance().getStat(offlinePlayer, type.toString(), server));
-
-		showStats(sender, offlinePlayer.getName(), server, types, stats);
+		showStats(sender, offlinePlayer.getName(), server, stats.getKey(), stats.getValue());
 	}
 
 	private void showStats(CommandSender sender, String targetName, String server, List<String> types,
@@ -101,21 +119,20 @@ class CommandStatDefault extends SubCommand {
 
 		int i = 0;
 		messages[i++] = ChatColor.GRAY + "============[ " + ChatColor.GOLD + targetName + "'s"
-				+ (server.equals("") ? "" : " " + server) + " stats" + ChatColor.GRAY + " ]============";
+				+ (server.equals("") || server.equals(GCStatsConfig.serverName) ? "" : " " + server) + " stats"
+				+ ChatColor.GRAY + " ]============";
 		for (String typeStr : types) {
 			try {
 				StatType type = StatsManager.getInstance().getType(typeStr.replaceAll("_", " "));
-				messages[i] = ChatColor.DARK_GREEN + type.getName() + ": " + ChatColor.GREEN + ": "
+				messages[i] = ChatColor.DARK_AQUA + type.getName() + ChatColor.AQUA + ": "
 						+ type.valueToString(stats.get(i - 1));
 			}
 			catch (Exception e) {
-				messages[i] = ChatColor.DARK_GREEN + typeStr + ": " + ChatColor.GREEN + ": " + stats.get(i - 1);
+				messages[i] = ChatColor.DARK_AQUA + typeStr + ChatColor.AQUA + ": " + stats.get(i - 1);
 			}
 			i++;
 		}
-		messages[i] = ChatColor.GRAY + "";
-		for (int ii = 0; ii < messages[0].length() - 10; ii++)
-			messages[i] = messages[i] + "=";
+		messages[i] = ChatColor.GRAY + StringUtils.repeat("=", messages[0].length() - 9);
 		sender.sendMessage(messages);
 	}
 }

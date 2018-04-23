@@ -1,6 +1,8 @@
 
 package jdz.statsTracker.event;
 
+import java.util.UUID;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StatChangeEvent extends Event implements Cancellable {
 	@Getter private final Player player;
+	@Getter private final UUID uuid;
 	@Getter private final StatType type;
 	@Getter private final double oldValue, newValue;
 

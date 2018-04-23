@@ -25,7 +25,7 @@ public abstract class HookedStatType extends AbstractStatType {
 				double newValue = get(player);
 				double oldValue = lastValues.containsKey(player) ? lastValues.get(player) : 0;
 
-				StatChangeEvent event = new StatChangeEvent(player, this, oldValue, newValue);
+				StatChangeEvent event = new StatChangeEvent(player, player.getUniqueId(), this, oldValue, newValue);
 				event.call();
 				if (!event.isCancelled())
 					lastValues.put(player, newValue);

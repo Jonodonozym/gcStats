@@ -27,16 +27,9 @@ public abstract class NoSaveStatType extends BufferedStatType {
 		return getDefault();
 	}
 
-	@Override
-	public double get(Player player) {
-		if (!onlinePlayerStats.containsKey(player.getUniqueId()))
-			onlinePlayerStats.put(player.getUniqueId(), getDefault());
-		return onlinePlayerStats.get(player.getUniqueId());
-	}
-
 	public void resetAll() {
-		for (UUID uuid : onlinePlayerStats.keySet())
-			onlinePlayerStats.put(uuid, getDefault());
+		for (UUID uuid : getAllEntries())
+			set(uuid, getDefault());
 	}
 
 	@Override

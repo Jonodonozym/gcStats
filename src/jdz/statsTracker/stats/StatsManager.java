@@ -52,8 +52,8 @@ public class StatsManager implements Listener {
 	public List<StatType> enabledStatsSorted() {
 		return Collections.unmodifiableList(enabledStatsList);
 	}
-	
-	public List<StatType> enabledStats(Plugin plugin){
+
+	public List<StatType> enabledStats(Plugin plugin) {
 		if (!pluginToStat.containsKey(plugin))
 			return Collections.unmodifiableList(new ArrayList<StatType>());
 		return Collections.unmodifiableList(pluginToStat.get(plugin));
@@ -147,6 +147,9 @@ public class StatsManager implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onUnload(PluginDisableEvent event) {
+		if (event.getPlugin().equals(GCStats.getInstance()))
+			return;
+
 		if (!pluginToStat.containsKey(event.getPlugin()))
 			return;
 		List<StatType> types = pluginToStat.remove(event.getPlugin());
@@ -192,9 +195,24 @@ public class StatsManager implements Listener {
 
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+			updateDatabaseSync(e.getPlayer());
+		});
+	}
+
+	public void updateDatabaseSync(Player player) {
+		ExecutorService es = Executors.newFixedThreadPool(StatsManager.getInstance().enabledStats().size());
 		for (StatType statType : StatsManager.getInstance().enabledStats())
-			if (statType.get(e.getPlayer()) != statType.getDefault())
-				if (!(statType instanceof NoSaveStatType))
-					StatsDatabase.getInstance().setStat(e.getPlayer(), statType, statType.removePlayer(e.getPlayer()));
+			if (statType.get(player) != statType.getDefault() && !(statType instanceof NoSaveStatType))
+				es.execute(() -> {
+					StatsDatabase.getInstance().setStatSync(player, statType, statType.removePlayer(player));
+				});
+		es.shutdown();
+		try {
+			es.awaitTermination(5, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -156,6 +156,9 @@ public class AchievementManager implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onUnload(PluginDisableEvent event) {
+		if (event.getPlugin().equals(GCStats.getInstance()))
+			return;
+		
 		if (!pluginToAchievement.containsKey(event.getPlugin()))
 			return;
 		List<Achievement> achievements = pluginToAchievement.remove(event.getPlugin());

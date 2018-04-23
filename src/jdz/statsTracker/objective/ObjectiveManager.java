@@ -30,6 +30,9 @@ public class ObjectiveManager implements Listener {
 		new Listener() {
 			@EventHandler
 			public void onPluginUnload(PluginDisableEvent event) {
+				if (event.getPlugin().equals(GCStats.getInstance()))
+					return;
+				
 				unregisterAll(event.getPlugin());
 			}
 		}.registerEvents(GCStats.getInstance());
