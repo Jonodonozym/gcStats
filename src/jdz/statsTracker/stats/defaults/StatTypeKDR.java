@@ -22,7 +22,7 @@ public class StatTypeKDR extends BufferedStatType {
 		return value + "";
 	}
 
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerDeath(PlayerDeathEvent e) {
 		Player killed = e.getEntity();
 
@@ -35,10 +35,10 @@ public class StatTypeKDR extends BufferedStatType {
 		if (killer == null)
 			return;
 
-		kills = StatTypeKills.getInstance().get(killed);
-		deaths = StatTypeDeaths.getInstance().get(killed);
+		kills = StatTypeKills.getInstance().get(killer);
+		deaths = StatTypeDeaths.getInstance().get(killer);
 		if (deaths > 0)
-			set(killed, Math.round(kills / deaths * 100) / 100.0);
+			set(killer, Math.round(kills / deaths * 100) / 100.0);
 		else
 			set(killer, kills);
 	}
