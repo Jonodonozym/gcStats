@@ -4,7 +4,7 @@ package jdz.statsTracker.extensionExample;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.stats.HookedStatType;
+import jdz.statsTracker.stats.abstractTypes.HookedStatType;
 
 public class StatTypeJumps extends HookedStatType {
 	private static final StatTypeJumps instance = new StatTypeJumps();

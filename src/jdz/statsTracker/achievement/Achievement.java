@@ -17,8 +17,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 
 import jdz.bukkitUtils.misc.StringUtils;
+import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
-import jdz.statsTracker.database.AchievementDatabase;
+import jdz.statsTracker.achievement.database.AchievementDatabase;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -82,13 +83,15 @@ public abstract class Achievement {
 	 * @param p
 	 */
 	public void doFirework(Player p) {
-		if (doFirework) {
-			Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.FIREWORK);
-			FireworkMeta fwm = fw.getFireworkMeta();
-			fwm.addEffect(fwe);
-			fwm.setPower(1);
-			fw.setFireworkMeta(fwm);
-		}
+		if (doFirework)
+			Bukkit.getScheduler().runTask(GCStats.getInstance(), () -> {
+				Firework fw = (Firework) p.getWorld().spawnEntity(p.getLocation(),
+						org.bukkit.entity.EntityType.FIREWORK);
+				FireworkMeta fwm = fw.getFireworkMeta();
+				fwm.addEffect(fwe);
+				fwm.setPower(1);
+				fw.setFireworkMeta(fwm);
+			});
 	}
 
 	public void doMessages(Player p) {

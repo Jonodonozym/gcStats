@@ -13,7 +13,7 @@ import jdz.statsTracker.GCStats;
 
 @CommandExecutorPlayerOnly
 public class AchievementCommandExecutor extends CommandExecutor {
-	private final List<SubCommand> subCommands = Arrays.asList(new AboutPluginCommand(GCStats.instance),
+	private final List<SubCommand> subCommands = Arrays.asList(new AboutPluginCommand(GCStats.getInstance()),
 			new CommandAchievementPoints(), new CommandAchievementShop());
 
 	public AchievementCommandExecutor(JavaPlugin plugin) {

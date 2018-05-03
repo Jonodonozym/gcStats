@@ -15,7 +15,7 @@ import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.AchievementManager;
-import jdz.statsTracker.database.AchievementDatabase;
+import jdz.statsTracker.achievement.database.AchievementDatabase;
 
 @CommandLabel("bal")
 @CommandLabel("balance")
@@ -28,7 +28,7 @@ class CommandAchievementPoints extends SubCommand {
 	public void execute(CommandSender sender, Set<String> flags, String... args) {
 		Player player = (Player) sender;
 
-		Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 			if (args.length == 0)
 				sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
 						+ AchievementManager.getInstance().getAchievementPoints(player));

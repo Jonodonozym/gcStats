@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -25,7 +24,7 @@ import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.database.StatsDatabase;
+import jdz.statsTracker.stats.database.StatsDatabase;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
@@ -39,9 +38,9 @@ class CommandStatTop extends SubCommand {
 
 	private CommandStatTop() {}
 
-	private final Map<StatType, List<OfflinePlayer>> playersSorted = new HashMap<StatType, List<OfflinePlayer>>();
-	@Getter private final Map<StatType, Map<OfflinePlayer, Integer>> playerToRank = new HashMap<StatType, Map<OfflinePlayer, Integer>>();
-	private final Map<StatType, Map<OfflinePlayer, Double>> playerToStat = new HashMap<StatType, Map<OfflinePlayer, Double>>();
+	private final Map<StatType, List<String>> playersSorted = new HashMap<StatType, List<String>>();
+	@Getter private final Map<StatType, Map<String, Integer>> playerToRank = new HashMap<StatType, Map<String, Integer>>();
+	private final Map<StatType, Map<String, Double>> playerToStat = new HashMap<StatType, Map<String, Double>>();
 
 	private final Map<StatType, Long> lastUpdates = new HashMap<StatType, Long>();
 	private final long timeBetweenUpdates = 120000;
@@ -66,7 +65,7 @@ class CommandStatTop extends SubCommand {
 		// update
 		if (!lastUpdates.containsKey(type) || lastUpdates.get(type) < System.currentTimeMillis() - timeBetweenUpdates) {
 			final int pageNumberFinal = pageNumber;
-			Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
+			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 				updateStat((Player) sender, type);
 				showStat(sender, type, pageNumberFinal);
 			});
@@ -75,7 +74,6 @@ class CommandStatTop extends SubCommand {
 			showStat(sender, type, pageNumber);
 	}
 
-	@SuppressWarnings("deprecation")
 	private void updateStat(Player sender, StatType type) {
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 			int entries = StatsDatabase.getInstance().countEntries(GCStatsConfig.serverName);
@@ -101,13 +99,13 @@ class CommandStatTop extends SubCommand {
 
 		Map<String, Double> rows = StatsDatabase.getInstance().getAllSorted(type);
 
-		List<OfflinePlayer> players = new ArrayList<OfflinePlayer>();
-		Map<OfflinePlayer, Integer> ranks = new HashMap<OfflinePlayer, Integer>();
-		Map<OfflinePlayer, Double> stats = new HashMap<OfflinePlayer, Double>();
+		List<String> players = new ArrayList<String>();
+		Map<String, Integer> ranks = new HashMap<String, Integer>();
+		Map<String, Double> stats = new HashMap<String, Double>();
 
 		int i = 0;
 		for (Map.Entry<String, Double> row : rows.entrySet()) {
-			OfflinePlayer player = Bukkit.getOfflinePlayer(row.getKey());
+			String player = row.getKey();
 			players.add(player);
 			ranks.put(player, i++);
 			stats.put(player, row.getValue());
@@ -138,8 +136,8 @@ class CommandStatTop extends SubCommand {
 			messages = new String[max - min + 5];
 			offset = 3;
 			Player player = (Player) sender;
-			int rank = CommandStatTop.getInstance().getPlayerToRank().get(type).get(player);
-			String value = type.valueToString(playerToStat.get(type).get(player));
+			int rank = playerToRank.get(type).get(player.getName());
+			String value = type.valueToString(playerToStat.get(type).get(player.getName()));
 			String name = player.getName();
 			messages[1] = ChatColor.AQUA + "[" + (rank + 1) + "] " + ChatColor.GREEN + name + ChatColor.WHITE + "  "
 					+ value;
@@ -152,10 +150,9 @@ class CommandStatTop extends SubCommand {
 		messages[messages.length - 1] = ChatColor.GRAY + StringUtils.repeat("=", messages[0].length() - 9);
 
 		for (int i = min; i <= max; i++) {
-			OfflinePlayer player = playersSorted.get(type).get(i);
+			String player = playersSorted.get(type).get(i);
 			String value = type.valueToString(playerToStat.get(type).get(player));
-			String name = player.getName();
-			messages[i - min + offset] = ChatColor.GOLD + "[" + (i + 1) + "] " + ChatColor.GREEN + name
+			messages[i - min + offset] = ChatColor.GOLD + "[" + (i + 1) + "] " + ChatColor.GREEN + player
 					+ ChatColor.WHITE + "  " + value;
 		}
 

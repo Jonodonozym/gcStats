@@ -23,13 +23,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.database.StatsDatabase;
 import lombok.Getter;
 import lombok.Setter;
-import jdz.statsTracker.database.AchievementDatabase;
-import jdz.statsTracker.database.StatsDatabase;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
+import jdz.statsTracker.achievement.achievementTypes.RemoteStatAchievement;
+import jdz.statsTracker.achievement.achievementTypes.StatAchievement;
+import jdz.statsTracker.achievement.database.AchievementDatabase;
 
 public class AchievementInventories implements Listener {
 	@Getter private static final AchievementInventories instance = new AchievementInventories();
@@ -75,7 +77,7 @@ public class AchievementInventories implements Listener {
 				es.awaitTermination(1, TimeUnit.MINUTES);
 			}
 			catch (InterruptedException e) {
-				new FileLogger(GCStats.instance).createErrorLog(e);
+				new FileLogger(GCStats.getInstance()).createErrorLog(e);
 			}
 		}
 
@@ -231,7 +233,7 @@ public class AchievementInventories implements Listener {
 			Achievement achievement = achievements.get(achIndex);
 			final int f = i++;
 			if (!achievement.equals(emptyAchievement))
-				Bukkit.getScheduler().runTaskAsynchronously(GCStats.instance, () -> {
+				Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 					ItemStack itemStack = getPlayerStack(user, offlinePlayer, achievement);
 					pageInventory.setItem(f, itemStack);
 				});
@@ -253,7 +255,7 @@ public class AchievementInventories implements Listener {
 
 		List<String> lore = new ArrayList<String>();
 
-		if (!achievement.isHidden() || isAchieved)
+		if (!achievement.isHidden() || isAchieved && user.equals(offlinePlayer.getPlayer()))
 			for (String s : achievement.getDescription())
 				lore.add(ChatColor.YELLOW + s);
 		else
@@ -264,17 +266,20 @@ public class AchievementInventories implements Listener {
 			if (!requirement.isAchieved(offlinePlayer))
 				lore.add(ChatColor.RED + "Requires: " + requirement.getName());
 
-		if (isAchieved && user.equals(offlinePlayer.getPlayer())) {
-			if (!achievement.getRewardText()[0].equals(""))
-				lore.add(ChatColor.GREEN + "Reward: " + ChatColor.WHITE + ChatColor.ITALIC
-						+ achievement.getRewardText()[0]);
-			for (int i = 1; i < achievement.getRewardText().length; i++)
-				lore.add(ChatColor.WHITE + "" + ChatColor.ITALIC + achievement.getRewardText()[i]);
-			lore.add("");
-
-			itemMeta.setDisplayName(ChatColor.GREEN + achievement.getName().replace('_', ' '));
+		if (isAchieved) {
 			itemMeta.addEnchant(Enchantment.DURABILITY, 10, true);
 			lore.add(ChatColor.GREEN + "Achievement Unlocked!");
+		}
+
+		if (isAchieved && (!achievement.isHidden() || user.equals(offlinePlayer.getPlayer()))) {
+			if (!achievement.getRewardText()[0].equals(""))
+				lore.add(0, ChatColor.GREEN + "Reward: " + ChatColor.WHITE + ChatColor.ITALIC
+						+ achievement.getRewardText()[0]);
+			for (int i = 1; i < achievement.getRewardText().length; i++)
+				lore.add(i, ChatColor.WHITE + "" + ChatColor.ITALIC + achievement.getRewardText()[i]);
+			lore.add(achievement.getRewardText().length, "");
+
+			itemMeta.setDisplayName(ChatColor.GREEN + achievement.getName().replace('_', ' '));
 		}
 		else {
 			itemMeta.setDisplayName(ChatColor.RED + achievement.getName().replace('_', ' '));

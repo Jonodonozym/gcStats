@@ -16,7 +16,7 @@ import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
-import jdz.statsTracker.database.AchievementDatabase;
+import jdz.statsTracker.achievement.database.AchievementDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("shows your or another player's cross-server achievements")

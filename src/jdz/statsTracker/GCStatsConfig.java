@@ -36,7 +36,7 @@ public class GCStatsConfig {
 	public static List<String> servers = new ArrayList<String>();
 
 	public static void reloadConfig() {
-		FileConfiguration config = Config.getConfig(GCStats.instance);
+		FileConfiguration config = Config.getConfig(GCStats.getInstance());
 
 		serverName = config.getString("server.name");
 
@@ -50,8 +50,8 @@ public class GCStatsConfig {
 		if (broadcastEnabled) {
 			if (broadcastTask != null)
 				broadcastTask.stop();
-			broadcastTask = new TimedTask(GCStats.instance, broadcastMaxTime * 1200, () -> {
-				for (Player p : GCStats.instance.getServer().getOnlinePlayers())
+			broadcastTask = new TimedTask(GCStats.getInstance(), broadcastMaxTime * 1200, () -> {
+				for (Player p : GCStats.getInstance().getServer().getOnlinePlayers())
 					p.sendMessage(broadcastMessage);
 			});
 			broadcastTask.start();

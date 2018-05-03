@@ -21,7 +21,7 @@ import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.database.StatsDatabase;
+import jdz.statsTracker.stats.database.StatsDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
@@ -58,11 +58,10 @@ class CommandStatDefault extends SubCommand {
 								+ "' is not a valid server or that player has never played on this server.");
 				});
 			}
+			return;
 		}
-
-		// for player AND server
-		else if (GCStatsConfig.servers.contains(args[1].replaceAll("_", " "))) {
-
+		
+		if (GCStatsConfig.servers.contains(args[1].replaceAll("_", " "))) {
 			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 				OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
 				if (StatsDatabase.getInstance().hasPlayer(target))
@@ -73,6 +72,7 @@ class CommandStatDefault extends SubCommand {
 		}
 		else
 			sender.sendMessage(ChatColor.RED + args[1] + " is not a valid server!");
+
 
 	}
 
@@ -107,7 +107,7 @@ class CommandStatDefault extends SubCommand {
 			showStats(sender, offlinePlayer.getPlayer());
 			return;
 		}
-		
+
 		Pair<List<String>, List<Double>> stats = getStats(server, offlinePlayer);
 
 		showStats(sender, offlinePlayer.getName(), server, stats.getKey(), stats.getValue());

@@ -21,8 +21,8 @@ import org.bukkit.plugin.Plugin;
 
 import jdz.bukkitUtils.events.Listener;
 import jdz.statsTracker.GCStats;
-import jdz.statsTracker.stats.NoSaveStatType;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
 import lombok.Setter;
 
 public class ObjectiveManager implements Listener {

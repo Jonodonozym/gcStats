@@ -7,7 +7,7 @@ import static org.bukkit.ChatColor.*;
 import org.bukkit.entity.Player;
 
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.defaults.StatTypePlayTime;
+import jdz.statsTracker.stats.defaultTypes.StatTypePlayTime;
 import lombok.Getter;
 import me.robin.leaderheads.datacollectors.OnlineDataCollector;
 import me.robin.leaderheads.objects.BoardType;

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventException;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,15 +24,17 @@ import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.hooks.PlaceholderHook;
 import jdz.statsTracker.objective.ObjectivesCommand;
 import jdz.statsTracker.stats.StatsManager;
+import jdz.statsTracker.stats.database.StatsDatabase;
 import lombok.Getter;
-import jdz.statsTracker.database.StatsDatabase;
 
 public class GCStats extends JavaPlugin {
-	@Getter public static GCStats instance;
+	@Getter private static GCStats instance;
+	@Getter private static FileLogger fileLogger;
 
 	@Override
 	public void onEnable() {
 		instance = this;
+		fileLogger = new FileLogger(GCStats.getInstance());
 
 		GCStatsConfig.reloadConfig();
 
@@ -49,8 +52,8 @@ public class GCStats extends JavaPlugin {
 		pm.registerEvents(AchievementInventories.getInstance(), this);
 		pm.registerEvents(new AchievementShop(), this);
 
-		AchievementManager.getInstance().addFromConfig(GCStats.instance,
-				Config.getConfig(GCStats.instance, "Achievements.yml"));
+		AchievementManager.getInstance().addFromConfig(GCStats.getInstance(),
+				Config.getConfig(GCStats.getInstance(), "Achievements.yml"));
 		AchievementShop.reload();
 
 		new StatsCommandExecutor(this).register();
@@ -69,18 +72,21 @@ public class GCStats extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
+		StatsDatabase.getInstance().onShutDown();
+		if (Bukkit.getOnlinePlayers().isEmpty())
+			return;
+
 		ExecutorService es = Executors.newFixedThreadPool(Bukkit.getOnlinePlayers().size());
 		for (Player p : Bukkit.getOnlinePlayers())
 			es.execute(() -> {
-				StatsManager.getInstance().updateDatabaseSync(p);
+				StatsManager.getInstance().onPlayerQuit(new PlayerQuitEvent(p, ""));
 			});
 		es.shutdown();
 		try {
-			es.awaitTermination(5, TimeUnit.SECONDS);
+			es.awaitTermination(30, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		StatsDatabase.getInstance().onShutDown();
 	}
 }

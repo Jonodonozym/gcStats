@@ -5,7 +5,7 @@ import org.bukkit.Material;
 
 import jdz.bukkitUtils.misc.RomanNumber;
 import jdz.statsTracker.achievement.Achievement;
-import jdz.statsTracker.achievement.StatAchievement;
+import jdz.statsTracker.achievement.achievementTypes.StatAchievement;
 
 public class JumpAchievementSeries {
 	public static Achievement[] achievements = new Achievement[4];

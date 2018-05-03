@@ -33,10 +33,10 @@ public class AchievementShop implements Listener {
 	private static Map<Integer, ShopItem> items;
 
 	public static void reload() {
-		String location = GCStats.instance.getDataFolder().getPath() + File.separator + "AchievementShop.yml";
+		String location = GCStats.getInstance().getDataFolder().getPath() + File.separator + "AchievementShop.yml";
 		File file = new File(location);
 		if (!file.exists())
-			new FileExporter(GCStats.instance).ExportResource("AchievementShop.yml", location);
+			new FileExporter(GCStats.getInstance()).ExportResource("AchievementShop.yml", location);
 
 		FileConfiguration shopConfig = YamlConfiguration.loadConfiguration(file);
 
@@ -50,7 +50,7 @@ public class AchievementShop implements Listener {
 					items.put(item.slot, item);
 				}
 				catch (Exception e) {
-					GCStats.instance.getLogger().info(s + " in achievements shop has invalid configuration, ("
+					GCStats.getInstance().getLogger().info(s + " in achievements shop has invalid configuration, ("
 							+ e.getMessage() + ") skipping...");
 					e.printStackTrace();
 				}
@@ -93,14 +93,14 @@ public class AchievementShop implements Listener {
 						if (currentPoints >= item.cost) {
 							giveItems(item.items, p);
 							for (String s : item.commands)
-								GCStats.instance.getServer().dispatchCommand(
-										GCStats.instance.getServer().getConsoleSender(),
+								GCStats.getInstance().getServer().dispatchCommand(
+										GCStats.getInstance().getServer().getConsoleSender(),
 										s.replaceAll("\\{player\\}", p.getName()));
 							if (item.messages.length > 0)
 								p.sendMessage(item.messages);
 							p.closeInventory();
 							AchievementManager.getInstance().addAchievementPoints(p, -item.cost);
-							GCStats.instance.getServer().dispatchCommand(p, "gca bal");
+							GCStats.getInstance().getServer().dispatchCommand(p, "gca bal");
 						}
 						else {
 							p.closeInventory();
@@ -108,7 +108,7 @@ public class AchievementShop implements Listener {
 									+ " more points for that");
 						}
 					}
-				}.runTaskAsynchronously(GCStats.instance);
+				}.runTaskAsynchronously(GCStats.getInstance());
 
 			}
 			e.setCancelled(true);
@@ -163,7 +163,7 @@ public class AchievementShop implements Listener {
 					this.displayItem.addUnsafeEnchantment(Enchantment.getById(id), level);
 				}
 				catch (Exception e) {
-					GCStats.instance.getLogger().info("Invalid enchantment '" + s + "' on achievement shop item '"
+					GCStats.getInstance().getLogger().info("Invalid enchantment '" + s + "' on achievement shop item '"
 							+ displayItem.getItemMeta().getDisplayName() + "', skipping enchant...");
 				}
 			}

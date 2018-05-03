@@ -7,11 +7,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 
 import jdz.bukkitUtils.events.Listener;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.event.StatChangeEvent;
-import jdz.statsTracker.stats.NoSaveStatType;
+import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
 
 class StatObjectiveListener implements Listener {
 	private static final Map<NoSaveStatType, Set<StatObjective>> typeToObjectives = new HashMap<NoSaveStatType, Set<StatObjective>>();
@@ -32,13 +33,14 @@ class StatObjectiveListener implements Listener {
 		new StatObjectiveListener().registerEvents(GCStats.getInstance());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onStatChange(StatChangeEvent event) {
+		if (event.getPlayer() == null)
+			return;
 		if (typeToObjectives.containsKey(event.getType()))
 			for (StatObjective objective : typeToObjectives.get(event.getType()))
-				if (objective.getPlayers().contains(event.getPlayer().getUniqueId()))
-					if (!objective.isUnlocked(event.getPlayer())
-							&& objective.getRequired() <= event.getNewValue())
+				if (objective.getPlayers().contains(event.getUuid()))
+					if (!objective.isUnlocked(event.getPlayer()) && objective.getRequired() <= event.getNewValue())
 						objective.setUnlocked(event.getPlayer());
 	}
 }

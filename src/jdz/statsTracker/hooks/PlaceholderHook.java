@@ -11,7 +11,7 @@ import jdz.statsTracker.stats.StatType;
 public class PlaceholderHook extends EZPlaceholderHook {
 
 	public PlaceholderHook() {
-		super(GCStats.instance, "gcStats");
+		super(GCStats.getInstance(), "gcStats");
 	}
 
 	@Override

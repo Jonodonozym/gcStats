@@ -1,7 +1,7 @@
 
 package jdz.statsTracker.objective;
 
-import jdz.statsTracker.stats.NoSaveStatType;
+import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
 import lombok.Getter;
 
 public class StatObjective extends AbstractObjective {
