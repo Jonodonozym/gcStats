@@ -8,6 +8,17 @@ import org.bukkit.OfflinePlayer;
 public abstract class NoSaveStatType extends BufferedStatType {
 
 	@Override
+	protected void addEntry(UUID uuid, double value) {
+		if (!onlinePlayerStats.containsKey(uuid))
+			super.addEntry(uuid, value);
+	}
+	
+	@Override
+	protected double removeEntry(UUID uuid) {
+		return onlinePlayerStats.get(uuid);
+	}
+	
+	@Override
 	public void add(OfflinePlayer player, double amount) {
 		if (player.isOnline())
 			add(player.getPlayer(), amount);

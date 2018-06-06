@@ -20,6 +20,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.StringUtils;
+import jdz.bukkitUtils.misc.utils.ItemUtils;
 import jdz.bukkitUtils.sql.SqlColumn;
 import jdz.bukkitUtils.sql.SqlDatabase;
 import jdz.bukkitUtils.sql.SqlRow;
@@ -82,12 +83,13 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 		updateAsync(update.replaceAll("\\{table\\}", achievementPointsTable));
 		updateAsync(update.replaceAll("\\{table\\}", getAchTableName()));
 	}
-	
+
 	@Override
 	public boolean hasPlayer(OfflinePlayer player, String server) {
 		if (!isConnected())
 			return false;
-		return queryFirst("SELECT UUID FROM "+getAchTableName(server)+" WHERE UUID='"+player.getName()+"';") != null;
+		return queryFirst(
+				"SELECT UUID FROM " + getAchTableName(server) + " WHERE UUID='" + player.getName() + "';") != null;
 	}
 
 	@Override
@@ -269,6 +271,9 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 		String query = "SELECT iconMaterial, iconDamage FROM " + serverIconTable + " WHERE server = '"
 				+ server.replaceAll(" ", "_") + "';";
 		List<SqlRow> list = query(query);
+		if (list.isEmpty())
+			return ItemUtils.setName(new ItemStack(Material.GOLD_SWORD), ChatColor.GREEN + server.replaceAll("_", " "));
+
 		Material m = Material.valueOf(list.get(0).get(0));
 		short damage = Short.parseShort(list.get(0).get(1));
 		ItemStack is = new ItemStack(m, 1, damage);

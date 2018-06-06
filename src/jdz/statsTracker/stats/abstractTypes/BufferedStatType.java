@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import jdz.statsTracker.event.StatChangeEvent;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public abstract class BufferedStatType extends AbstractStatType implements Listener {
 	protected final Map<UUID, Double> onlinePlayerStats = new HashMap<UUID, Double>();
@@ -56,6 +56,8 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 	}
 
 	public void add(Player player, double amount) {
+		if (!hasFetched(player))
+			return;
 		set(player, get(player) + amount);
 	}
 
@@ -67,6 +69,8 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 	}
 
 	public void set(Player player, double value) {
+		if (!hasFetched(player))
+			return;
 		set(player.getUniqueId(), value);
 	}
 
@@ -77,7 +81,7 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 			StatsDatabase.getInstance().setStat(player, this, amount);
 	}
 
-	protected void set(UUID uuid, double value) {
+	public void set(UUID uuid, double value) {
 		if (!onlinePlayerStats.containsKey(uuid))
 			onlinePlayerStats.put(uuid, getDefault());
 		double oldValue = onlinePlayerStats.get(uuid);

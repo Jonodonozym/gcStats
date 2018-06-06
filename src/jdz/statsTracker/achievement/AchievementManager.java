@@ -190,6 +190,11 @@ public class AchievementManager implements Listener {
 		if (!localEarntAchievements.containsKey(player))
 			localEarntAchievements.put(player, new HashSet<Achievement>());
 
+		if (achievements.isEmpty()) {
+			areLoaded.add(player);
+			return;
+		}
+
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 			ExecutorService es = Executors.newFixedThreadPool(achievements.size());
 			for (Achievement a : achievements)

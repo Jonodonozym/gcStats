@@ -11,6 +11,7 @@ enabledStats:
   Blocks placed: false
   Monsters killed: false
   Exp gained: false
+  Objectives: false
   Distance walked: false
   Deathmatch events won: false
   Key drops won: false

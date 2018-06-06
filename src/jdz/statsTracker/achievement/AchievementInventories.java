@@ -23,7 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 import lombok.Getter;
 import lombok.Setter;
 import jdz.bukkitUtils.fileIO.FileLogger;

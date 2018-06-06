@@ -1,5 +1,5 @@
 
-package jdz.statsTracker.stats.database;
+package jdz.statsTracker.stats;
 
 import java.util.List;
 import java.util.Map;

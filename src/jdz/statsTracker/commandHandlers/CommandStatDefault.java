@@ -2,8 +2,6 @@ package jdz.statsTracker.commandHandlers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -12,7 +10,6 @@ import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
-import jdz.bukkitUtils.commands.annotations.CommandPermission;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.bukkitUtils.misc.Pair;
@@ -21,17 +18,16 @@ import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
 @CommandUsage("[player] [server]")
-@CommandPermission("gcs.top")
-class CommandStatDefault extends SubCommand {
+public class CommandStatDefault extends SubCommand {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		if (args.length == 0) {
 			if (sender instanceof Player)
 				showStats(sender, (Player) sender);
@@ -123,7 +119,7 @@ class CommandStatDefault extends SubCommand {
 				+ ChatColor.GRAY + " ]============";
 		for (String typeStr : types) {
 			try {
-				StatType type = StatsManager.getInstance().getType(typeStr.replaceAll("_", " "));
+				StatType type = StatsManager.getInstance().getType(typeStr);
 				messages[i] = ChatColor.DARK_AQUA + type.getName() + ChatColor.AQUA + ": "
 						+ type.valueToString(stats.get(i - 1));
 			}

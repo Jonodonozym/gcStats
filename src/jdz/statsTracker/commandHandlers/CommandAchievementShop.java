@@ -1,8 +1,6 @@
 
 package jdz.statsTracker.commandHandlers;
 
-import java.util.Set;
-
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -15,10 +13,10 @@ import jdz.statsTracker.achievement.AchievementShop;
 @CommandLabel("shop")
 @CommandLabel("redeem")
 @CommandShortDescription("redeem your achievement points for shiny new items and rewards!")
-class CommandAchievementShop extends SubCommand {
+public class CommandAchievementShop extends SubCommand {
 
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		AchievementShop.openShop((Player) sender);
 	}
 

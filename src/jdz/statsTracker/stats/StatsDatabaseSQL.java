@@ -1,4 +1,4 @@
-package jdz.statsTracker.stats.database;
+package jdz.statsTracker.stats;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +20,6 @@ import jdz.bukkitUtils.sql.SqlDatabase;
 import jdz.bukkitUtils.sql.SqlRow;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
-import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
 import lombok.Getter;
 
@@ -38,6 +37,7 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 		ensureCorrectTables();
 	}
 
+	@Override
 	public void runOnConnect(Runnable r) {
 		super.runOnConnect(r);
 	}

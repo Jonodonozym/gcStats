@@ -1,8 +1,6 @@
 
 package jdz.statsTracker.commandHandlers;
 
-import java.util.Set;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -14,19 +12,19 @@ import jdz.bukkitUtils.commands.annotations.CommandRequiredArgs;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 import net.md_5.bungee.api.ChatColor;
 
 @CommandLabel("inspect")
 @CommandLabel("?")
 @CommandRequiredArgs(2)
-@CommandUsage("{statType} {player}")
+@CommandUsage("inspect {statType} {player}")
 @CommandOpOnly
 public class CommandStatInspect extends SubCommand {
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		StatType type = StatsManager.getInstance().getType(args[0]);
 		if (type == null) {
 			sender.sendMessage(ChatColor.RED + args[0] + " is not a valid stat type!");

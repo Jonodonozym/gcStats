@@ -1,6 +1,7 @@
 
 package jdz.statsTracker.stats;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,7 +27,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
@@ -35,8 +35,7 @@ import jdz.statsTracker.hooks.LeaderHeadsHook;
 import jdz.statsTracker.stats.abstractTypes.BufferedStatType;
 import jdz.statsTracker.stats.abstractTypes.HookedStatType;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
-import jdz.statsTracker.stats.database.StatsDatabase;
-import jdz.statsTracker.stats.database.StatsDatabaseSQL;
+import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.defaultTypes.DefaultStats;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +48,7 @@ public class StatsManager implements Listener {
 
 	private final Map<Plugin, List<StatType>> pluginToStat = new HashMap<Plugin, List<StatType>>();
 
-	@Setter private boolean saveOnQuit = false;
+	@Setter private boolean saveOnQuit = true;
 	@Setter private Collection<BufferedStatType> updateDatabaseTypes = null;
 
 	@Getter private Comparator<StatType> comparator = (a, b) -> {
@@ -71,17 +70,17 @@ public class StatsManager implements Listener {
 	}
 
 	public StatType getType(String name) {
-		name = name.replaceAll(" ", "");
 		for (StatType statType : enabledStats)
-			if (statType.getNameNoSpaces().equalsIgnoreCase(name))
+			if (statType.getNameNoSpaces().equalsIgnoreCase(name)
+					|| statType.getNameUnderscores().equalsIgnoreCase(name))
 				return statType;
 		return null;
 	}
 
 	public BufferedStatType getBufferedType(String name) {
-		name = name.replaceAll("_", "").replaceAll(" ", "");
 		for (BufferedStatType statType : getBufferedTypes())
-			if (statType.getName().replaceAll(" ", "").equalsIgnoreCase(name))
+			if (statType.getNameNoSpaces().equalsIgnoreCase(name)
+					|| statType.getNameUnderscores().equalsIgnoreCase(name))
 				return statType;
 		return null;
 	}
@@ -134,7 +133,7 @@ public class StatsManager implements Listener {
 			es.awaitTermination(1, TimeUnit.MINUTES);
 		}
 		catch (InterruptedException e) {
-			new FileLogger((JavaPlugin) plugin).createErrorLog(e);
+			new FileLogger(plugin).createErrorLog(e);
 		}
 
 		Collections.sort(enabledStatsList, comparator);
@@ -184,14 +183,23 @@ public class StatsManager implements Listener {
 
 		FileConfiguration config = Config.getConfig(GCStats.getInstance(), "enabledStats.yml");
 		for (String key : config.getConfigurationSection("enabledStats").getKeys(false)) {
-			if (!config.getBoolean("enabledStats." + key))
+			if (!config.getBoolean("enabledStats." + key)) {
+				config.set("enabledStats." + key, false);
 				continue;
+			}
 
 			for (StatType type : DefaultStats.getInstance().getAll())
 				if (type.getName().equalsIgnoreCase(key)) {
 					enabledStats.add(type);
 					break;
 				}
+		}
+
+		try {
+			config.save(Config.getConfigFile(GCStats.getInstance(), "enabledStats.yml"));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		if (enabledStats.isEmpty())
@@ -234,8 +242,8 @@ public class StatsManager implements Listener {
 				for (BufferedStatType statType : types)
 					es.execute(() -> {
 						double amount = StatsDatabase.getInstance().getStat(player, statType);
+						statType.set(player.getUniqueId(), amount);
 						statType.setHasFetched(player, true);
-						statType.add(player, amount - statType.getDefault());
 					});
 				es.shutdown();
 				try {
@@ -274,7 +282,7 @@ public class StatsManager implements Listener {
 	}
 
 	public void updateDatabase(Player player, BufferedStatType type) {
-		updateDatabaseSync(player, Arrays.asList(type));
+		updateDatabase(player, Arrays.asList(type));
 	}
 
 	public void updateDatabase(Player player, Collection<BufferedStatType> typesToSave) {
@@ -288,13 +296,14 @@ public class StatsManager implements Listener {
 	}
 
 	public void updateDatabaseSync(Player player, Collection<BufferedStatType> typesToSave) {
-		if (typesToSave.isEmpty())
-			return;
-
 		Map<StatType, Double> typeToValue = new HashMap<StatType, Double>();
-		for (StatType type : typesToSave)
-			typeToValue.put(type, type.get(player));
-
+		for (BufferedStatType type : typesToSave)
+			if (type.hasFetched(player))
+				typeToValue.put(type, type.get(player));
+		
+		if (typeToValue.isEmpty())
+			return;
+		
 		StatsDatabase.getInstance().setStatsSync(player, typeToValue);
 		GCStats.getInstance().getLogger().info("Stats saved for " + player.getName());
 	}

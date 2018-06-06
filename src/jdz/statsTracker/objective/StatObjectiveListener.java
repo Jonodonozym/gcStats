@@ -35,8 +35,6 @@ class StatObjectiveListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onStatChange(StatChangeEvent event) {
-		if (event.getPlayer() == null)
-			return;
 		if (typeToObjectives.containsKey(event.getType()))
 			for (StatObjective objective : typeToObjectives.get(event.getType()))
 				if (objective.getPlayers().contains(event.getUuid()))

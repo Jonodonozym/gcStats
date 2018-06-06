@@ -3,8 +3,7 @@ package jdz.statsTracker.commandHandlers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import jdz.bukkitUtils.misc.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,7 +24,7 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandOpOnly;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.defaultTypes.StatTypeKills;
 
 @CommandOpOnly
@@ -34,29 +33,24 @@ public class CommandStatTest extends SubCommand {
 	private static final int TEST_SIZE = 1000;
 
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
-		int starting = 0;
-		while (StatsDatabase.getInstance().hasPlayer(mockOfflinePlayer(starting + "")))
-			starting += TEST_SIZE;
-
-		final int finalStarting = starting;
+	public void execute(CommandSender sender, String... args) {
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
-			final Map<Player, Double> values = initValues(sender, finalStarting);
+			final Map<Player, Double> values = initValues(sender);
 			Bukkit.getScheduler().runTaskLaterAsynchronously(GCStats.getInstance(), () -> {
 				checkValues(sender, values);
 			}, 20);
 		});
 	}
 
-	private Map<Player, Double> initValues(CommandSender sender, int starting) {
+	private Map<Player, Double> initValues(CommandSender sender) {
 		Map<Player, Double> kills = new HashMap<Player, Double>();
 		ExecutorService es = Executors.newFixedThreadPool(TEST_SIZE);
-		for (int i = starting; i < starting + TEST_SIZE; i++) {
+		for (int i = 0; i < TEST_SIZE; i++) {
 			final int i2 = i;
 			es.execute(() -> {
 				Player player = mockPlayer(i2 + "");
 				StatsManager.getInstance().onPlayerJoin(new PlayerJoinEvent(player, ""));
-				StatTypeKills.getInstance().set(player, new Random().nextInt(10000));
+				StatTypeKills.getInstance().set(player, Random.nextInt(10000));
 				kills.put(player, StatTypeKills.getInstance().get(player));
 				StatsManager.getInstance().onPlayerQuit(new PlayerQuitEvent(player, ""));
 			});
@@ -74,11 +68,11 @@ public class CommandStatTest extends SubCommand {
 	}
 
 	private void checkValues(CommandSender sender, Map<Player, Double> values) {
-		Map<Player, Double> kills = new HashMap<Player, Double>();
 		ExecutorService es = Executors.newFixedThreadPool(values.size());
+		int i = 0;
 		for (Player player : values.keySet()) {
+			final int name = i;
 			es.execute(() -> {
-				StatsManager.getInstance().onPlayerJoin(new PlayerJoinEvent(player, ""));
 				try {
 					Thread.sleep(10000);
 				}
@@ -86,12 +80,10 @@ public class CommandStatTest extends SubCommand {
 					e.printStackTrace();
 				}
 				double expected = values.get(player);
-				double actual = StatTypeKills.getInstance().get(player);
+				double actual = StatsDatabase.getInstance().getStat(mockOfflinePlayer(name + ""),
+						StatTypeKills.getInstance());
 				if (expected != actual)
 					sender.sendMessage(ChatColor.RED + player.getName() + " WRONG: " + expected + ", " + actual);
-				StatTypeKills.getInstance().set(player, new Random().nextInt(10000));
-				kills.put(player, StatTypeKills.getInstance().get(player));
-				StatsManager.getInstance().onPlayerQuit(new PlayerQuitEvent(player, ""));
 			});
 		}
 		es.shutdown();
@@ -103,6 +95,8 @@ public class CommandStatTest extends SubCommand {
 			sender.sendMessage(e.toString());
 			e.printStackTrace();
 		}
+		
+		sender.sendMessage("Test complete");
 	}
 
 	private Player mockPlayer(String name) {

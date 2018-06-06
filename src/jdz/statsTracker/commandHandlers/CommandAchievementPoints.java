@@ -1,8 +1,6 @@
 
 package jdz.statsTracker.commandHandlers;
 
-import java.util.Set;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -22,10 +20,10 @@ import jdz.statsTracker.achievement.database.AchievementDatabase;
 @CommandLabel("points")
 @CommandShortDescription("shows the amount of points you have racked up")
 @CommandUsage("bal [server]")
-class CommandAchievementPoints extends SubCommand {
+public class CommandAchievementPoints extends SubCommand {
 
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		Player player = (Player) sender;
 
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {

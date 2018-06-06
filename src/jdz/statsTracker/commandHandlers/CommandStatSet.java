@@ -1,8 +1,6 @@
 
 package jdz.statsTracker.commandHandlers;
 
-import java.util.Set;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -14,7 +12,7 @@ import jdz.bukkitUtils.commands.annotations.CommandRequiredArgs;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
 import jdz.statsTracker.stats.StatsManager;
 import jdz.statsTracker.stats.abstractTypes.BufferedStatType;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 import net.md_5.bungee.api.ChatColor;
 
 @CommandLabel("set")
@@ -26,7 +24,7 @@ public class CommandStatSet extends SubCommand {
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		BufferedStatType type = StatsManager.getInstance().getBufferedType(args[0]);
 		if (type == null) {
 			sender.sendMessage(ChatColor.RED + args[0] + " is not a valid stat type!");

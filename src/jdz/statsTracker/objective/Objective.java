@@ -39,5 +39,4 @@ public interface Objective {
 	public default void unRegister() {
 		ObjectiveManager.unregisterObjective(this);
 	}
-
 }

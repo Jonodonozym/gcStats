@@ -4,7 +4,7 @@ package jdz.statsTracker.stats.abstractTypes;
 import org.bukkit.OfflinePlayer;
 
 import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 
 public abstract class AbstractStatType implements StatType {
 

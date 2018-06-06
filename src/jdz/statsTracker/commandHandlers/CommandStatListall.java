@@ -3,8 +3,6 @@ package jdz.statsTracker.commandHandlers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import org.bukkit.command.CommandSender;
 
 import jdz.bukkitUtils.commands.SubCommand;
@@ -19,7 +17,7 @@ import jdz.statsTracker.stats.StatsManager;
 public class CommandStatListall extends SubCommand{
 
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		List<String> strings = new ArrayList<String>();
 		for (StatType type: StatsManager.getInstance().enabledStats())
 			strings.add(type.getNameNoSpaces());

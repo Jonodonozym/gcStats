@@ -1,8 +1,6 @@
 
 package jdz.statsTracker.commandHandlers;
 
-import java.util.Set;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -13,10 +11,10 @@ import jdz.statsTracker.GCStatsConfig;
 
 @CommandShortDescription("lists avaliable servers")
 @CommandLabel("servers")
-class CommandListServers extends SubCommand {
+public class CommandListServers extends SubCommand {
 
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		String list = "";
 		for (String server : GCStatsConfig.servers)
 			list = list + ", " + server.replaceAll(" ", "_");

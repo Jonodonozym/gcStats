@@ -16,7 +16,7 @@ public class DefaultStats {
 	@Getter private final Set<StatType> all = new HashSet<StatType>(Arrays.asList(StatTypeBlocksMined.getInstance(),
 			StatTypeBlocksPlaced.getInstance(), StatTypeDeaths.getInstance(), StatTypeDistanceWalked.getInstance(),
 			StatTypeExpGained.getInstance(), StatTypeKDR.getInstance(), StatTypeKills.getInstance(),
-			StatTypeMobKills.getInstance(), StatTypePlayTime.getInstance()));
+			StatTypeMobKills.getInstance(), StatTypePlayTime.getInstance(), StatTypeObjectivesCompleted.getInstance()));
 
 	private DefaultStats() {
 		try {

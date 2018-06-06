@@ -5,11 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,7 +19,7 @@ import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.database.StatsDatabase;
+import jdz.statsTracker.stats.StatsDatabase;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
@@ -33,7 +28,7 @@ import net.md_5.bungee.api.ChatColor;
 @CommandRequiredArgs(1)
 @CommandShortDescription("Displays the top scores for a specific stat")
 @CommandUsage("top <statNoSpaces> [pageNumber]")
-class CommandStatTop extends SubCommand {
+public class CommandStatTop extends SubCommand {
 	@Getter private static final CommandStatTop instance = new CommandStatTop();
 
 	private CommandStatTop() {}
@@ -47,7 +42,7 @@ class CommandStatTop extends SubCommand {
 	final int playersPerPage = 8;
 
 	@Override
-	public void execute(CommandSender sender, Set<String> flags, String... args) {
+	public void execute(CommandSender sender, String... args) {
 		StatType type = StatsManager.getInstance().getType(args[0]);
 		if (type == null) {
 			sender.sendMessage(
@@ -66,7 +61,7 @@ class CommandStatTop extends SubCommand {
 		if (!lastUpdates.containsKey(type) || lastUpdates.get(type) < System.currentTimeMillis() - timeBetweenUpdates) {
 			final int pageNumberFinal = pageNumber;
 			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
-				updateStat((Player) sender, type);
+				updateStat(sender, type);
 				showStat(sender, type, pageNumberFinal);
 			});
 		}
@@ -74,28 +69,13 @@ class CommandStatTop extends SubCommand {
 			showStat(sender, type, pageNumber);
 	}
 
-	private void updateStat(Player sender, StatType type) {
+	private void updateStat(CommandSender sender, StatType type) {
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 			int entries = StatsDatabase.getInstance().countEntries(GCStatsConfig.serverName);
 			if (entries > 1000)
 				sender.sendMessage(ChatColor.GOLD + "Sorting " + ChatColor.AQUA + entries + ChatColor.GOLD
 						+ " entries, please wait...");
 		});
-
-		ExecutorService es = Executors.newCachedThreadPool();
-
-		for (Player player : Bukkit.getOnlinePlayers())
-			es.execute(() -> {
-				StatsDatabase.getInstance().setStatSync(player, type, type.get(player));
-			});
-
-		es.shutdown();
-		try {
-			es.awaitTermination(5, TimeUnit.SECONDS);
-		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 
 		Map<String, Double> rows = StatsDatabase.getInstance().getAllSorted(type);
 
