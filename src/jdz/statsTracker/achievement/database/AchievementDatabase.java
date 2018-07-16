@@ -3,7 +3,6 @@ package jdz.statsTracker.achievement.database;
 
 import java.util.List;
 
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -54,7 +53,7 @@ public interface AchievementDatabase {
 		return (getServers().contains(server));
 	}
 
-	public void setServerIcon(String server, Material m, short damage);
+	public void setServerIcon(String server, ItemStack stack);
 
 	public ItemStack getServerIcon(String server);
 }

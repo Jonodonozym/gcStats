@@ -50,7 +50,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 	protected String achievementPointsTable = "gcs_Achievement_Points";
 	protected SQLColumn[] achievementPointsTablColumns = new SQLColumn[] { new SQLColumn("UUID", STRING_64, true),
 			new SQLColumn("Global", INT) };
-	
+
 	private String achievementMetaTable = "gcs_Achievement_MetaData";
 	protected SQLColumn[] achievementMetaColumns = new SQLColumn[] { new SQLColumn("server", STRING_64, true),
 			new SQLColumn("name", STRING_128, true), new SQLColumn("statType", STRING_64),
@@ -59,7 +59,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 			new SQLColumn("description", STRING_512), new SQLColumn("rewardText", STRING_512),
 			new SQLColumn("hidden", BOOLEAN), new SQLColumn("newLineAfter", BOOLEAN),
 			new SQLColumn("newLineBefore", BOOLEAN) };
-	
+
 	protected String serverIconTable = "gcs_Server_MetaData";
 	protected SQLColumn[] serverIconTableColumns = new SQLColumn[] { new SQLColumn("server", STRING_64, true),
 			new SQLColumn("iconMaterial", STRING_64), new SQLColumn("iconDamage", INT_1_BYTE) };
@@ -69,7 +69,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 
 		GCStatsConfig.servers = getServers();
-		setServerIcon(GCStatsConfig.serverName, GCStatsConfig.serverIcon, GCStatsConfig.serverIconData);
+		setServerIcon(GCStatsConfig.serverName, AchievementConfig.getServerIcon());
 
 		addTable(serverIconTable, serverIconTableColumns);
 		addTable(achievementMetaTable, achievementMetaColumns);
@@ -102,8 +102,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 
 	@Override
 	public void setAchievementPoints(Player player, int points) {
-		String column = AchievementConfig.isPointsGlobal() ? "Global"
-				: GCStatsConfig.serverName.replaceAll(" ", "_");
+		String column = AchievementConfig.isPointsGlobal() ? "Global" : GCStatsConfig.serverName.replaceAll(" ", "_");
 		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + points + " WHERE UUID = '"
 				+ player.getName() + "';";
 		updateAsync(update);
@@ -111,8 +110,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 
 	@Override
 	public void addAchievementPoints(Player player, int points) {
-		String column = AchievementConfig.isPointsGlobal() ? "Global"
-				: GCStatsConfig.serverName.replaceAll(" ", "_");
+		String column = AchievementConfig.isPointsGlobal() ? "Global" : GCStatsConfig.serverName.replaceAll(" ", "_");
 		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + column + " + " + points
 				+ " WHERE UUID = '" + player.getName() + "';";
 		updateAsync(update);
@@ -259,11 +257,11 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 	}
 
 	@Override
-	public void setServerIcon(String server, Material m, short damage) {
+	public void setServerIcon(String server, ItemStack item) {
 		if (!isConnected())
 			return;
 		String update = "REPLACE INTO " + serverIconTable + " (server, iconMaterial, iconDamage) values('"
-				+ server.replaceAll(" ", "_") + "','" + m + "'," + damage + ");";
+				+ server.replaceAll(" ", "_") + "','" + item.getType() + "'," + item.getDurability() + ");";
 		update(update);
 	}
 

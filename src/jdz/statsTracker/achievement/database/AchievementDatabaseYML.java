@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -109,7 +108,7 @@ public class AchievementDatabaseYML implements AchievementDatabase {
 	}
 
 	@Override
-	public void setServerIcon(String server, Material m, short damage) {}
+	public void setServerIcon(String server, ItemStack item) {}
 
 	@Override
 	public ItemStack getServerIcon(String server) {
