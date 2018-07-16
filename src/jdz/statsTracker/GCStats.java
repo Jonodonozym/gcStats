@@ -21,6 +21,8 @@ import jdz.statsTracker.achievement.AchievementConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
+import jdz.statsTracker.broadcaster.Broadcaster;
+import jdz.statsTracker.broadcaster.BroadcasterConfig;
 import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.hooks.PlaceholderHook;
 import jdz.statsTracker.objective.ObjectivesCommand;
@@ -37,6 +39,8 @@ public class GCStats extends JavaPlugin {
 		fileLogger = new FileLogger(GCStats.getInstance());
 
 		new AchievementConfig().registerEvents(this);
+		new BroadcasterConfig().registerEvents(this);
+		Broadcaster.init();
 
 		StatsManager.getInstance().loadDefaultStats();
 

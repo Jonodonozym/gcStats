@@ -6,10 +6,8 @@ import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.misc.Config;
-import jdz.bukkitUtils.misc.TimedTask;
 
 public class GCStatsConfig {
 	public static String serverName = "";
@@ -22,11 +20,6 @@ public class GCStatsConfig {
 	public static String statsCommand = "gcs";
 	public static String achCommand = "gca";
 
-	public static boolean broadcastEnabled = false;
-	public static int broadcastMinTime, broadcastMaxTime;
-	public static String[] broadcastMessage = new String[1];
-	private static TimedTask broadcastTask = null;
-
 	public static List<String> servers = new ArrayList<String>();
 	
 	public static boolean SQLEnabled = true;
@@ -38,22 +31,6 @@ public class GCStatsConfig {
 		serverName = config.getString("server.name");
 		servers.add(serverName);
 
-		broadcastEnabled = config.getBoolean("broadcastInfo.enabled");
-		broadcastMinTime = config.getInt("broadcastInfo.intervalMinutesMin");
-		broadcastMaxTime = config.getInt("broadcastInfo.intervalMinutesMax");
-		broadcastMessage = config.getStringList("broadcastInfo.message").toArray(broadcastMessage);
-		for (int i = 0; i < broadcastMessage.length; i++)
-			broadcastMessage[i] = broadcastMessage[i].replaceAll("&([0-9a-f])", "\u00A7$1");
-
-		if (broadcastEnabled) {
-			if (broadcastTask != null)
-				broadcastTask.stop();
-			broadcastTask = new TimedTask(GCStats.getInstance(), broadcastMaxTime * 1200, () -> {
-				for (Player p : GCStats.getInstance().getServer().getOnlinePlayers())
-					p.sendMessage(broadcastMessage);
-			});
-			broadcastTask.start();
-		}
 
 		Material m = Material.GRASS;
 		try {
