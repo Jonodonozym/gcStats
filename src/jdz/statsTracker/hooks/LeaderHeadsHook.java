@@ -18,26 +18,32 @@ public class LeaderHeadsHook {
 	private LeaderHeadsHook() {}
 
 	public void addType(StatType type) {
+		String name = "gcs_" + type.getNameUnderscores().toLowerCase();
+		if (name.length() > 15)
+			name = name.substring(0, 15);
+
 		if (type instanceof StatTypePlayTime)
-			new OnlineDataCollector("GCS_" + type.getNameUnderscores(), "gcStats", BoardType.TIME, "",
-					"gcs rank " + type.getNameNoSpaces(),
-					Arrays.asList(RED + "" + STRIKETHROUGH + "--------------", GREEN + "" + BOLD + "{name}",
-							YELLOW + "{amount}", RED + "" + STRIKETHROUGH + "--------------")) {
+			new StatTypeDataCollecter(type, name) {
 				@Override
 				public Double getScore(Player player) {
 					return type.get(player) / 60;
 				}
 			};
 		else
-			new OnlineDataCollector("GCS_" + type.getNameUnderscores(), "gcStats", BoardType.DEFAULT, "",
-					"gcs rank " + type.getNameNoSpaces(),
-					Arrays.asList(RED + "" + STRIKETHROUGH + "--------------", GREEN + "" + BOLD + "{name}",
-							YELLOW + "{amount}", RED + "" + STRIKETHROUGH + "--------------")) {
+			new StatTypeDataCollecter(type, name) {
 				@Override
 				public Double getScore(Player player) {
 					return type.get(player);
 				}
 			};
+	}
+
+	private abstract class StatTypeDataCollecter extends OnlineDataCollector {
+		public StatTypeDataCollecter(StatType type, String name) {
+			super(name, "gcStats", BoardType.DEFAULT, type.getName(), "gcs top " + type.getNameNoSpaces(),
+					Arrays.asList(RED + "" + STRIKETHROUGH + "----------", GREEN + "{name}",
+							YELLOW + "{amount}", RED + "" + STRIKETHROUGH + "----------"));
+		}
 	}
 
 }
