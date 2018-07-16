@@ -25,12 +25,6 @@ public class GCStatsConfig {
 	public static boolean broadcastEnabled = false;
 	public static int broadcastMinTime, broadcastMaxTime;
 	public static String[] broadcastMessage = new String[1];
-
-	public static boolean achievementFireworkEnabled = true;
-	public static boolean achievementMessageEnabled = false;
-	public static boolean achievementGiveRewards = true;
-	public static boolean achievementPointsGlobal = false;
-
 	private static TimedTask broadcastTask = null;
 
 	public static List<String> servers = new ArrayList<String>();
@@ -60,11 +54,6 @@ public class GCStatsConfig {
 			});
 			broadcastTask.start();
 		}
-
-		achievementFireworkEnabled = config.getBoolean("achievements.doFirework");
-		achievementMessageEnabled = config.getBoolean("achievements.doMessage");
-		achievementGiveRewards = config.getBoolean("achievements.giveRewards");
-		achievementPointsGlobal = config.getBoolean("achievements.globalPoints");
 
 		Material m = Material.GRASS;
 		try {

@@ -36,6 +36,7 @@ import jdz.bukkitUtils.sql.SqlDatabase;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.Achievement;
+import jdz.statsTracker.achievement.AchievementConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.achievement.achievementTypes.RemoteAchievement;
@@ -101,7 +102,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 
 	@Override
 	public void setAchievementPoints(Player player, int points) {
-		String column = GCStatsConfig.achievementPointsGlobal ? "Global"
+		String column = AchievementConfig.isPointsGlobal() ? "Global"
 				: GCStatsConfig.serverName.replaceAll(" ", "_");
 		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + points + " WHERE UUID = '"
 				+ player.getName() + "';";
@@ -110,7 +111,7 @@ class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase,
 
 	@Override
 	public void addAchievementPoints(Player player, int points) {
-		String column = GCStatsConfig.achievementPointsGlobal ? "Global"
+		String column = AchievementConfig.isPointsGlobal() ? "Global"
 				: GCStatsConfig.serverName.replaceAll(" ", "_");
 		String update = "UPDATE " + achievementPointsTable + " SET " + column + " = " + column + " + " + points
 				+ " WHERE UUID = '" + player.getName() + "';";

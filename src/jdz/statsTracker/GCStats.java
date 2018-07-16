@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
+import jdz.statsTracker.achievement.AchievementConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
@@ -35,7 +36,7 @@ public class GCStats extends JavaPlugin {
 		instance = this;
 		fileLogger = new FileLogger(GCStats.getInstance());
 
-		GCStatsConfig.reloadConfig();
+		new AchievementConfig().registerEvents(this);
 
 		StatsManager.getInstance().loadDefaultStats();
 

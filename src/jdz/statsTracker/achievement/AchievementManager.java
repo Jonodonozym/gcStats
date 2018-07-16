@@ -132,11 +132,11 @@ public class AchievementManager implements Listener {
 
 		localEarntAchievements.get(player).add(achievement);
 
-		if (GCStatsConfig.achievementFireworkEnabled)
+		if (AchievementConfig.isFireworkEnabled())
 			achievement.doFirework(player);
-		if (GCStatsConfig.achievementMessageEnabled)
+		if (AchievementConfig.isMessageEnabled())
 			achievement.doMessages(player);
-		if (GCStatsConfig.achievementGiveRewards)
+		if (AchievementConfig.isGiveRewards())
 			achievement.giveRewards(player);
 
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
