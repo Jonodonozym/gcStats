@@ -28,3 +28,6 @@ server:
   name: "defaultName"
   icon: "INK_SACK"
   iconDamage: 2
+  
+data:
+  SQLEnabled: true

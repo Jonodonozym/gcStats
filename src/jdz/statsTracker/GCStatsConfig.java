@@ -34,11 +34,15 @@ public class GCStatsConfig {
 	private static TimedTask broadcastTask = null;
 
 	public static List<String> servers = new ArrayList<String>();
+	
+	public static boolean SQLEnabled = true;
 
 	public static void reloadConfig() {
 		FileConfiguration config = Config.getConfig(GCStats.getInstance());
 
+		servers.remove(serverName);
 		serverName = config.getString("server.name");
+		servers.add(serverName);
 
 		broadcastEnabled = config.getBoolean("broadcastInfo.enabled");
 		broadcastMinTime = config.getInt("broadcastInfo.intervalMinutesMin");
@@ -69,5 +73,7 @@ public class GCStatsConfig {
 		catch (Exception e) {}
 		serverIconData = (short) config.getInt("server.iconDamage");
 		serverIcon = m;
+		
+		SQLEnabled = config.getBoolean("data.SQLEnabled", true);
 	}
 }
