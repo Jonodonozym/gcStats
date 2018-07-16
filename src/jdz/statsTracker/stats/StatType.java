@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 public interface StatType {
 	public boolean hasPlayer(Player player);
-	
+
 	public void addPlayer(Player player, double value);
 
 	public double removePlayer(Player player);

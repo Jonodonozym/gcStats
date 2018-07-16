@@ -12,9 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,14 +25,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
-import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.hooks.LeaderHeadsHook;
 import jdz.statsTracker.stats.abstractTypes.BufferedStatType;
 import jdz.statsTracker.stats.abstractTypes.HookedStatType;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
-import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.defaultTypes.DefaultStats;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,12 +40,8 @@ public class StatsManager implements Listener {
 
 	private final Set<StatType> enabledStats = new HashSet<StatType>();
 	private final List<StatType> enabledStatsList = new ArrayList<StatType>();
-
 	private final Map<Plugin, List<StatType>> pluginToStat = new HashMap<Plugin, List<StatType>>();
-
-	@Setter private boolean saveOnQuit = true;
 	@Setter private Collection<BufferedStatType> updateDatabaseTypes = null;
-
 	@Getter private Comparator<StatType> comparator = (a, b) -> {
 		return a.getName().compareTo(b.getName());
 	};
@@ -96,8 +87,6 @@ public class StatsManager implements Listener {
 		if (!pluginToStat.containsKey(plugin))
 			pluginToStat.put(plugin, new ArrayList<StatType>());
 
-		ExecutorService es = Executors.newFixedThreadPool(statTypes.length);
-
 		for (StatType statType : statTypes) {
 			if (statType == null)
 				continue;
@@ -114,29 +103,42 @@ public class StatsManager implements Listener {
 			if (statType instanceof Listener)
 				Bukkit.getPluginManager().registerEvents((Listener) statType, GCStats.getInstance());
 
-			if ((statType instanceof NoSaveStatType))
-				for (Player player : Bukkit.getOnlinePlayers())
-					statType.addPlayer(player, statType.getDefault());
-			else
-				es.execute(() -> {
-					StatsDatabase.getInstance().addStatType(statType, true);
-					for (Player player : Bukkit.getOnlinePlayers())
-						statType.addPlayer(player, StatsDatabase.getInstance().getStat(player, statType));
-				});
-
-			if (Bukkit.getPluginManager().isPluginEnabled("LeaderHeads"))
+			if (Bukkit.getPluginManager().getPlugin("LeaderHeads") != null)
 				LeaderHeadsHook.getInstance().addType(statType);
-		}
 
-		es.shutdown();
-		try {
-			es.awaitTermination(1, TimeUnit.MINUTES);
-		}
-		catch (InterruptedException e) {
-			new FileLogger(plugin).createErrorLog(e);
+			if (!(statType instanceof NoSaveStatType))
+				StatsDatabase.getInstance().addStatType(statType, true);
 		}
 
 		Collections.sort(enabledStatsList, comparator);
+
+		if (Bukkit.getOnlinePlayers().size() == 0)
+			return;
+
+		final List<StatType> typesList = new ArrayList<>(Arrays.asList(statTypes));
+		typesList.removeIf((type) -> {
+			if (type == null)
+				return true;
+			if (type instanceof NoSaveStatType) {
+				for (Player player : Bukkit.getOnlinePlayers())
+					type.addPlayer(player, type.getDefault());
+				return true;
+			}
+			return false;
+		});
+
+		if (typesList.isEmpty())
+			return;
+
+		StatsDatabaseSQL.getInstance().runOnConnect(() -> {
+			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+				for (Player player : Bukkit.getOnlinePlayers()) {
+					Map<StatType, Double> stats = StatsDatabase.getInstance().getStats(player, typesList);
+					for (StatType type : stats.keySet())
+						type.addPlayer(player, stats.get(type));
+				}
+			});
+		});
 	}
 
 	public void removeTypes(StatType... statTypes) {
@@ -213,6 +215,47 @@ public class StatsManager implements Listener {
 		Collections.sort(enabledStatsList, comparator);
 	}
 
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		Player player = e.getPlayer();
+
+		for (StatType statType : StatsManager.getInstance().enabledStats())
+			statType.addPlayer(player, statType.getDefault());
+
+		Set<BufferedStatType> types = getBufferedTypes();
+		types.removeIf((type) -> {
+			return type instanceof NoSaveStatType;
+		});
+		if (types.isEmpty())
+			return;
+
+		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
+			StatsDatabaseSQL.getInstance().runOnConnect(() -> {
+				if (!StatsDatabase.getInstance().hasPlayer(player)) {
+					for (StatType type : types)
+						type.addPlayer(player, type.getDefault());
+
+					StatsDatabase.getInstance().addPlayer(player);
+					return;
+				}
+
+				Map<StatType, Double> statToValue = StatsDatabase.getInstance().getStats(player, types);
+				for (BufferedStatType type : types) {
+					type.addPlayer(player, statToValue.get(type));
+					type.setHasFetched(player, true);
+				}
+			});
+		});
+	}
+
+	public Set<StatType> getVisibleTypes() {
+		Set<StatType> visibleTypes = new HashSet<StatType>();
+		for (StatType type : enabledStats)
+			if (type.isVisible())
+				visibleTypes.add(type);
+		return visibleTypes;
+	}
+
 	public Set<BufferedStatType> getBufferedTypes() {
 		Set<BufferedStatType> bufferedTypes = new HashSet<BufferedStatType>();
 		for (StatType type : enabledStats)
@@ -221,90 +264,40 @@ public class StatsManager implements Listener {
 		return bufferedTypes;
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPlayerJoin(PlayerJoinEvent e) {
-		Player player = e.getPlayer();
-		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
-			for (StatType statType : StatsManager.getInstance().enabledStats())
-				statType.addPlayer(player, statType.getDefault());
-
-			Set<BufferedStatType> types = getBufferedTypes();
-			if (types.isEmpty())
-				return;
-
-			StatsDatabaseSQL.getInstance().runOnConnect(() -> {
-				if (!StatsDatabase.getInstance().hasPlayer(player)) {
-					StatsDatabase.getInstance().addPlayerSync(player);
-					return;
-				}
-
-				ExecutorService es = Executors.newFixedThreadPool(types.size());
-				for (BufferedStatType statType : types)
-					es.execute(() -> {
-						double amount = StatsDatabase.getInstance().getStat(player, statType);
-						statType.set(player.getUniqueId(), amount);
-						statType.setHasFetched(player, true);
-					});
-				es.shutdown();
-				try {
-					es.awaitTermination(60, TimeUnit.SECONDS);
-					GCStats.getInstance().getLogger().info("Stats fetched for " + player.getName());
-				}
-				catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-			});
-
+	private Set<StatType> getSaveableTypes() {
+		Set<StatType> types = new HashSet<StatType>(enabledStats());
+		types.removeIf((t) -> {
+			return t instanceof NoSaveStatType;
 		});
+		return types;
 	}
 
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
-		if (saveOnQuit)
-			Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
-				Collection<BufferedStatType> types = getSaveableTypes(e.getPlayer());
-				updateDatabaseSync(e.getPlayer(), types);
-				for (BufferedStatType type : getBufferedTypes()) {
-					type.removePlayer(e.getPlayer());
-					type.setHasFetched(e.getPlayer(), false);
-				}
-			});
+		updateDatabase(e.getPlayer(), updateDatabaseTypes == null ? getSaveableTypes() : updateDatabaseTypes);
+		for (BufferedStatType type : getBufferedTypes()) {
+			type.removePlayer(e.getPlayer());
+			type.setHasFetched(e.getPlayer(), false);
+		}
 	}
 
-	private Collection<BufferedStatType> getSaveableTypes(Player player) {
-		Collection<BufferedStatType> typesToSave = updateDatabaseTypes == null ? getBufferedTypes()
-				: updateDatabaseTypes;
-		typesToSave = new HashSet<BufferedStatType>(typesToSave);
-		typesToSave.removeIf((type) -> {
-			return type.get(player) == type.getDefault() || !type.hasFetched(player);
-		});
-		return typesToSave;
-	}
-
-	public void updateDatabase(Player player, BufferedStatType type) {
+	public void updateDatabase(Player player, StatType type) {
 		updateDatabase(player, Arrays.asList(type));
 	}
 
-	public void updateDatabase(Player player, Collection<BufferedStatType> typesToSave) {
-		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
-			updateDatabaseSync(player, typesToSave);
-		});
-	}
-
-	public void updateDatabaseSync(Player player, BufferedStatType type) {
-		updateDatabaseSync(player, Arrays.asList(type));
-	}
-
-	public void updateDatabaseSync(Player player, Collection<BufferedStatType> typesToSave) {
+	public void updateDatabase(Player player, Collection<? extends StatType> typesToSave) {
 		Map<StatType, Double> typeToValue = new HashMap<StatType, Double>();
-		for (BufferedStatType type : typesToSave)
-			if (type.hasFetched(player))
-				typeToValue.put(type, type.get(player));
-		
+
+		for (StatType type : typesToSave) {
+			if (type instanceof BufferedStatType)
+				if (!((BufferedStatType) type).hasFetched(player) || type.get(player) == type.getDefault())
+					continue;
+			typeToValue.put(type, type.get(player));
+		}
+
 		if (typeToValue.isEmpty())
 			return;
-		
-		StatsDatabase.getInstance().setStatsSync(player, typeToValue);
-		GCStats.getInstance().getLogger().info("Stats saved for " + player.getName());
+
+		StatsDatabase.getInstance().setStats(player, typeToValue);
 	}
 }

@@ -33,7 +33,7 @@ public abstract class HookedStatType extends AbstractStatType {
 		});
 		task.start();
 	}
-	
+
 	@Override
 	public boolean hasPlayer(Player player) {
 		return lastValues.containsKey(player);

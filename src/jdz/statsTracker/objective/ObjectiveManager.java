@@ -32,7 +32,7 @@ public class ObjectiveManager implements Listener {
 			public void onPluginUnload(PluginDisableEvent event) {
 				if (event.getPlugin().equals(GCStats.getInstance()))
 					return;
-				
+
 				unregisterAll(event.getPlugin());
 			}
 		}.registerEvents(GCStats.getInstance());
@@ -67,8 +67,8 @@ public class ObjectiveManager implements Listener {
 		for (Plugin plugin : pluginToObjectives.keySet())
 			pluginToObjectives.get(plugin).remove(objective);
 
-		((AbstractObjective)objective).removeAllPlayers();
-		
+		((AbstractObjective) objective).removeAllPlayers();
+
 		if (objective instanceof StatObjective)
 			StatObjectiveListener.remove((StatObjective) objective);
 	}

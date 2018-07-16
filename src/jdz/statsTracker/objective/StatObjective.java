@@ -5,7 +5,7 @@ import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-@EqualsAndHashCode(callSuper = false, of = {"required", "statType"})
+@EqualsAndHashCode(callSuper = false, of = { "required", "statType" })
 public class StatObjective extends AbstractObjective {
 	@Getter private final NoSaveStatType statType;
 	@Getter private final double required;

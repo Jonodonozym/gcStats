@@ -8,12 +8,12 @@ import jdz.statsTracker.stats.abstractTypes.BufferedStatType;
 import lombok.Getter;
 import lombok.Setter;
 
-public class StatTypeObjectivesCompleted extends BufferedStatType{
+public class StatTypeObjectivesCompleted extends BufferedStatType {
 	@Getter private static final StatTypeObjectivesCompleted instance = new StatTypeObjectivesCompleted();
 	@Getter @Setter private boolean visible = false;
-	
+
 	private StatTypeObjectivesCompleted() {}
-	
+
 
 	@Override
 	public String getName() {
@@ -22,9 +22,9 @@ public class StatTypeObjectivesCompleted extends BufferedStatType{
 
 	@Override
 	public String valueToString(double value) {
-		return (int)value+"";
+		return (int) value + "";
 	}
-	
+
 	@EventHandler
 	public void onObjectiveComplete(ObjectiveUnlockEvent event) {
 		add(event.getPlayer(), 1);

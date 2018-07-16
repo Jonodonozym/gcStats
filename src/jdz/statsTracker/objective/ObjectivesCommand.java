@@ -9,7 +9,7 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandPlayerOnly;
 import lombok.Getter;
 
-@CommandLabel("gco")
+@CommandLabel("obj")
 @CommandPlayerOnly
 public class ObjectivesCommand extends Command {
 	@Getter private static final ObjectivesCommand instance = new ObjectivesCommand();

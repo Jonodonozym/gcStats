@@ -12,7 +12,6 @@ import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.GCStats;
 import jdz.statsTracker.event.ObjectiveUnlockEvent;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -67,11 +66,8 @@ class AbstractObjective implements Objective {
 
 	void setUnlocked(Player player, boolean unlocked) {
 		if (unlocked) {
-			if (unlockedPlayers.add(player.getUniqueId())) {
+			if (unlockedPlayers.add(player.getUniqueId()))
 				new ObjectiveUnlockEvent(this, player).call();
-				GCStats.getFileLogger()
-						.log(player.getName() + " unlocked the " + getName() + " objective: " + getDescription());
-			}
 		}
 		else
 			unlockedPlayers.remove(player.getUniqueId());

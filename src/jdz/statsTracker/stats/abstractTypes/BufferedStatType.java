@@ -97,7 +97,7 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 	protected final Set<UUID> getAllEntries() {
 		return onlinePlayerStats.keySet();
 	}
-	
+
 	public boolean hasFetched(Player player) {
 		return hasFetched.contains(player.getUniqueId());
 	}

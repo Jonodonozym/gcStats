@@ -1,5 +1,7 @@
-
+  
 package jdz.statsTracker.stats.abstractTypes;
+
+import java.util.Arrays;
 
 import org.bukkit.OfflinePlayer;
 
@@ -28,7 +30,7 @@ public abstract class AbstractStatType implements StatType {
 		if (player.isOnline())
 			return get(player.getPlayer());
 		else
-			return StatsDatabase.getInstance().getStat(player, this);
+			return StatsDatabase.getInstance().getStats(player, Arrays.asList(this)).get(this);
 	}
 
 	@Override

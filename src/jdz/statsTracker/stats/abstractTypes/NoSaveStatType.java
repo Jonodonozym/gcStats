@@ -12,12 +12,12 @@ public abstract class NoSaveStatType extends BufferedStatType {
 		if (!onlinePlayerStats.containsKey(uuid))
 			super.addEntry(uuid, value);
 	}
-	
+
 	@Override
 	protected double removeEntry(UUID uuid) {
 		return onlinePlayerStats.get(uuid);
 	}
-	
+
 	@Override
 	public void add(OfflinePlayer player, double amount) {
 		if (player.isOnline())
