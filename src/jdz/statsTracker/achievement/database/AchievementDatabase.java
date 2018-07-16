@@ -13,7 +13,9 @@ import jdz.statsTracker.achievement.Achievement;
 
 public interface AchievementDatabase {
 	public static AchievementDatabase getInstance() {
-		return AchievementDatabaseSQL.getInstance();
+		if (GCStatsConfig.SQLEnabled)
+			return AchievementDatabaseSQL.getInstance();
+		return AchievementDatabaseYML.getInstance();
 	}
 
 	public default boolean hasPlayer(OfflinePlayer player) {
@@ -22,11 +24,15 @@ public interface AchievementDatabase {
 
 	public boolean hasPlayer(OfflinePlayer player, String server);
 
+	public void addPlayer(OfflinePlayer player);
+
 	public void setAchievementPoints(Player player, int points);
 
 	public void addAchievementPoints(Player player, int points);
 
-	public int getAchievementPoints(OfflinePlayer player);
+	public default int getAchievementPoints(OfflinePlayer player) {
+		return getAchievementPoints(player, GCStatsConfig.serverName);
+	};
 
 	public int getAchievementPoints(OfflinePlayer player, String server);
 
@@ -34,7 +40,9 @@ public interface AchievementDatabase {
 
 	public List<Achievement> getServerAchievements(String server);
 
-	public boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a);
+	public default boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a) {
+		return isAchieved(offlinePlayer, a, GCStatsConfig.serverName);
+	}
 
 	public boolean isAchieved(OfflinePlayer offlinePlayer, Achievement a, String server);
 
