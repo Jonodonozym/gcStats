@@ -24,7 +24,6 @@ import jdz.statsTracker.commandHandlers.*;
 import jdz.statsTracker.hooks.PlaceholderHook;
 import jdz.statsTracker.objective.ObjectivesCommand;
 import jdz.statsTracker.stats.StatsManager;
-import jdz.statsTracker.stats.StatsDatabase;
 import lombok.Getter;
 
 public class GCStats extends JavaPlugin {
@@ -72,7 +71,6 @@ public class GCStats extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		StatsDatabase.getInstance().onShutDown();
 		if (Bukkit.getOnlinePlayers().isEmpty())
 			return;
 
