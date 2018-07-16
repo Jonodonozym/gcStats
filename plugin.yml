@@ -7,15 +7,15 @@ depend: [JBU]
 softdepend: [BountyHunters,KOTH,EventOrganizer,PlaceholderAPI,LeaderHeads]
 
 commands:
-  gca:
+  ach:
     description: Displays your achievements
-    aliases: [gcach,gcachievement,gcachievements,ach]
+    aliases: [gcach,gcachievement,gcachievements,gca]
     usage: |
       /gca - shows your achievements for all servers
       /gca about - info about the plugin
-  gcs:
+  s:
     description: Displays your stats
-    aliases: [gcstats,gcstat,stats,s]
+    aliases: [gcstats,gcstat,stats,gcs]
     usage: |
       /gcs - shows your stats for your current server
       /gcs servers - lists avaliable servers
@@ -23,9 +23,9 @@ commands:
       /gcs (player) - shows stats for another player
       /gcs (player) (server) - shows stats for another player on another server
       /gcs about - info about the plugin
-  gco:
+  obj:
     description: Displays your current objectives
-    aliases: [objectives, objective, obj]
+    aliases: [objectives, objective, gco]
       
 permissions:
   gcs.top:
