@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
+import jdz.bukkitUtils.commands.annotations.CommandMethod;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.statsTracker.GCStatsConfig;
 
@@ -13,8 +14,8 @@ import jdz.statsTracker.GCStatsConfig;
 @CommandLabel("servers")
 public class CommandListServers extends SubCommand {
 
-	@Override
-	public void execute(CommandSender sender, String... args) {
+	@CommandMethod
+	public void execute(CommandSender sender) {
 		String list = "";
 		for (String server : GCStatsConfig.servers)
 			list = list + ", " + server.replaceAll(" ", "_");

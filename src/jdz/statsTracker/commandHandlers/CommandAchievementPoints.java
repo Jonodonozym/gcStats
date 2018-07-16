@@ -1,16 +1,14 @@
 
 package jdz.statsTracker.commandHandlers;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import jdz.bukkitUtils.commands.SubCommand;
 import jdz.bukkitUtils.commands.annotations.CommandLabel;
+import jdz.bukkitUtils.commands.annotations.CommandMethod;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.database.AchievementDatabase;
@@ -22,20 +20,19 @@ import jdz.statsTracker.achievement.database.AchievementDatabase;
 @CommandUsage("bal [server]")
 public class CommandAchievementPoints extends SubCommand {
 
-	@Override
-	public void execute(CommandSender sender, String... args) {
-		Player player = (Player) sender;
+	@CommandMethod
+	public void show(Player sender) {
+		sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
+				+ AchievementManager.getInstance().getAchievementPoints(sender));
+	}
 
-		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
-			if (args.length == 0)
-				sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
-						+ AchievementManager.getInstance().getAchievementPoints(player));
-			else if (GCStatsConfig.servers.contains(args[0].replaceAll("_", " ")))
-				sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
-						+ AchievementDatabase.getInstance().getAchievementPoints(player, args[1]));
-			else
-				sender.sendMessage(ChatColor.RED + "'" + args[1].replaceAll("_", " ") + "' is not a valid server!");
-		});
+	@CommandMethod
+	public void show(Player sender, String server) {
+		if (GCStatsConfig.servers.contains(server.replaceAll("_", " ")))
+			sender.sendMessage(ChatColor.GREEN + "Achievement Points: " + ChatColor.YELLOW
+					+ AchievementDatabase.getInstance().getAchievementPoints(sender, server));
+		else
+			sender.sendMessage(ChatColor.RED + "'" + server.replaceAll("_", " ") + "' is not a valid server!");
 	}
 
 }

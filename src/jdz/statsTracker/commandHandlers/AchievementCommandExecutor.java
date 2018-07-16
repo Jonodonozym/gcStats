@@ -17,7 +17,7 @@ public class AchievementCommandExecutor extends CommandExecutor {
 			new CommandAchievementPoints(), new CommandAchievementShop());
 
 	public AchievementCommandExecutor(JavaPlugin plugin) {
-		super(plugin, "gca", false);
+		super(plugin, "ach", false);
 		setDefaultCommand(new CommandAchievementDefault());
 	}
 
