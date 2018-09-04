@@ -86,7 +86,7 @@ public class StatsManager implements Listener {
 
 		if (!pluginToStat.containsKey(plugin))
 			pluginToStat.put(plugin, new ArrayList<StatType>());
-
+		
 		for (StatType statType : statTypes) {
 			if (statType == null)
 				continue;
@@ -103,8 +103,7 @@ public class StatsManager implements Listener {
 			if (statType instanceof Listener)
 				Bukkit.getPluginManager().registerEvents((Listener) statType, GCStats.getInstance());
 
-			if (Bukkit.getPluginManager().getPlugin("LeaderHeads") != null)
-				LeaderHeadsHook.getInstance().addType(statType);
+			LeaderHeadsHook.getInstance().addType(statType);
 
 			if (!(statType instanceof NoSaveStatType))
 				StatsDatabase.getInstance().addStatType(statType, true);
