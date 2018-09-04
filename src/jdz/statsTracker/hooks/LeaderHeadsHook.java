@@ -4,6 +4,8 @@ package jdz.statsTracker.hooks;
 import java.util.Arrays;
 
 import static org.bukkit.ChatColor.*;
+
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import jdz.statsTracker.stats.StatType;
@@ -14,10 +16,14 @@ import me.robin.leaderheads.objects.BoardType;
 
 public class LeaderHeadsHook {
 	@Getter private static final LeaderHeadsHook instance = new LeaderHeadsHook();
+	private static final boolean enabled = Bukkit.getPluginManager().getPlugin("LeaderHeads") != null;
 
 	private LeaderHeadsHook() {}
 
 	public void addType(StatType type) {
+		if (!enabled)
+			return;
+		
 		String name = "gcs_" + type.getNameUnderscores().toLowerCase();
 		if (name.length() > 15)
 			name = name.substring(0, 15);
