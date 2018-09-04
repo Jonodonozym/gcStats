@@ -16,6 +16,37 @@ import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.stats.StatsDatabase;
 
 public abstract class BufferedStatType extends AbstractStatType implements Listener {
+	
+	public static final BufferedStatType makeDouble(String name) {
+		return new BufferedStatType() {
+			
+			@Override
+			public String valueToString(double value) {
+				return value+"";
+			}
+			
+			@Override
+			public String getName() {
+				return name;
+			}
+		};
+	}
+	
+	public static final BufferedStatType makeInt(String name) {
+		return new BufferedStatType() {
+			
+			@Override
+			public String valueToString(double value) {
+				return ((int)value)+"";
+			}
+			
+			@Override
+			public String getName() {
+				return name;
+			}
+		};
+	}
+	
 	protected final Map<UUID, Double> onlinePlayerStats = new HashMap<UUID, Double>();
 	private final Set<UUID> hasFetched = new HashSet<UUID>();
 
