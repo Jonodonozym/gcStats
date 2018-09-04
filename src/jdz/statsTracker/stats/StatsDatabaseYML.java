@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -118,7 +120,9 @@ public class StatsDatabaseYML implements StatsDatabase {
 			double value = config.getDouble(type.getName());
 			playerToValue.put(name, value);
 		}
-		return playerToValue;
+		return playerToValue.entrySet().stream().sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue,
+						LinkedHashMap::new));
 	}
 
 	private File getFile(OfflinePlayer player) {
