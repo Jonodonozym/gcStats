@@ -38,6 +38,8 @@ public class GCStats extends JavaPlugin {
 		instance = this;
 		fileLogger = new FileLogger(GCStats.getInstance());
 
+		GCStatsConfig.reloadConfig();
+		
 		new AchievementConfig().registerEvents(this);
 		new BroadcasterConfig().registerEvents(this);
 		Broadcaster.init();
