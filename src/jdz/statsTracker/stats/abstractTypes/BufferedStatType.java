@@ -18,6 +18,10 @@ import jdz.statsTracker.stats.StatsDatabase;
 public abstract class BufferedStatType extends AbstractStatType implements Listener {
 	
 	public static final BufferedStatType makeDouble(String name) {
+		return makeDouble(name, true);
+	}
+	
+	public static final BufferedStatType makeDouble(String name, boolean visible) {
 		return new BufferedStatType() {
 			
 			@Override
@@ -29,10 +33,19 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 			public String getName() {
 				return name;
 			}
+			
+			@Override
+			public boolean isVisible() {
+				return visible;
+			}
 		};
 	}
 	
 	public static final BufferedStatType makeInt(String name) {
+		return makeInt(name, true);
+	}
+	
+	public static final BufferedStatType makeInt(String name, boolean visible) {
 		return new BufferedStatType() {
 			
 			@Override
@@ -43,6 +56,11 @@ public abstract class BufferedStatType extends AbstractStatType implements Liste
 			@Override
 			public String getName() {
 				return name;
+			}
+			
+			@Override
+			public boolean isVisible() {
+				return visible;
 			}
 		};
 	}
