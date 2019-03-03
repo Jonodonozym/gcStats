@@ -50,8 +50,6 @@ public class AchievementManager implements Listener {
 	private final Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
 	private final Set<Player> areLoaded = new HashSet<Player>();
 
-
-
 	public void addAchievements(Plugin plugin, Achievement... achievements) {
 		if (achievements == null || achievements.length == 0)
 			return;

@@ -15,6 +15,7 @@ import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.plugin.Plugin;
 
 import jdz.bukkitUtils.misc.StringUtils;
 import jdz.statsTracker.GCStats;
@@ -114,12 +115,15 @@ public abstract class Achievement {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player\\}", p.getName()));
 	}
 
-
 	public boolean isAchieved(OfflinePlayer player) {
 		return AchievementManager.getInstance().isAchieved(player, this);
 	}
 
 	public List<Achievement> getPreRequisites() {
 		return new ArrayList<Achievement>();
+	}
+	
+	public void register(Plugin plugin) {
+		AchievementManager.getInstance().addAchievements(plugin, this);
 	}
 }

@@ -3,6 +3,7 @@ package jdz.statsTracker.stats;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 public interface StatType {
 	public boolean hasPlayer(Player player);
@@ -26,4 +27,8 @@ public interface StatType {
 	public double get(OfflinePlayer player);
 
 	public double getDefault();
+	
+	public default void register(Plugin plugin) {
+		StatsManager.getInstance().addTypes(plugin, this);
+	}
 }
