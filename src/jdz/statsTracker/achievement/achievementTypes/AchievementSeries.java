@@ -1,6 +1,7 @@
 
 package jdz.statsTracker.achievement.achievementTypes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.OfflinePlayer;
@@ -8,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 
 import jdz.statsTracker.achievement.Achievement;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 /**
@@ -17,17 +19,21 @@ import lombok.AllArgsConstructor;
  */
 public class AchievementSeries {
 	@SuppressWarnings("unused") private final String name;
-	private final List<Achievement> achievements;
+	@Getter private final List<Achievement> achievements;
+
+	public AchievementSeries(String name) {
+		this(name, new ArrayList<>());
+	}
 
 	public void register(Plugin plugin) {
 		for (Achievement achievement : achievements)
 			achievement.register(plugin);
-		achievements.get(achievements.size() - 1).setNewLineAfter(true);
+		getAchievements().get(getAchievements().size() - 1).setNewLineAfter(true);
 	}
 
 	public int getProgress(OfflinePlayer player) {
 		int progress = 0;
-		for (Achievement achievement : achievements) {
+		for (Achievement achievement : getAchievements()) {
 			if (!achievement.isAchieved(player))
 				break;
 			progress++;
@@ -36,6 +42,6 @@ public class AchievementSeries {
 	}
 
 	public int size() {
-		return achievements.size();
+		return getAchievements().size();
 	}
 }
