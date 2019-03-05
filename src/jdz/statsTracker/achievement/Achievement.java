@@ -103,7 +103,7 @@ public abstract class Achievement {
 				p.sendMessage(ChatColor.GREEN + s);
 		}
 		try {
-			p.playSound(p.getLocation(), Sound.NOTE_PLING, 10, 1);
+			p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 10, 1);
 		}
 		catch (NoSuchFieldError e) {}
 	}
