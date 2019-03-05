@@ -111,6 +111,12 @@
           <version>2.9.2</version>
          <scope>provided</scope>
         </dependency>
+        <dependency>
+         <groupId>robin.leaderheads</groupId>
+          <artifactId>LeaderHeads</artifactId>
+          <version>3.1.6</version>
+         <scope>provided</scope>
+        </dependency>
 	</dependencies>
 	
 	<repositories>
