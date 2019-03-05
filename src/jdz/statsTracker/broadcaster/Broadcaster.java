@@ -4,7 +4,7 @@ package jdz.statsTracker.broadcaster;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import jdz.bukkitUtils.misc.Random;
+import jdz.bukkitUtils.components.Random;
 import jdz.statsTracker.GCStats;
 
 public class Broadcaster {

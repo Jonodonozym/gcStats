@@ -1,11 +1,7 @@
 
 package jdz.statsTracker.objective;
 
-import static org.bukkit.ChatColor.AQUA;
-import static org.bukkit.ChatColor.GREEN;
-import static org.bukkit.ChatColor.RED;
-import static org.bukkit.ChatColor.RESET;
-import static org.bukkit.ChatColor.WHITE;
+import static org.bukkit.ChatColor.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,13 +15,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
-import jdz.bukkitUtils.events.Listener;
+import jdz.bukkitUtils.components.events.Listener;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
 import lombok.Setter;
 
-public class ObjectiveManager implements Listener {
+public class ObjectiveManager {
 	static {
 		new Listener() {
 			@EventHandler
@@ -40,7 +36,7 @@ public class ObjectiveManager implements Listener {
 
 	private ObjectiveManager() {}
 
-	private static final Map<Plugin, Set<Objective>> pluginToObjectives = new HashMap<Plugin, Set<Objective>>();
+	private static final Map<Plugin, Set<Objective>> pluginToObjectives = new HashMap<>();
 
 	@Setter private static boolean unlockedObjectivesShown = true;
 	@Setter private static boolean objectiveNamesShown = true;
@@ -81,7 +77,7 @@ public class ObjectiveManager implements Listener {
 
 	public static void reset(Plugin plugin) {
 		if (pluginToObjectives.containsKey(plugin)) {
-			Set<NoSaveStatType> types = new HashSet<NoSaveStatType>();
+			Set<NoSaveStatType> types = new HashSet<>();
 			for (Objective o : pluginToObjectives.get(plugin))
 				if (o instanceof StatObjective)
 					types.add(((StatObjective) o).getStatType());
@@ -93,7 +89,7 @@ public class ObjectiveManager implements Listener {
 
 	public static void displayObjectives(Player player) {
 		List<Objective> objectives = Objective.getObjectives(player);
-		List<Objective> lockedObjectives = new ArrayList<Objective>(objectives);
+		List<Objective> lockedObjectives = new ArrayList<>(objectives);
 		for (Objective o : Objective.getObjectives(player))
 			if (o.isUnlocked(player))
 				lockedObjectives.remove(o);

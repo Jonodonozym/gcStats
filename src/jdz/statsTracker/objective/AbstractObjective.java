@@ -20,19 +20,19 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class AbstractObjective implements Objective {
-	private static final Map<UUID, List<Objective>> playerToObjective = new HashMap<UUID, List<Objective>>();
+	private static final Map<UUID, List<Objective>> playerToObjective = new HashMap<>();
 
 	public static List<Objective> getObjectives(OfflinePlayer player) {
 		if (!playerToObjective.containsKey(player.getUniqueId()))
-			return new ArrayList<Objective>();
+			return new ArrayList<>();
 		return playerToObjective.get(player.getUniqueId());
 	}
 
 	private final String name;
 	private final String description;
 
-	private Set<UUID> players = new HashSet<UUID>();
-	private Set<UUID> unlockedPlayers = new HashSet<UUID>();
+	private Set<UUID> players = new HashSet<>();
+	private Set<UUID> unlockedPlayers = new HashSet<>();
 
 	private String rewardText = "";
 

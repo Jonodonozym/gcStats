@@ -1,4 +1,4 @@
-  
+
 package jdz.statsTracker.stats.abstractTypes;
 
 import java.util.Arrays;

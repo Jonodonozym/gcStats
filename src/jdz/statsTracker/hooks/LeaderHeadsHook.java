@@ -1,9 +1,9 @@
 
 package jdz.statsTracker.hooks;
 
-import java.util.Arrays;
-
 import static org.bukkit.ChatColor.*;
+
+import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -23,7 +23,7 @@ public class LeaderHeadsHook {
 	public void addType(StatType type) {
 		if (!enabled)
 			return;
-		
+
 		String name = "gcs_" + type.getNameUnderscores().toLowerCase();
 		if (name.length() > 15)
 			name = name.substring(0, 15);
@@ -47,8 +47,8 @@ public class LeaderHeadsHook {
 	private abstract class StatTypeDataCollecter extends OnlineDataCollector {
 		public StatTypeDataCollecter(StatType type, String name) {
 			super(name, "gcStats", BoardType.DEFAULT, type.getName(), "gcs top " + type.getNameNoSpaces(),
-					Arrays.asList(RED + "" + STRIKETHROUGH + "----------", GREEN + "{name}",
-							YELLOW + "{amount}", RED + "" + STRIKETHROUGH + "----------"));
+					Arrays.asList(RED + "" + STRIKETHROUGH + "----------", GREEN + "{name}", YELLOW + "{amount}",
+							RED + "" + STRIKETHROUGH + "----------"));
 		}
 	}
 

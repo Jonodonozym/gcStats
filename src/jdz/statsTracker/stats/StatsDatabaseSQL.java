@@ -15,11 +15,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
-import jdz.bukkitUtils.misc.StringUtils;
-import jdz.bukkitUtils.sql.SQLColumn;
-import jdz.bukkitUtils.sql.SQLColumnType;
-import jdz.bukkitUtils.sql.SqlDatabase;
-import jdz.bukkitUtils.sql.SQLRow;
+import jdz.bukkitUtils.persistence.SQLColumn;
+import jdz.bukkitUtils.persistence.SQLColumnType;
+import jdz.bukkitUtils.persistence.SQLRow;
+import jdz.bukkitUtils.persistence.minecraft.BukkitDatabase;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
@@ -27,10 +27,10 @@ import lombok.Getter;
 
 /**
  * Utility class with static methods to interact with the sql database
- * 
+ *
  * @author Jonodonozym
  */
-public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsDatabase {
+public class StatsDatabaseSQL extends BukkitDatabase implements Listener, StatsDatabase {
 	@Getter private static final StatsDatabaseSQL instance = new StatsDatabaseSQL(GCStats.getInstance());
 	private final FileLogger logger = new FileLogger(GCStats.getInstance(), "SQL", false);
 
@@ -111,7 +111,7 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 
 	@Override
 	public List<String> getEnabledStats(String server) {
-		List<String> enabledStats = new ArrayList<String>();
+		List<String> enabledStats = new ArrayList<>();
 		if (!isConnected())
 			return enabledStats;
 		List<String> columns = getColumns(statsMetaTable);
@@ -119,14 +119,13 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 		String query = "SELECT * FROM " + statsMetaTable + " WHERE server = '" + server.replaceAll(" ", "_") + "';";
 		SQLRow row = query(query).get(0);
 		int i = 0;
-		for (String s : columns) {
+		for (String s : columns)
 			try {
 				if (Integer.parseInt(row.get(i++)) == 1)
 					if (s.endsWith("_enabled"))
 						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_enabled", "").replaceAll("_", " ")));
 			}
 			catch (NumberFormatException e) {}
-		}
 
 		Collections.sort(enabledStats);
 		return enabledStats;
@@ -134,7 +133,7 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 
 	@Override
 	public List<String> getVisibleStats(String server) {
-		List<String> enabledStats = new ArrayList<String>();
+		List<String> enabledStats = new ArrayList<>();
 		if (!isConnected())
 			return enabledStats;
 		List<String> columns = getColumns(statsMetaTable);
@@ -142,14 +141,13 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 		String query = "SELECT * FROM " + statsMetaTable + " WHERE server = '" + server.replaceAll(" ", "_") + "';";
 		SQLRow row = query(query).get(0);
 		int i = 0;
-		for (String s : columns) {
+		for (String s : columns)
 			try {
 				if (Integer.parseInt(row.get(i++)) == 1)
 					if (s.endsWith("_visible"))
 						enabledStats.add(StringUtils.capitalizeWord(s.replaceAll("_visible", "").replaceAll("_", " ")));
 			}
 			catch (NumberFormatException e) {}
-		}
 
 		Collections.sort(enabledStats);
 		return enabledStats;
@@ -193,11 +191,11 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 
 	@Override
 	public Map<StatType, Double> getStats(OfflinePlayer player, Collection<? extends StatType> statTypes) {
-		List<String> types = new ArrayList<String>();
+		List<String> types = new ArrayList<>();
 		for (StatType type : statTypes)
 			types.add(type.getNameUnderscores());
 		Map<String, Double> nameToValue = getStats(player, types, GCStatsConfig.serverName.replaceAll(" ", "_"));
-		Map<StatType, Double> typeToValue = new HashMap<StatType, Double>();
+		Map<StatType, Double> typeToValue = new HashMap<>();
 		for (StatType type : statTypes)
 			typeToValue.put(type, nameToValue.get(type.getNameUnderscores()));
 		return typeToValue;
@@ -217,10 +215,10 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 
 		if (rows.isEmpty())
 			throw new RuntimeException("No row exists in the database for '" + player.getName() + "'");
-		
+
 		logger.log(rows.get(0).toString());
 
-		Map<String, Double> stats = new HashMap<String, Double>();
+		Map<String, Double> stats = new HashMap<>();
 		for (String type : statTypes)
 			stats.put(type, Double.parseDouble(rows.get(0).get(type)));
 		return stats;
@@ -229,7 +227,7 @@ public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsData
 	@Override
 	public Map<String, Double> getAllSorted(StatType type) {
 		String query = "Select UUID, " + type.getNameUnderscores() + " FROM " + getStatTableName() + ";";
-		LinkedHashMap<String, Double> result = new LinkedHashMap<String, Double>();
+		LinkedHashMap<String, Double> result = new LinkedHashMap<>();
 		List<SQLRow> rows = query(query);
 		for (SQLRow row : rows)
 			result.put(row.get(0), Double.parseDouble(row.get(1)));

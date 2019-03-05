@@ -20,7 +20,7 @@ import lombok.Getter;
 public class StatsDatabaseYML implements StatsDatabase {
 	@Getter private static final StatsDatabaseYML instance = new StatsDatabaseYML();
 
-	private final File rootFolder = new File(GCStats.getInstance().getDataFolder(), "data"+File.separator+"stats");
+	private final File rootFolder = new File(GCStats.getInstance().getDataFolder(), "data" + File.separator + "stats");
 
 	private StatsDatabaseYML() {
 		if (!rootFolder.exists())
@@ -97,7 +97,7 @@ public class StatsDatabaseYML implements StatsDatabase {
 
 	@Override
 	public Map<StatType, Double> getStats(OfflinePlayer player, Collection<? extends StatType> statTypes) {
-		Map<StatType, Double> statToValue = new HashMap<StatType, Double>();
+		Map<StatType, Double> statToValue = new HashMap<>();
 		FileConfiguration playerConfig = YamlConfiguration.loadConfiguration(getFile(player));
 
 		for (StatType type : statTypes)
@@ -113,7 +113,7 @@ public class StatsDatabaseYML implements StatsDatabase {
 
 	@Override
 	public Map<String, Double> getAllSorted(StatType type) {
-		Map<String, Double> playerToValue = new HashMap<String, Double>();
+		Map<String, Double> playerToValue = new HashMap<>();
 		for (File file : rootFolder.listFiles()) {
 			FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 			String name = config.getString("playerName");

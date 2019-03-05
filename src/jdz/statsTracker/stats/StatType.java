@@ -27,7 +27,7 @@ public interface StatType {
 	public double get(OfflinePlayer player);
 
 	public double getDefault();
-	
+
 	public default void register(Plugin plugin) {
 		StatsManager.getInstance().addTypes(plugin, this);
 	}

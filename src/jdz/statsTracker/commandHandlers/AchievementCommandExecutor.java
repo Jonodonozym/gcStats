@@ -3,6 +3,7 @@ package jdz.statsTracker.commandHandlers;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.commands.AboutPluginCommand;

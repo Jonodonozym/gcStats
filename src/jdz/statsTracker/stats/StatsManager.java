@@ -25,7 +25,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
-import jdz.bukkitUtils.misc.Config;
+import jdz.bukkitUtils.configuration.Config;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.hooks.LeaderHeadsHook;
 import jdz.statsTracker.stats.abstractTypes.BufferedStatType;
@@ -38,9 +38,9 @@ import lombok.Setter;
 public class StatsManager implements Listener {
 	@Getter private static final StatsManager instance = new StatsManager();
 
-	private final Set<StatType> enabledStats = new HashSet<StatType>();
-	private final List<StatType> enabledStatsList = new ArrayList<StatType>();
-	private final Map<Plugin, List<StatType>> pluginToStat = new HashMap<Plugin, List<StatType>>();
+	private final Set<StatType> enabledStats = new HashSet<>();
+	private final List<StatType> enabledStatsList = new ArrayList<>();
+	private final Map<Plugin, List<StatType>> pluginToStat = new HashMap<>();
 	@Setter private Collection<BufferedStatType> updateDatabaseTypes = null;
 	@Getter private Comparator<StatType> comparator = (a, b) -> {
 		return a.getName().compareTo(b.getName());
@@ -86,7 +86,7 @@ public class StatsManager implements Listener {
 
 		if (!pluginToStat.containsKey(plugin))
 			pluginToStat.put(plugin, new ArrayList<StatType>());
-		
+
 		for (StatType statType : statTypes) {
 			if (statType == null)
 				continue;
@@ -150,11 +150,10 @@ public class StatsManager implements Listener {
 
 
 			if (!(statType instanceof NoSaveStatType))
-				for (Player player : Bukkit.getOnlinePlayers()) {
+				for (Player player : Bukkit.getOnlinePlayers())
 					Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 						StatsDatabase.getInstance().setStat(player, statType, statType.removePlayer(player));
 					});
-				}
 
 			if (statType instanceof Listener)
 				HandlerList.unregisterAll((Listener) statType);
@@ -180,7 +179,7 @@ public class StatsManager implements Listener {
 	}
 
 	public void loadDefaultStats() {
-		Set<StatType> enabledStats = new HashSet<StatType>();
+		Set<StatType> enabledStats = new HashSet<>();
 
 		FileConfiguration config = Config.getConfig(GCStats.getInstance(), "enabledStats.yml");
 		for (String key : config.getConfigurationSection("enabledStats").getKeys(false)) {
@@ -248,7 +247,7 @@ public class StatsManager implements Listener {
 	}
 
 	public Set<StatType> getVisibleTypes() {
-		Set<StatType> visibleTypes = new HashSet<StatType>();
+		Set<StatType> visibleTypes = new HashSet<>();
 		for (StatType type : enabledStats)
 			if (type.isVisible())
 				visibleTypes.add(type);
@@ -256,7 +255,7 @@ public class StatsManager implements Listener {
 	}
 
 	public Set<BufferedStatType> getBufferedTypes() {
-		Set<BufferedStatType> bufferedTypes = new HashSet<BufferedStatType>();
+		Set<BufferedStatType> bufferedTypes = new HashSet<>();
 		for (StatType type : enabledStats)
 			if (type instanceof BufferedStatType)
 				bufferedTypes.add((BufferedStatType) type);
@@ -264,7 +263,7 @@ public class StatsManager implements Listener {
 	}
 
 	private Set<StatType> getSaveableTypes() {
-		Set<StatType> types = new HashSet<StatType>(enabledStats());
+		Set<StatType> types = new HashSet<>(enabledStats());
 		types.removeIf((t) -> {
 			return t instanceof NoSaveStatType;
 		});
@@ -285,7 +284,7 @@ public class StatsManager implements Listener {
 	}
 
 	public void updateDatabase(Player player, Collection<? extends StatType> typesToSave) {
-		Map<StatType, Double> typeToValue = new HashMap<StatType, Double>();
+		Map<StatType, Double> typeToValue = new HashMap<>();
 
 		for (StatType type : typesToSave) {
 			if (type instanceof BufferedStatType)

@@ -31,7 +31,8 @@ public class CommandAchievementDefault extends SubCommand {
 		if (GCStatsConfig.servers.contains(serverOrTarget))
 			AchievementInventories.getInstance().openServerAchievements(player, player, serverOrTarget);
 		else {
-			@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(serverOrTarget);
+			@SuppressWarnings("deprecation")
+			OfflinePlayer target = Bukkit.getOfflinePlayer(serverOrTarget);
 			if (AchievementDatabase.getInstance().hasPlayer(target))
 				AchievementInventories.getInstance().openServerAchievements(player, target);
 			else

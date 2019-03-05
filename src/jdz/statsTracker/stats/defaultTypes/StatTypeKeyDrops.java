@@ -18,7 +18,7 @@ public class StatTypeKeyDrops extends BufferedStatType {
 
 	@Override
 	public String valueToString(double value) {
-		return ((int) value) + "";
+		return (int) value + "";
 	}
 
 	@EventHandler

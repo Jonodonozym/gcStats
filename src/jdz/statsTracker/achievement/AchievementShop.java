@@ -11,6 +11,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -24,7 +25,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.bukkitUtils.fileIO.FileExporter;
-import jdz.bukkitUtils.misc.utils.ColorUtils;
+import jdz.bukkitUtils.utils.ColorUtils;
 import jdz.statsTracker.GCStats;
 
 public class AchievementShop implements Listener {
@@ -40,11 +41,11 @@ public class AchievementShop implements Listener {
 
 		FileConfiguration shopConfig = YamlConfiguration.loadConfiguration(file);
 
-		items = new HashMap<Integer, ShopItem>();
-		for (String s : shopConfig.getConfigurationSection("shop").getKeys(false)) {
+		items = new HashMap<>();
+		for (String s : shopConfig.getConfigurationSection("shop").getKeys(false))
 			if (s.equals("enabled"))
 				isEnabled = shopConfig.getBoolean("shop.enabled");
-			else {
+			else
 				try {
 					ShopItem item = ShopItem.fromConfig(shopConfig, "shop." + s);
 					items.put(item.slot, item);
@@ -54,8 +55,6 @@ public class AchievementShop implements Listener {
 							+ e.getMessage() + ") skipping...");
 					e.printStackTrace();
 				}
-			}
-		}
 
 		int max = 0;
 		for (Integer i : items.keySet())
@@ -82,8 +81,7 @@ public class AchievementShop implements Listener {
 
 		if (inv != null && inv.getName() != null && inv.getName().equals(ChatColor.DARK_GREEN + "Achievement shop")) {
 			int slot = e.getSlot();
-			if (items.containsKey(slot)) {
-
+			if (items.containsKey(slot))
 				new BukkitRunnable() {
 
 					@Override
@@ -109,8 +107,6 @@ public class AchievementShop implements Listener {
 						}
 					}
 				}.runTaskAsynchronously(GCStats.getInstance());
-
-			}
 			e.setCancelled(true);
 		}
 	}
@@ -122,7 +118,7 @@ public class AchievementShop implements Listener {
 
 			String purchasedBy = ChatColor.GREEN + "Purchased by: " + ChatColor.WHITE + p.getDisplayName();
 			ItemMeta im = copy.getItemMeta();
-			List<String> lore = new ArrayList<String>();
+			List<String> lore = new ArrayList<>();
 			if (copy.getItemMeta().getLore() != null)
 				lore = copy.getItemMeta().getLore();
 			lore.add(purchasedBy);
@@ -158,9 +154,9 @@ public class AchievementShop implements Listener {
 			for (String s : enchants) {
 				String[] args = s.split(":");
 				try {
-					Integer id = Integer.parseInt(args[0].trim());
 					Integer level = Integer.parseInt(args[1].trim());
-					this.displayItem.addUnsafeEnchantment(Enchantment.getById(id), level);
+					this.displayItem.addUnsafeEnchantment(
+							Enchantment.getByKey(new NamespacedKey(NamespacedKey.MINECRAFT, args[0].trim())), level);
 				}
 				catch (Exception e) {
 					GCStats.getInstance().getLogger().info("Invalid enchantment '" + s + "' on achievement shop item '"
@@ -172,7 +168,7 @@ public class AchievementShop implements Listener {
 					+ " points.";
 			ItemMeta im = displayItem.getItemMeta();
 
-			List<String> lore = new ArrayList<String>();
+			List<String> lore = new ArrayList<>();
 			if (displayItem.getItemMeta().getLore() != null)
 				lore = displayItem.getItemMeta().getLore();
 			lore.add(0, priceTag);
@@ -188,11 +184,11 @@ public class AchievementShop implements Listener {
 		@SuppressWarnings("deprecation")
 		public static ItemStack stackFromConfig(FileConfiguration shopConfig, String key) {
 			String customName = "";
-			int id = shopConfig.getInt(key + ".ItemID");
+			String name = shopConfig.getString(key + ".Material");
 			int amount = 1;
 			int data = 0;
-			List<String> lore = new ArrayList<String>();
-			List<String> enchants = new ArrayList<String>();
+			List<String> lore = new ArrayList<>();
+			List<String> enchants = new ArrayList<>();
 
 			if (shopConfig.contains(key + ".ItemAmount"))
 				amount = shopConfig.getInt(key + ".ItemAmount");
@@ -208,13 +204,13 @@ public class AchievementShop implements Listener {
 			for (int i = 0; i < lore.size(); i++)
 				lore.set(0, lore.get(i).replaceAll("&([0-9a-f])", "\u00A7$1"));
 
-			ItemStack item = new ItemStack(Material.getMaterial(id), amount, (short) data);
+			ItemStack item = new ItemStack(Material.getMaterial(name), amount, (short) data);
 
 			for (String s : enchants) {
 				String[] args = s.split(":");
-				int eid = Integer.parseInt(args[0].trim());
 				int eLevel = Integer.parseInt(args[1].trim());
-				item.addUnsafeEnchantment(Enchantment.getById(eid), eLevel);
+				item.addUnsafeEnchantment(
+						Enchantment.getByKey(new NamespacedKey(NamespacedKey.MINECRAFT, args[0].trim())), eLevel);
 			}
 
 			ItemMeta im = item.getItemMeta();
@@ -236,9 +232,9 @@ public class AchievementShop implements Listener {
 			int cost = shopConfig.getInt(key + ".Cost");
 			boolean giveItem = shopConfig.getBoolean(key + ".GiveItem");
 
-			List<String> commands = new ArrayList<String>();
-			List<String> enchants = new ArrayList<String>();
-			List<String> messages = new ArrayList<String>();
+			List<String> commands = new ArrayList<>();
+			List<String> enchants = new ArrayList<>();
+			List<String> messages = new ArrayList<>();
 
 			if (shopConfig.contains(key + ".Commands"))
 				commands = shopConfig.getStringList(key + ".Commands");
@@ -248,12 +244,10 @@ public class AchievementShop implements Listener {
 			for (int i = 0; i < messages.size(); i++)
 				messages.set(0, ColorUtils.translate(messages.get(i)));
 
-			List<ItemStack> extraItems = new ArrayList<ItemStack>();
-			if (shopConfig.contains(key + ".ExtraItems")) {
-				for (String itemKey : shopConfig.getConfigurationSection(key + ".ExtraItems").getKeys(false)) {
+			List<ItemStack> extraItems = new ArrayList<>();
+			if (shopConfig.contains(key + ".ExtraItems"))
+				for (String itemKey : shopConfig.getConfigurationSection(key + ".ExtraItems").getKeys(false))
 					extraItems.add(stackFromConfig(shopConfig, key + ".ExtraItems." + itemKey));
-				}
-			}
 
 			return new ShopItem(displayItem, extraItems, slot, cost, commands, enchants, messages, giveItem);
 		}

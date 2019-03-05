@@ -17,12 +17,12 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandMethod;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.bukkitUtils.misc.StringUtils;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
-import jdz.statsTracker.stats.StatsDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
@@ -47,7 +47,8 @@ public class CommandStatDefault extends SubCommand {
 			return;
 		}
 
-		@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(playerOrServer);
+		@SuppressWarnings("deprecation")
+		OfflinePlayer target = Bukkit.getOfflinePlayer(playerOrServer);
 		if (StatsDatabase.getInstance().hasPlayer(target))
 			showStats(sender, GCStatsConfig.serverName, target);
 		else
@@ -70,7 +71,7 @@ public class CommandStatDefault extends SubCommand {
 	}
 
 	private Map<String, Double> getStats(String serverName, OfflinePlayer player) {
-		Map<String, Double> stats = new LinkedHashMap<String, Double>();
+		Map<String, Double> stats = new LinkedHashMap<>();
 		for (StatType type : StatsManager.getInstance().enabledStatsSorted())
 			if (type.isVisible())
 				stats.put(type.getNameUnderscores(), type.getDefault());
@@ -80,7 +81,7 @@ public class CommandStatDefault extends SubCommand {
 				for (StatType type : StatsManager.getInstance().getVisibleTypes())
 					stats.put(type.getNameUnderscores(), type.get(player));
 			else {
-				List<String> types = new ArrayList<String>();
+				List<String> types = new ArrayList<>();
 				for (StatType type : StatsManager.getInstance().getVisibleTypes())
 					if (!(type instanceof NoSaveStatType))
 						types.add(type.getNameUnderscores());

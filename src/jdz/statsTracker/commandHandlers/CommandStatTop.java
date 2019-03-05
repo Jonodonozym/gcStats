@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -16,7 +17,7 @@ import jdz.bukkitUtils.commands.annotations.CommandMethod;
 import jdz.bukkitUtils.commands.annotations.CommandRequiredArgs;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.bukkitUtils.misc.StringUtils;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
@@ -33,11 +34,11 @@ public class CommandStatTop extends SubCommand {
 
 	private CommandStatTop() {}
 
-	private final Map<StatType, List<String>> playersSorted = new HashMap<StatType, List<String>>();
-	@Getter private final Map<StatType, Map<String, Integer>> playerToRank = new HashMap<StatType, Map<String, Integer>>();
-	private final Map<StatType, Map<String, Double>> playerToStat = new HashMap<StatType, Map<String, Double>>();
+	private final Map<StatType, List<String>> playersSorted = new HashMap<>();
+	@Getter private final Map<StatType, Map<String, Integer>> playerToRank = new HashMap<>();
+	private final Map<StatType, Map<String, Double>> playerToStat = new HashMap<>();
 
-	private final Map<StatType, Long> lastUpdates = new HashMap<StatType, Long>();
+	private final Map<StatType, Long> lastUpdates = new HashMap<>();
 	private final long timeBetweenUpdates = 120000;
 	final int playersPerPage = 8;
 
@@ -63,9 +64,9 @@ public class CommandStatTop extends SubCommand {
 
 		Map<String, Double> rows = StatsDatabase.getInstance().getAllSorted(type);
 
-		List<String> players = new ArrayList<String>();
-		Map<String, Integer> ranks = new HashMap<String, Integer>();
-		Map<String, Double> stats = new HashMap<String, Double>();
+		List<String> players = new ArrayList<>();
+		Map<String, Integer> ranks = new HashMap<>();
+		Map<String, Double> stats = new HashMap<>();
 
 		int i = 0;
 		for (Map.Entry<String, Double> row : rows.entrySet()) {

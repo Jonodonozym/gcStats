@@ -22,16 +22,17 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.StatsDatabase;
-import lombok.Getter;
-import lombok.Setter;
 import jdz.bukkitUtils.fileIO.FileLogger;
+import jdz.bukkitUtils.utils.ItemUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.achievementTypes.RemoteStatAchievement;
 import jdz.statsTracker.achievement.achievementTypes.StatAchievement;
 import jdz.statsTracker.achievement.database.AchievementDatabase;
+import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsDatabase;
+import lombok.Getter;
+import lombok.Setter;
 
 public class AchievementInventories implements Listener {
 	@Getter private static final AchievementInventories instance = new AchievementInventories();
@@ -41,12 +42,12 @@ public class AchievementInventories implements Listener {
 	protected final String SERVER_SELECT_INV_NAME = ChatColor.DARK_GREEN + "Achievements: server select";
 	protected Inventory serverSelect;
 
-	protected Map<String, List<Achievement>> allAchievements = new HashMap<String, List<Achievement>>();
-	protected Map<Achievement, ItemStack> achievementToStack = new HashMap<Achievement, ItemStack>();
+	protected Map<String, List<Achievement>> allAchievements = new HashMap<>();
+	protected Map<Achievement, ItemStack> achievementToStack = new HashMap<>();
 
-	protected Map<Player, OfflinePlayer> targets = new HashMap<Player, OfflinePlayer>();
-	protected Map<Player, Integer> page = new HashMap<Player, Integer>();
-	protected Map<Player, String> server = new HashMap<Player, String>();
+	protected Map<Player, OfflinePlayer> targets = new HashMap<>();
+	protected Map<Player, Integer> page = new HashMap<>();
+	protected Map<Player, String> server = new HashMap<>();
 
 	private final Achievement emptyAchievement = new Achievement("NULL", Material.AIR, (short) 0, "") {};
 
@@ -100,11 +101,12 @@ public class AchievementInventories implements Listener {
 	}
 
 	public void updateLocalAchievements() {
-		List<Achievement> achievements = new ArrayList<Achievement>(AchievementManager.getInstance().getAchievements());
+		List<Achievement> achievements = new ArrayList<>(AchievementManager.getInstance().getAchievements());
 		if (sortMode != null)
 			achievements.sort(sortMode);
 		for (Achievement a : achievements) {
-			ItemStack itemStack = new ItemStack(a.getIcon(), a.getIconQuantity(), a.getIconDamage());
+			ItemStack itemStack = new ItemStack(a.getIcon(), a.getIconQuantity());
+			ItemUtils.setData(itemStack, a.getIconDamage());
 			achievementToStack.put(a, itemStack);
 		}
 		addEmptySlots(achievements);
@@ -136,7 +138,7 @@ public class AchievementInventories implements Listener {
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent e) {
 		Player player = (Player) e.getWhoClicked();
-		Inventory inv = e.getClickedInventory();
+		Inventory inv = e.getInventory();
 
 		if (inv == null || inv.getName() == null)
 			return;
@@ -172,32 +174,32 @@ public class AchievementInventories implements Listener {
 
 	/**
 	 * Creates a sever select inventory
-	 * 
+	 *
 	 * @param p
 	 * @return
 	 */
 	private Inventory createServerSelectInv() {
-		List<ItemStack> itemStacks = new ArrayList<ItemStack>();
+		List<ItemStack> itemStacks = new ArrayList<>();
 
 		for (String server : AchievementDatabase.getInstance().getServers())
 			itemStacks.add(AchievementDatabase.getInstance().getServerIcon(server));
 
-		int rows = (int) (Math.ceil(itemStacks.size() / 4.0));
+		int rows = (int) Math.ceil(itemStacks.size() / 4.0);
 		Inventory inv = Bukkit.createInventory(null, rows * 9, SERVER_SELECT_INV_NAME);
 
 		int index = 0;
 		for (ItemStack itemStack : itemStacks) {
-			int location = index * 2 + 1 + (index / 4);
+			int location = index * 2 + 1 + index / 4;
 			if (rows - 1 <= index / 4)
 				switch (itemStacks.size() % 4) {
 				case 1:
 					location = (rows - 1) * 9 + 4;
 					break;
 				case 2:
-					location = (rows - 1) * 9 + 3 + (index % 4) * 2;
+					location = (rows - 1) * 9 + 3 + index % 4 * 2;
 					break;
 				case 3:
-					location = (rows - 1) * 9 + 2 + (index % 4) * 2;
+					location = (rows - 1) * 9 + 2 + index % 4 * 2;
 					break;
 				}
 			inv.setItem(location, itemStack);
@@ -208,10 +210,11 @@ public class AchievementInventories implements Listener {
 	}
 
 	private Map<Achievement, ItemStack> createDefaultItemStacks() {
-		Map<Achievement, ItemStack> achToItem = new HashMap<Achievement, ItemStack>();
+		Map<Achievement, ItemStack> achToItem = new HashMap<>();
 		for (List<? extends Achievement> list : allAchievements.values())
 			for (Achievement a : list) {
-				ItemStack itemStack = new ItemStack(a.getIcon(), 1, a.getIconDamage());
+				ItemStack itemStack = new ItemStack(a.getIcon());
+				ItemUtils.setData(itemStack, a.getIconDamage());
 				achToItem.put(a, itemStack);
 			}
 		return achToItem;
@@ -221,7 +224,7 @@ public class AchievementInventories implements Listener {
 		List<? extends Achievement> achievements = allAchievements.get(server);
 
 		if (sortMode != null) {
-			achievements = new ArrayList<Achievement>(allAchievements.get(server));
+			achievements = new ArrayList<>(allAchievements.get(server));
 			achievements.sort(sortMode);
 		}
 
@@ -253,7 +256,7 @@ public class AchievementInventories implements Listener {
 		ItemStack newStack = new ItemStack(achievementToStack.get(achievement));
 		ItemMeta itemMeta = newStack.getItemMeta();
 
-		List<String> lore = new ArrayList<String>();
+		List<String> lore = new ArrayList<>();
 
 		if (!achievement.isHidden() || isAchieved && user.equals(offlinePlayer.getPlayer()))
 			for (String s : achievement.getDescription())

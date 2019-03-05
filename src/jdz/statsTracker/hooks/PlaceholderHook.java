@@ -3,10 +3,10 @@ package jdz.statsTracker.hooks;
 
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.stats.StatsManager;
-import me.clip.placeholderapi.external.EZPlaceholderHook;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsManager;
+import me.clip.placeholderapi.external.EZPlaceholderHook;
 
 public class PlaceholderHook extends EZPlaceholderHook {
 
@@ -20,7 +20,7 @@ public class PlaceholderHook extends EZPlaceholderHook {
 		/*
 		 * String statID = identifier;
 		 * String topPlayer = "";
-		 * 
+		 *
 		 * int topIndex = identifier.indexOf("top");
 		 * if (topIndex != -1) {
 		 * String statString = identifier.substring(0, topIndex);

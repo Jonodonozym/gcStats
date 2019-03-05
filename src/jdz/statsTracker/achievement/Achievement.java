@@ -8,16 +8,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
-import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
 
-import jdz.bukkitUtils.misc.StringUtils;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.achievement.database.AchievementDatabase;
 import lombok.Getter;
@@ -28,7 +28,7 @@ public abstract class Achievement {
 	// static field for the firework effect
 	private static final FireworkEffect fwe;
 	static {
-		List<Color> c = new ArrayList<Color>();
+		List<Color> c = new ArrayList<>();
 		c.add(Color.LIME);
 		fwe = FireworkEffect.builder().flicker(true).withColor(c).withFade(c).with(Type.BALL_LARGE).trail(true).build();
 	}
@@ -48,8 +48,8 @@ public abstract class Achievement {
 
 	@Getter @Setter private boolean doFirework = true;
 
-	@NonNull @Getter @Setter private List<String> rewardCommands = new ArrayList<String>();
-	@NonNull @Getter @Setter private List<String> rewardMessages = new ArrayList<String>();
+	@NonNull @Getter @Setter private List<String> rewardCommands = new ArrayList<>();
+	@NonNull @Getter @Setter private List<String> rewardMessages = new ArrayList<>();
 
 	public Achievement(String name, Material m, short iconDamage, String description) {
 		this(name, m, iconDamage, description, 0, "", false);
@@ -64,14 +64,14 @@ public abstract class Achievement {
 	public Achievement(String name, Material m, short iconDamage, String[] description, int points, String[] rewardText,
 			boolean hidden) {
 		this.name = name;
-		this.icon = m;
+		icon = m;
 		this.iconDamage = iconDamage;
 		this.description = description;
 		this.points = points;
 		this.rewardText = new String[rewardText.length];
 		for (int i = 0; i < rewardText.length; i++)
 			this.rewardText[i] = (rewardText[i] == null || rewardText[i].equals("")
-					? (points > 0 ? points + " Achievement point" + (points > 1 ? "s" : "") : "")
+					? points > 0 ? points + " Achievement point" + (points > 1 ? "s" : "") : ""
 					: rewardText[i]).replaceAll("%points%", this.points + "").replaceAll("\\{points\\}",
 							this.points + "");
 		this.hidden = hidden;
@@ -79,7 +79,7 @@ public abstract class Achievement {
 
 	/**
 	 * Shoots off a firework above a player's head
-	 * 
+	 *
 	 * @param p
 	 */
 	public void doFirework(Player p) {
@@ -103,7 +103,7 @@ public abstract class Achievement {
 				p.sendMessage(ChatColor.GREEN + s);
 		}
 		try {
-			p.playSound(p.getLocation(), Sound.NOTE_PLING, 10, 1);
+			p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 10, 1);
 		}
 		catch (NoSuchFieldError e) {}
 	}
@@ -120,9 +120,9 @@ public abstract class Achievement {
 	}
 
 	public List<Achievement> getPreRequisites() {
-		return new ArrayList<Achievement>();
+		return new ArrayList<>();
 	}
-	
+
 	public void register(Plugin plugin) {
 		AchievementManager.getInstance().addAchievements(plugin, this);
 	}

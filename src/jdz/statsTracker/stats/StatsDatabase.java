@@ -10,7 +10,6 @@ import java.util.Map;
 import org.bukkit.OfflinePlayer;
 
 import jdz.statsTracker.GCStatsConfig;
-import jdz.statsTracker.stats.StatType;
 
 public interface StatsDatabase {
 	public static StatsDatabase getInstance() {
@@ -34,22 +33,22 @@ public interface StatsDatabase {
 	public boolean hasPlayer(OfflinePlayer player, String server);
 
 	public void addPlayer(OfflinePlayer player);
-	
+
 	public default void setStat(OfflinePlayer player, StatType statType, double newValue) {
-		Map<StatType, Double> statToValue = new HashMap<StatType, Double>();
+		Map<StatType, Double> statToValue = new HashMap<>();
 		statToValue.put(statType, newValue);
 		setStats(player, statToValue);
 	}
 
 	public void setStats(OfflinePlayer player, Map<StatType, Double> statToValue);
-	
+
 	public void addStat(OfflinePlayer player, StatType statType, double change);
 
 	public Map<StatType, Double> getStats(OfflinePlayer player, Collection<? extends StatType> statTypes);
 
 	public Map<String, Double> getStats(OfflinePlayer player, Collection<String> statTypes, String server);
 
-	public default double getStat(OfflinePlayer player, String statType, String server){
+	public default double getStat(OfflinePlayer player, String statType, String server) {
 		return getStats(player, Arrays.asList(statType), server).get(statType);
 	}
 

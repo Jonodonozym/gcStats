@@ -15,7 +15,7 @@ public class RemoteStatAchievement extends RemoteAchievement {
 	public RemoteStatAchievement(String server, String name, int points, Material m, short iconDamage,
 			String[] description, String[] rewardText, boolean hidden, String statType, double requirement) {
 		super(server, name, points, m, iconDamage, description, rewardText, hidden);
-		this.statTypeName = statType;
+		statTypeName = statType;
 		this.requirement = requirement;
 		this.statType = StatsManager.getInstance().getType(statType);
 	}

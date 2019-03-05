@@ -8,20 +8,23 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import jdz.bukkitUtils.misc.TimedTask;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.abstractTypes.BufferedStatType;
 import lombok.Getter;
 
 public class StatTypePlayTime extends BufferedStatType {
 	@Getter private static final StatTypePlayTime instance = new StatTypePlayTime();
+	
+	public static void init() {
+		Bukkit.getScheduler().runTaskTimer(GCStats.getInstance(), ()->{
+			for (Player player : Bukkit.getOnlinePlayers())
+				instance.updateTime(player);
+		}, 600, 600);
+		
+	}
 
 	public StatTypePlayTime() {
 		super();
-		new TimedTask(GCStats.getInstance(), 600, () -> {
-			for (Player player : Bukkit.getOnlinePlayers())
-				updateTime(player);
-		}).start();
 	}
 
 	@Override
@@ -34,9 +37,9 @@ public class StatTypePlayTime extends BufferedStatType {
 		return timeFromSeconds((int) value);
 	}
 
-	public Map<Player, Long> lastTime = new HashMap<Player, Long>();
-	private Map<Player, Location> lastLocation = new HashMap<Player, Location>();
-	private Map<Player, Long> afkTime = new HashMap<Player, Long>();
+	public Map<Player, Long> lastTime = new HashMap<>();
+	private Map<Player, Location> lastLocation = new HashMap<>();
+	private Map<Player, Long> afkTime = new HashMap<>();
 
 	@Override
 	public void addPlayer(Player player, double value) {
@@ -80,9 +83,9 @@ public class StatTypePlayTime extends BufferedStatType {
 
 	private String timeFromSeconds(int totalSeconds) {
 		int days = totalSeconds / 86400;
-		int hours = (totalSeconds % 86400) / 3600;
-		int minutes = ((totalSeconds % 86400) % 3600) / 60;
-		int seconds = ((totalSeconds % 86400) % 3600) % 60;
+		int hours = totalSeconds % 86400 / 3600;
+		int minutes = totalSeconds % 86400 % 3600 / 60;
+		int seconds = totalSeconds % 86400 % 3600 % 60;
 
 		String rs = "";
 		if (days > 0)

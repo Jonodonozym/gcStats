@@ -50,7 +50,7 @@ public interface AchievementDatabase {
 	public List<String> getServers();
 
 	public default boolean hasServer(String server) {
-		return (getServers().contains(server));
+		return getServers().contains(server);
 	}
 
 	public void setServerIcon(String server, ItemStack stack);

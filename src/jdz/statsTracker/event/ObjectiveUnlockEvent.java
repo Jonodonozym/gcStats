@@ -4,7 +4,7 @@ package jdz.statsTracker.event;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-import jdz.bukkitUtils.events.Event;
+import jdz.bukkitUtils.components.events.Event;
 import jdz.statsTracker.objective.Objective;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

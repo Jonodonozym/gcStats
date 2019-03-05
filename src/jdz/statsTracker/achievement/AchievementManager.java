@@ -25,8 +25,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
+import jdz.bukkitUtils.components.RomanNumber;
 import jdz.bukkitUtils.fileIO.FileLogger;
-import jdz.bukkitUtils.misc.RomanNumber;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.achievementTypes.RemoteAchievement;
@@ -41,20 +41,20 @@ import lombok.Getter;
 public class AchievementManager implements Listener {
 	@Getter public static final AchievementManager instance = new AchievementManager();
 
-	@Getter private final List<Achievement> achievements = new ArrayList<Achievement>();
-	private final Map<String, Achievement> achievementsByName = new HashMap<String, Achievement>();
-	private final Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<StatType, Set<StatAchievement>>();
-	private final Map<Plugin, List<Achievement>> achievementsByPlugin = new HashMap<Plugin, List<Achievement>>();
+	@Getter private final List<Achievement> achievements = new ArrayList<>();
+	private final Map<String, Achievement> achievementsByName = new HashMap<>();
+	private final Map<StatType, Set<StatAchievement>> achievementsByType = new HashMap<>();
+	private final Map<Plugin, List<Achievement>> achievementsByPlugin = new HashMap<>();
 
-	private final Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<Player, Set<Achievement>>();
-	private final Map<Player, Integer> achievementPoints = new HashMap<Player, Integer>();
-	private final Set<Player> areLoaded = new HashSet<Player>();
+	private final Map<Player, Set<Achievement>> localEarntAchievements = new HashMap<>();
+	private final Map<Player, Integer> achievementPoints = new HashMap<>();
+	private final Set<Player> areLoaded = new HashSet<>();
 
 	public void addAchievements(Plugin plugin, Achievement... achievements) {
 		if (achievements == null || achievements.length == 0)
 			return;
 
-		List<Achievement> added = new ArrayList<Achievement>();
+		List<Achievement> added = new ArrayList<>();
 
 		if (!achievementsByPlugin.containsKey(plugin))
 			achievementsByPlugin.put(plugin, new ArrayList<Achievement>());
@@ -77,7 +77,7 @@ public class AchievementManager implements Listener {
 				StatType type = ((StatAchievement) achievement).getStatType();
 				if (!achievementsByType.containsKey(type))
 					achievementsByType.put(type, new HashSet<StatAchievement>());
-				this.achievementsByType.get(type).add((StatAchievement) achievement);
+				achievementsByType.get(type).add((StatAchievement) achievement);
 			}
 			achievementsByPlugin.get(plugin).add(achievement);
 		}
@@ -102,7 +102,7 @@ public class AchievementManager implements Listener {
 			achievementsByName.remove(achievement.getName());
 			if (achievement instanceof StatAchievement) {
 				StatType type = ((StatAchievement) achievement).getStatType();
-				this.achievementsByType.get(type).remove(achievement);
+				achievementsByType.get(type).remove(achievement);
 			}
 		}
 
@@ -231,10 +231,10 @@ public class AchievementManager implements Listener {
 	}
 
 	public List<Achievement> getFromConfig(FileConfiguration achConfig) {
-		List<Achievement> addedAchievements = new ArrayList<Achievement>();
+		List<Achievement> addedAchievements = new ArrayList<>();
 
 		if (achConfig.contains("achievements"))
-			for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false)) {
+			for (String achievement : achConfig.getConfigurationSection("achievements").getKeys(false))
 				try {
 					String typeName = achConfig.getString("achievements." + achievement + ".type");
 					StatType type = StatsManager.getInstance().getType(typeName);
@@ -259,15 +259,15 @@ public class AchievementManager implements Listener {
 					List<String> rewardText = achConfig.getStringList("achievements." + achievement + ".rewardText");
 
 					if (required == null || required.isEmpty()) {
-						required = new ArrayList<Double>();
+						required = new ArrayList<>();
 						required.add(achConfig.getDouble("achievements." + achievement + ".required"));
 					}
 					if (points == null || points.isEmpty()) {
-						points = new ArrayList<Integer>();
+						points = new ArrayList<>();
 						points.add(achConfig.getInt("achievements." + achievement + ".points"));
 					}
 					if (rewardText == null || rewardText.isEmpty()) {
-						rewardText = new ArrayList<String>();
+						rewardText = new ArrayList<>();
 						rewardText.add(achConfig.getString("achievements." + achievement + ".rewardText"));
 					}
 					while (points.size() < required.size())
@@ -319,7 +319,6 @@ public class AchievementManager implements Listener {
 							+ " has invalid configuration, check the error log for details");
 					new FileLogger(GCStats.getInstance()).createErrorLog(e);
 				}
-			}
 
 		return addedAchievements;
 	}
