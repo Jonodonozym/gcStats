@@ -3,35 +3,33 @@ package jdz.statsTracker.hooks;
 
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
 import jdz.statsTracker.stats.StatsManager;
-import me.clip.placeholderapi.external.EZPlaceholderHook;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
-public class PlaceholderHook extends EZPlaceholderHook {
-
-	public PlaceholderHook() {
-		super(GCStats.getInstance(), "gcStats");
-	}
+public class PlaceholderHook extends PlaceholderExpansion {
 
 	@Override
 	public String onPlaceholderRequest(Player player, String identifier) {
-
-		/*
-		 * String statID = identifier;
-		 * String topPlayer = "";
-		 *
-		 * int topIndex = identifier.indexOf("top");
-		 * if (topIndex != -1) {
-		 * String statString = identifier.substring(0, topIndex);
-		 * String
-		 * }
-		 */
-
 		StatType stat = StatsManager.getInstance().getType(identifier);
 		if (stat == null)
 			return null;
 
 		return stat.valueToString(stat.get(player));
+	}
+
+	@Override
+	public String getAuthor() {
+		return "Jonodonozym";
+	}
+
+	@Override
+	public String getIdentifier() {
+		return "gcStats";
+	}
+
+	@Override
+	public String getVersion() {
+		return "1.0";
 	}
 }

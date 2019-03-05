@@ -51,7 +51,7 @@ public class GCStats extends JavaPlugin {
 		PluginManager pm = Bukkit.getPluginManager();
 
 		if (pm.isPluginEnabled("PlaceholderAPI"))
-			new PlaceholderHook().hook();
+			new PlaceholderHook().register();
 
 		pm.registerEvents(StatsManager.getInstance(), this);
 		pm.registerEvents(AchievementManager.getInstance(), this);
