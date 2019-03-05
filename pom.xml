@@ -16,6 +16,9 @@
 				<includes>
 					<include>plugin.yml</include>
 					<include>config.yml</include>
+					<include>enabledStats.yml</include>
+					<include>Achievements.yml</include>
+					<include>AchievementShop.yml</include>
 				</includes>
 			</resource>
 		</resources>

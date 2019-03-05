@@ -182,6 +182,10 @@ public class StatsManager implements Listener {
 		Set<StatType> enabledStats = new HashSet<>();
 
 		FileConfiguration config = Config.getConfig(GCStats.getInstance(), "enabledStats.yml");
+		
+		if (!config.isConfigurationSection("enabledStats"))
+			config.createSection("enabledStats");
+		
 		for (String key : config.getConfigurationSection("enabledStats").getKeys(false)) {
 			if (!config.getBoolean("enabledStats." + key)) {
 				config.set("enabledStats." + key, false);

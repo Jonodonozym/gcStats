@@ -38,24 +38,24 @@ shop:
     ItemLore:
       - '&aLike really magical'
   Slot1:
-    ItemID: 306
+    Material: IRON_HELMET
     Cost: 1
     GiveItem: false
     CustomName: '&aSuperman Iron Armor'
     ExtraItems:
       Item0:
-        ItemID: 306
+        Material: IRON_HELMET
         EnchantCodes:
-          - 0:10
+          - protection:10
       Item1:
-        ItemID: 307
+        Material: IRON_CHESTPLATE
         EnchantCodes:
-          - 0:10
+          - protection:10
       Item2:
-        ItemID: 308
+        Material: IRON_LEGGINGS
         EnchantCodes:
-          - 0:10
+          - protection:10
       Item3:
-        ItemID: 309
+        Material: IRON_BOOTS
         EnchantCodes:
-          - 0:10
+          - protection:10

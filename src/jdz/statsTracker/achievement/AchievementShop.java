@@ -142,7 +142,6 @@ public class AchievementShop implements Listener {
 		public final List<String> commands;
 		public final String[] messages;
 
-		@SuppressWarnings("deprecation")
 		private ShopItem(ItemStack displayItem, List<ItemStack> items, int slot, int cost, List<String> commands,
 				List<String> enchants, List<String> messages, boolean giveItem) {
 			this.items = items;
@@ -155,8 +154,8 @@ public class AchievementShop implements Listener {
 				String[] args = s.split(":");
 				try {
 					Integer level = Integer.parseInt(args[1].trim());
-					this.displayItem.addUnsafeEnchantment(
-							Enchantment.getByKey(new NamespacedKey(NamespacedKey.MINECRAFT, args[0].trim())), level);
+					this.displayItem.addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(args[0].trim())),
+							level);
 				}
 				catch (Exception e) {
 					GCStats.getInstance().getLogger().info("Invalid enchantment '" + s + "' on achievement shop item '"
@@ -209,8 +208,7 @@ public class AchievementShop implements Listener {
 			for (String s : enchants) {
 				String[] args = s.split(":");
 				int eLevel = Integer.parseInt(args[1].trim());
-				item.addUnsafeEnchantment(
-						Enchantment.getByKey(new NamespacedKey(NamespacedKey.MINECRAFT, args[0].trim())), eLevel);
+				item.addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(args[0].trim())), eLevel);
 			}
 
 			ItemMeta im = item.getItemMeta();

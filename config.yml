@@ -22,13 +22,11 @@ achievements:
   doMessage: true
   giveRewards: true
   globalPoints: false # if true, points carry across, and can be redeemed on, multiple servers
-  serverIcon: GRASS
 
 ## Name of the server in the database
 server:
-  name: "defaultName"
-  icon: "INK_SACK"
-  iconDamage: 2
+  name: defaultName
+  icon: LAPIS_LAZULI
   
 data:
   SQLEnabled: true
