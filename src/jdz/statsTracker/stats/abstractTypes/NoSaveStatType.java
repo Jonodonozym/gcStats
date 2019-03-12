@@ -4,6 +4,7 @@ package jdz.statsTracker.stats.abstractTypes;
 import java.util.UUID;
 
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 public abstract class NoSaveStatType extends BufferedStatType {
 
@@ -41,4 +42,10 @@ public abstract class NoSaveStatType extends BufferedStatType {
 		for (UUID uuid : getAllEntries())
 			set(uuid, getDefault());
 	}
+	
+	@Override
+	public boolean hasFetched(Player player) {
+		return true;
+	}
+	
 }
