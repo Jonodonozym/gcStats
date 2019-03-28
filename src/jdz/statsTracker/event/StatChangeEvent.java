@@ -6,8 +6,8 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-import jdz.bukkitUtils.events.Cancellable;
-import jdz.bukkitUtils.events.Event;
+import jdz.bukkitUtils.components.events.Cancellable;
+import jdz.bukkitUtils.components.events.Event;
 import jdz.statsTracker.stats.StatType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

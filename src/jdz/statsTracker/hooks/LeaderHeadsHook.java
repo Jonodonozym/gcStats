@@ -1,9 +1,9 @@
 
 package jdz.statsTracker.hooks;
 
-import java.util.Arrays;
-
 import static org.bukkit.ChatColor.*;
+
+import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

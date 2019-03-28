@@ -3,10 +3,10 @@ package jdz.statsTracker.hooks;
 
 import org.bukkit.entity.Player;
 
-import jdz.statsTracker.stats.StatsManager;
-import me.clip.placeholderapi.external.EZPlaceholderHook;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsManager;
+import me.clip.placeholderapi.external.EZPlaceholderHook;
 
 public class PlaceholderHook extends EZPlaceholderHook {
 

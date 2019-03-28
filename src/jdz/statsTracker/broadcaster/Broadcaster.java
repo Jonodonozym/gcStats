@@ -4,7 +4,7 @@ package jdz.statsTracker.broadcaster;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import jdz.bukkitUtils.misc.Random;
+import jdz.bukkitUtils.components.Random;
 import jdz.statsTracker.GCStats;
 
 public class Broadcaster {
@@ -18,11 +18,12 @@ public class Broadcaster {
 			if (--nextBroadcast > 0)
 				return;
 
-			nextBroadcast = Random.nextInt(BroadcasterConfig.getMaxTime() - BroadcasterConfig.getMinTime())
-					+ BroadcasterConfig.getMinTime();
+			nextBroadcast = Random
+					.nextInt(BroadcasterConfig.getIntervalMinutesMax() - BroadcasterConfig.getIntervalMinutesMin())
+					+ BroadcasterConfig.getIntervalMinutesMin();
 			for (Player p : Bukkit.getOnlinePlayers())
-				p.sendMessage(BroadcasterConfig.getMessage());
-
+				for (String message : BroadcasterConfig.getMessage())
+					p.sendMessage(message);
 		}, 1, 1);
 	}
 }

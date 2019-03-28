@@ -3,7 +3,7 @@ package jdz.statsTracker.extensionExample;
 
 import org.bukkit.Material;
 
-import jdz.bukkitUtils.misc.RomanNumber;
+import jdz.bukkitUtils.components.RomanNumber;
 import jdz.statsTracker.achievement.Achievement;
 import jdz.statsTracker.achievement.achievementTypes.StatAchievement;
 

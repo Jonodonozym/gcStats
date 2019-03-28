@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import static org.bukkit.ChatColor.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -16,7 +17,7 @@ import jdz.bukkitUtils.commands.annotations.CommandMethod;
 import jdz.bukkitUtils.commands.annotations.CommandRequiredArgs;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.bukkitUtils.misc.StringUtils;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
@@ -57,8 +58,7 @@ public class CommandStatTop extends SubCommand {
 		Bukkit.getScheduler().runTaskAsynchronously(GCStats.getInstance(), () -> {
 			int entries = StatsDatabase.getInstance().countEntries(GCStatsConfig.serverName);
 			if (entries > 1000)
-				sender.sendMessage(ChatColor.GOLD + "Sorting " + ChatColor.AQUA + entries + ChatColor.GOLD
-						+ " entries, please wait...");
+				sender.sendMessage(GOLD + "Sorting " + AQUA + entries + GOLD + " entries, please wait...");
 		});
 
 		Map<String, Double> rows = StatsDatabase.getInstance().getAllSorted(type);
@@ -103,21 +103,19 @@ public class CommandStatTop extends SubCommand {
 			int rank = playerToRank.get(type).get(player.getName());
 			String value = type.valueToString(playerToStat.get(type).get(player.getName()));
 			String name = player.getName();
-			messages[1] = ChatColor.AQUA + "[" + (rank + 1) + "] " + ChatColor.GREEN + name + ChatColor.WHITE + "  "
-					+ value;
+			messages[1] = AQUA + "[" + (rank + 1) + "] " + GREEN + name + WHITE + "  " + value;
 		}
 
-		messages[0] = ChatColor.GRAY + " ============[ " + ChatColor.DARK_AQUA + "Top " + type.getName()
-				+ (pageIndex == 0 ? "" : ", " + ChatColor.GREEN + "Page " + (pageIndex + 1) + " / " + (maxPage + 1))
-				+ ChatColor.GRAY + " ]============";
+		messages[0] = GRAY + " ============[ " + DARK_AQUA + "Top " + type.getName()
+				+ (pageIndex == 0 ? "" : ", " + GREEN + "Page " + (pageIndex + 1) + " / " + (maxPage + 1)) + GRAY
+				+ " ]============";
 
-		messages[messages.length - 1] = ChatColor.GRAY + StringUtils.repeat("=", messages[0].length() - 9);
+		messages[messages.length - 1] = GRAY + StringUtils.repeat("=", messages[0].length() - 9);
 
 		for (int i = min; i <= max; i++) {
 			String player = playersSorted.get(type).get(i);
 			String value = type.valueToString(playerToStat.get(type).get(player));
-			messages[i - min + offset] = ChatColor.GOLD + "[" + (i + 1) + "] " + ChatColor.GREEN + player
-					+ ChatColor.WHITE + "  " + value;
+			messages[i - min + offset] = GOLD + "[" + (i + 1) + "] " + GREEN + player + WHITE + "  " + value;
 		}
 
 		sender.sendMessage(messages);

@@ -15,15 +15,16 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import jdz.bukkitUtils.configuration.Config;
 import jdz.bukkitUtils.fileIO.FileLogger;
-import jdz.bukkitUtils.misc.Config;
 import jdz.statsTracker.achievement.AchievementConfig;
 import jdz.statsTracker.achievement.AchievementInventories;
 import jdz.statsTracker.achievement.AchievementManager;
 import jdz.statsTracker.achievement.AchievementShop;
 import jdz.statsTracker.broadcaster.Broadcaster;
 import jdz.statsTracker.broadcaster.BroadcasterConfig;
-import jdz.statsTracker.commandHandlers.*;
+import jdz.statsTracker.commandHandlers.AchievementCommandExecutor;
+import jdz.statsTracker.commandHandlers.StatsCommandExecutor;
 import jdz.statsTracker.hooks.PlaceholderHook;
 import jdz.statsTracker.objective.ObjectivesCommand;
 import jdz.statsTracker.stats.StatsManager;
@@ -41,7 +42,7 @@ public class GCStats extends JavaPlugin {
 		GCStatsConfig.reloadConfig();
 		
 		new AchievementConfig().registerEvents(this);
-		new BroadcasterConfig().registerEvents(this);
+		new BroadcasterConfig(this).register();
 		Broadcaster.init();
 
 		StatsManager.getInstance().loadDefaultStats();

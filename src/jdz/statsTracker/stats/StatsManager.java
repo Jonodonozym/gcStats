@@ -25,7 +25,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
-import jdz.bukkitUtils.misc.Config;
+import jdz.bukkitUtils.configuration.Config;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.hooks.LeaderHeadsHook;
 import jdz.statsTracker.stats.abstractTypes.BufferedStatType;

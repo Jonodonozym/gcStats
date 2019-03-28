@@ -10,7 +10,6 @@ import java.util.Map;
 import org.bukkit.OfflinePlayer;
 
 import jdz.statsTracker.GCStatsConfig;
-import jdz.statsTracker.stats.StatType;
 
 public interface StatsDatabase {
 	public static StatsDatabase getInstance() {

@@ -9,7 +9,7 @@ import java.util.Set;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
-import jdz.bukkitUtils.events.Listener;
+import jdz.bukkitUtils.components.events.Listener;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;

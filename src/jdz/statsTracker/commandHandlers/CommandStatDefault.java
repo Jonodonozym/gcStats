@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import static org.bukkit.ChatColor.*;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,12 +17,12 @@ import jdz.bukkitUtils.commands.annotations.CommandLabel;
 import jdz.bukkitUtils.commands.annotations.CommandMethod;
 import jdz.bukkitUtils.commands.annotations.CommandShortDescription;
 import jdz.bukkitUtils.commands.annotations.CommandUsage;
-import jdz.bukkitUtils.misc.StringUtils;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsDatabase;
 import jdz.statsTracker.stats.StatsManager;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
-import jdz.statsTracker.stats.StatsDatabase;
 
 @CommandLabel("DEFAULT")
 @CommandShortDescription("Displays your or another player's stats")
@@ -34,7 +34,7 @@ public class CommandStatDefault extends SubCommand {
 		if (sender instanceof Player)
 			showStats(sender, (Player) sender);
 		else
-			sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
+			sender.sendMessage(RED + "You must be a player to do that!");
 	}
 
 	@CommandMethod
@@ -43,15 +43,16 @@ public class CommandStatDefault extends SubCommand {
 			if (sender instanceof Player)
 				showStats(sender, playerOrServer.replaceAll("_", " "), (OfflinePlayer) sender);
 			else
-				sender.sendMessage(ChatColor.RED + "You must be a player to do that!");
+				sender.sendMessage(RED + "You must be a player to do that!");
 			return;
 		}
 
-		@SuppressWarnings("deprecation") OfflinePlayer target = Bukkit.getOfflinePlayer(playerOrServer);
+		@SuppressWarnings("deprecation")
+		OfflinePlayer target = Bukkit.getOfflinePlayer(playerOrServer);
 		if (StatsDatabase.getInstance().hasPlayer(target))
 			showStats(sender, GCStatsConfig.serverName, target);
 		else
-			sender.sendMessage(ChatColor.RED + "'" + playerOrServer
+			sender.sendMessage(RED + "'" + playerOrServer
 					+ "' is not a valid server or that player has never played on this server.");
 	}
 
@@ -60,7 +61,7 @@ public class CommandStatDefault extends SubCommand {
 		if (StatsDatabase.getInstance().hasPlayer(player))
 			showStats(sender, server, player);
 		else
-			sender.sendMessage(ChatColor.RED + "'" + player.getName()
+			sender.sendMessage(RED + "'" + player.getName()
 					+ "' is not a valid server or that player has never played on this server.");
 	}
 
@@ -109,21 +110,20 @@ public class CommandStatDefault extends SubCommand {
 		String[] messages = new String[stats.size() + 2];
 
 		int i = 0;
-		messages[i++] = ChatColor.GRAY + "============[ " + ChatColor.GOLD + targetName + "'s"
-				+ (server.equals("") || server.equals(GCStatsConfig.serverName) ? "" : " " + server) + " stats"
-				+ ChatColor.GRAY + " ]============";
+		messages[i++] = GRAY + "============[ " + GOLD + targetName + "'s"
+				+ (server.equals("") || server.equals(GCStatsConfig.serverName) ? "" : " " + server) + " stats" + GRAY
+				+ " ]============";
 		for (Entry<String, Double> entry : stats.entrySet()) {
 			try {
 				StatType type = StatsManager.getInstance().getType(entry.getKey());
-				messages[i] = ChatColor.DARK_AQUA + type.getName() + ChatColor.AQUA + ": "
-						+ type.valueToString(entry.getValue());
+				messages[i] = DARK_AQUA + type.getName() + AQUA + ": " + type.valueToString(entry.getValue());
 			}
 			catch (Exception e) {
-				messages[i] = ChatColor.DARK_AQUA + entry.getKey() + ChatColor.AQUA + ": " + entry.getValue();
+				messages[i] = DARK_AQUA + entry.getKey() + AQUA + ": " + entry.getValue();
 			}
 			i++;
 		}
-		messages[i] = ChatColor.GRAY + StringUtils.repeat("=", messages[0].length() - 9);
+		messages[i] = GRAY + StringUtils.repeat("=", messages[0].length() - 9);
 		sender.sendMessage(messages);
 	}
 }

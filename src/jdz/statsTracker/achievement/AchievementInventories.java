@@ -22,16 +22,16 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import jdz.statsTracker.stats.StatType;
-import jdz.statsTracker.stats.StatsDatabase;
-import lombok.Getter;
-import lombok.Setter;
 import jdz.bukkitUtils.fileIO.FileLogger;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.achievementTypes.RemoteStatAchievement;
 import jdz.statsTracker.achievement.achievementTypes.StatAchievement;
 import jdz.statsTracker.achievement.database.AchievementDatabase;
+import jdz.statsTracker.stats.StatType;
+import jdz.statsTracker.stats.StatsDatabase;
+import lombok.Getter;
+import lombok.Setter;
 
 public class AchievementInventories implements Listener {
 	@Getter private static final AchievementInventories instance = new AchievementInventories();

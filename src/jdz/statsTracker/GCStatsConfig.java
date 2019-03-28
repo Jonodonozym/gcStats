@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
-import jdz.bukkitUtils.misc.Config;
+import jdz.bukkitUtils.configuration.Config;
 
 public class GCStatsConfig {
 	public static String serverName = "";

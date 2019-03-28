@@ -15,11 +15,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
-import jdz.bukkitUtils.misc.StringUtils;
-import jdz.bukkitUtils.sql.SQLColumn;
-import jdz.bukkitUtils.sql.SQLColumnType;
-import jdz.bukkitUtils.sql.SqlDatabase;
-import jdz.bukkitUtils.sql.SQLRow;
+import jdz.bukkitUtils.persistence.SQLColumn;
+import jdz.bukkitUtils.persistence.SQLColumnType;
+import jdz.bukkitUtils.persistence.SQLRow;
+import jdz.bukkitUtils.persistence.minecraft.BukkitDatabase;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.stats.abstractTypes.NoSaveStatType;
@@ -30,7 +30,7 @@ import lombok.Getter;
  * 
  * @author Jonodonozym
  */
-public class StatsDatabaseSQL extends SqlDatabase implements Listener, StatsDatabase {
+public class StatsDatabaseSQL extends BukkitDatabase implements Listener, StatsDatabase {
 	@Getter private static final StatsDatabaseSQL instance = new StatsDatabaseSQL(GCStats.getInstance());
 	private final FileLogger logger = new FileLogger(GCStats.getInstance(), "SQL", false);
 

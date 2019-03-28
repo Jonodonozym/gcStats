@@ -25,8 +25,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
+import jdz.bukkitUtils.components.RomanNumber;
 import jdz.bukkitUtils.fileIO.FileLogger;
-import jdz.bukkitUtils.misc.RomanNumber;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.achievementTypes.RemoteAchievement;

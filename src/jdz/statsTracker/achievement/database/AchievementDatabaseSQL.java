@@ -1,15 +1,6 @@
 
 package jdz.statsTracker.achievement.database;
 
-import static jdz.bukkitUtils.sql.SQLColumnType.BOOLEAN;
-import static jdz.bukkitUtils.sql.SQLColumnType.DOUBLE;
-import static jdz.bukkitUtils.sql.SQLColumnType.INT;
-import static jdz.bukkitUtils.sql.SQLColumnType.INT_1_BYTE;
-import static jdz.bukkitUtils.sql.SQLColumnType.INT_2_BYTE;
-import static jdz.bukkitUtils.sql.SQLColumnType.STRING_128;
-import static jdz.bukkitUtils.sql.SQLColumnType.STRING_32;
-import static jdz.bukkitUtils.sql.SQLColumnType.STRING_512;
-import static jdz.bukkitUtils.sql.SQLColumnType.STRING_64;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +19,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import jdz.bukkitUtils.fileIO.FileLogger;
-import jdz.bukkitUtils.misc.StringUtils;
-import jdz.bukkitUtils.misc.utils.ItemUtils;
-import jdz.bukkitUtils.sql.SQLColumn;
-import jdz.bukkitUtils.sql.SQLRow;
-import jdz.bukkitUtils.sql.SqlDatabase;
+import jdz.bukkitUtils.persistence.SQLColumn;
+import static jdz.bukkitUtils.persistence.SQLColumnType.*;
+import jdz.bukkitUtils.persistence.SQLRow;
+import jdz.bukkitUtils.persistence.minecraft.BukkitDatabase;
+import jdz.bukkitUtils.utils.ItemUtils;
+import jdz.bukkitUtils.utils.StringUtils;
 import jdz.statsTracker.GCStats;
 import jdz.statsTracker.GCStatsConfig;
 import jdz.statsTracker.achievement.Achievement;
@@ -44,7 +36,7 @@ import jdz.statsTracker.achievement.achievementTypes.RemoteStatAchievement;
 import jdz.statsTracker.achievement.achievementTypes.StatAchievement;
 import lombok.Getter;
 
-class AchievementDatabaseSQL extends SqlDatabase implements AchievementDatabase, Listener {
+class AchievementDatabaseSQL extends BukkitDatabase implements AchievementDatabase, Listener {
 	@Getter private static final AchievementDatabaseSQL instance = new AchievementDatabaseSQL(GCStats.getInstance());
 
 	protected String achievementPointsTable = "gcs_Achievement_Points";

@@ -24,7 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import jdz.bukkitUtils.fileIO.FileExporter;
-import jdz.bukkitUtils.misc.utils.ColorUtils;
+import jdz.bukkitUtils.utils.ColorUtils;
 import jdz.statsTracker.GCStats;
 
 public class AchievementShop implements Listener {
