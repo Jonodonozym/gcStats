@@ -16,57 +16,58 @@ import jdz.statsTracker.event.StatChangeEvent;
 import jdz.statsTracker.stats.StatsDatabase;
 
 public abstract class BufferedStatType extends AbstractStatType implements Listener {
-	
+	public static abstract class Integer extends BufferedStatType {
+		@Override
+		public String valueToString(double value) {
+			return "" + (int) value;
+		}
+	}
+
+	public static abstract class Double extends BufferedStatType {
+		@Override
+		public String valueToString(double value) {
+			return "" + value;
+		}
+	}
+
 	public static final BufferedStatType makeDouble(String name) {
 		return makeDouble(name, true);
 	}
-	
+
 	public static final BufferedStatType makeDouble(String name, boolean visible) {
-		return new BufferedStatType() {
-			
-			@Override
-			public String valueToString(double value) {
-				return value+"";
-			}
-			
+		return new BufferedStatType.Double() {
 			@Override
 			public String getName() {
 				return name;
 			}
-			
+
 			@Override
 			public boolean isVisible() {
 				return visible;
 			}
 		};
 	}
-	
+
 	public static final BufferedStatType makeInt(String name) {
 		return makeInt(name, true);
 	}
-	
+
 	public static final BufferedStatType makeInt(String name, boolean visible) {
-		return new BufferedStatType() {
-			
-			@Override
-			public String valueToString(double value) {
-				return ((int)value)+"";
-			}
-			
+		return new BufferedStatType.Integer() {
 			@Override
 			public String getName() {
 				return name;
 			}
-			
+
 			@Override
 			public boolean isVisible() {
 				return visible;
 			}
 		};
 	}
-	
-	protected final Map<UUID, Double> onlinePlayerStats = new HashMap<UUID, Double>();
-	private final Set<UUID> hasFetched = new HashSet<UUID>();
+
+	protected final Map<UUID, java.lang.Double> onlinePlayerStats = new HashMap<>();
+	private final Set<UUID> hasFetched = new HashSet<>();
 
 	@Override
 	public void addPlayer(Player player, double value) {
