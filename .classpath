@@ -21,9 +21,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/User/git/^^Libs/lombok.jar"/>
-	<classpathentry kind="lib" path="D:/User/git/^^Libs/Minecraft Plugins/PlaceholderAPI-2.8.2.jar"/>
+	<classpathentry kind="lib" path="D:/User/git/^^Libs/Minecraft Plugins/PlaceholderAPI-2.10.3.jar"/>
 	<classpathentry kind="lib" path="D:/User/git/^^Libs/Minecraft Plugins/LeaderHeads.jar"/>
-	<classpathentry kind="lib" path="D:/User/git/^^Libs/Minecraft Plugins/JBU1.1 - pre1.13.jar"/>
+	<classpathentry kind="lib" path="D:/User/git/^^Libs/Minecraft Plugins/JBU1.2b.jar"/>
 	<classpathentry kind="lib" path="D:/User/git/^^Libs/Minecraft Plugins/PaperSpigot-1.8.8-R0.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
